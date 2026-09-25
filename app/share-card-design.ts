@@ -1,8 +1,8 @@
 import type {routeGeometry} from './route-geometry';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama';
-export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama'];
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart';
+export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 export function shareCardSvg(o:ShareDesign){
  const h=o.height,ink=!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
@@ -15,7 +15,28 @@ export function shareCardSvg(o:ShareDesign){
  if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${o.ink==='white'?'#181818':'#fafafa'}"/>`);
  const first=o.stats[0],others=o.stats.slice(1),cy=h/2;
  // Each design is a standalone overlay; canvas padding stays transparent.
- if(o.template==='editorial'){
+ if(o.template==='bubble'){
+  const words=o.stats.slice(0,2).map(compact).join(', '),y=cy-85;
+  parts.push(`<rect x="120" y="${y}" width="820" height="160" rx="80" fill="#087eff"/><path d="M885 ${y+105}Q920 ${y+168}960 ${y+162}Q906 ${y+190}865 ${y+148}" fill="#087eff"/>`,text(words,530,y+103,65,500,'#ffffff',740,false,'middle'));
+  parts.push(text((o.cycling?'Rode':o.sport==='Running'?'Ran':'Trained')+(o.time?' '+o.time:''),935,y+220,30,400,ink,800,false,'end'));
+ }else if(o.template==='wide'||o.template==='weekbold'){
+  if(o.template==='weekbold')parts.push(text('WEEK TOTALS · '+o.sport.toUpperCase(),540,cy-100,34,900,ink,950,false,'middle'));
+  if(first)parts.push(text(compact(first).toUpperCase(),540,cy+40,170,900,ink,950,false,'middle').replace('Arial,Helvetica,sans-serif','Arial Black,Arial,Helvetica,sans-serif').replace(' font-size=', ' stroke="'+ink+'" stroke-width="2" font-size='));
+  others.slice(0,3).forEach((s,i)=>parts.push(text(compact(s).toUpperCase(),72+i*320,cy+112,40,900,ink,295)));
+  if(o.template==='weekbold')parts.push(text(o.date,540,cy+172,22,400,ink,936,false,'middle'));
+ }else if(o.template==='weekday'){
+  parts.push(text((o.weekday||o.title).toUpperCase(),540,cy-330,67,900,ink,930,false,'middle'),route(100,cy-255,880,450,7));
+  if(first)parts.push(text(compact(first).toUpperCase(),540,cy+305,118,900,ink,940,false,'middle'));
+ }else if(o.template==='glass'){
+  parts.push(`<rect x="100" y="${cy-220}" width="880" height="440" rx="65" fill="${o.ink==='white'?'#555555':'#eeeeee'}" fill-opacity=".65"/>`,text(o.title,150,cy-138,51,800,ink,775));
+  o.stats.slice(0,6).forEach((s,i)=>{const x=150+i%3*265,y=cy-40+Math.floor(i/3)*130;parts.push(text(s.label.toUpperCase(),x,y,18,500,ink,245),text(compact(s),x,y+49,42,800,ink,245))});
+ }else if(o.template==='weekchart'){
+  parts.push(text(o.sport+' · WEEKLY TOTALS',100,cy-310,35,800));
+  o.stats.slice(0,3).forEach((s,i)=>{const x=100+i*300;parts.push(text(s.label,x,cy-235,23,500,ink,275),text(compact(s),x,cy-175,52,800,ink,275))});
+  const days=o.weekDays??[],max=Math.max(1,...days.map(d=>d.value??0));
+  days.forEach((d,i)=>{const x=120+i*135,y=cy+200,v=d.value;parts.push(text(d.label.toUpperCase(),x+40,y+52,22,700,ink,100,false,'middle'));if(v!==null){const hh=v/max*225;parts.push(`<rect x="${x}" y="${y-hh}" width="80" height="${Math.max(hh,2)}" rx="5" fill="${ink}" opacity=".8"/>`,text(v.toFixed(1),x+40,y-hh-18,26,700,ink,110,false,'middle'))}else parts.push(text('—',x+40,y-20,24,400,ink,100,false,'middle'))});
+  parts.push(text('km · '+o.date,100,cy+330,23));
+ }else if(o.template==='editorial'){
   parts.push(text(o.title.toUpperCase(),72,cy-150,26,800));
   if(first)parts.push(text(compact(first).toUpperCase(),62,cy+20,174,900,ink,950));
   others.slice(0,3).forEach((s,i)=>parts.push(text(compact(s),72+i*322,cy+90,39,800,ink,300)));
