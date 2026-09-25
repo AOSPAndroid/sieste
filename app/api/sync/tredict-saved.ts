@@ -1,3 +1,4 @@
+import {healthDay,hasDailyReading} from '../coros/refresh-policy';
 import {mergeRecentSnapshot} from './recent-snapshot';
 import {sessionLabels} from '../../session-intelligence-data';
 import {analysisIdentity,analysisSignature,restoreAnalyses,saveAnalysis} from '../../../db/activity-analysis';
@@ -36,10 +37,11 @@ export async function POST(request:Request){
   const identity=await analysisIdentity(token);
   const upstream=async(body:any)=>tredict(new Request(request.url,{method:'POST',headers:{'Content-Type':'application/json','Origin':new URL(request.url).origin},body:JSON.stringify({...body,token})}));
   if(action==='sync'){
-   if(!supplied&&previous&&Date.now()-Date.parse(previous.updated_at)<300000){const cached=await bucket.get(previous.snapshot_key);if(cached)return privateJson(await filteredSnapshot(user.userId,await restoreAnalyses(user.userId,identity,await cached.json())))}
+   if(!payload.manual&&!supplied&&previous&&Date.now()-Date.parse(previous.updated_at)<300000){const cached=await bucket.get(previous.snapshot_key);if(cached)return privateJson(await filteredSnapshot(user.userId,await restoreAnalyses(user.userId,identity,await cached.json())))}
    const priorObject=!supplied&&previous?await bucket.get(previous.snapshot_key):null;const prior:any=priorObject?await priorObject.json():null;
    const recentOnly=!!prior?.historyComplete&&Date.now()-Date.parse(prior.fullSyncedAt??'')<86400000;
-   const result=await upstream({recentOnly});if(!result.ok)return result;const fresh:any=await result.json();const data=recentOnly?mergeRecentSnapshot(prior,fresh):{...fresh,fullSyncedAt:fresh.syncedAt};const revision=crypto.randomUUID(),snapshotKey=prefix+revision+'/snapshot.json';
+   const today=healthDay(new Date(),typeof payload.timeZone==='string'?payload.timeZone:'UTC');
+   const result=await upstream({recentOnly,skipSleep:hasDailyReading('querySleepData',today,prior?.sleep,prior?.hrv,[]),skipHrv:hasDailyReading('querySleepHrv',today,prior?.sleep,prior?.hrv,[])});if(!result.ok)return result;const fresh:any=await result.json();const data=recentOnly?mergeRecentSnapshot(prior,fresh):{...fresh,sleep:{...prior?.sleep,...fresh.sleep},hrv:{...prior?.hrv,...fresh.hrv},fullSyncedAt:fresh.syncedAt};const revision=crypto.randomUUID(),snapshotKey=prefix+revision+'/snapshot.json';
    await bucket.put(snapshotKey,JSON.stringify(data),{httpMetadata:{contentType:'application/json'}});
    const encrypted=await seal(token,key,user.userId),updated=new Date().toISOString();
    const write=previous?await db.prepare('UPDATE athlete_connections SET revision = ?, token_ciphertext = ?, snapshot_key = ?, updated_at = ? WHERE owner = ? AND revision = ?').bind(revision,encrypted,snapshotKey,updated,user.userId,previous.revision).run():await db.prepare('INSERT INTO athlete_connections (owner,revision,token_ciphertext,snapshot_key,updated_at) VALUES (?,?,?,?,?) ON CONFLICT(owner) DO NOTHING').bind(user.userId,revision,encrypted,snapshotKey,updated).run();

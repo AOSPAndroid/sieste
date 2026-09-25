@@ -15,7 +15,7 @@ if(action==='sync'){
   if(payload.phase==='workouts'){
    const [r,h]=await Promise.all([legacy(payload),row?corosSnapshot(row):Promise.resolve(null)]);if(!r.ok)return r;training=await r.json();health=h;
   }else{
-   const [r,h]=await Promise.all([tredict.GET(),row?syncCoros(row,true,options):Promise.resolve(null)]);if(!r.ok)return r;training=(await r.json() as any).data;health=h;
+   const r=await tredict.GET();if(!r.ok)return r;training=(await r.json() as any).data;health=row?await syncCoros(row,true,{...options,primary:training}):null;
   }
   const response=privateJson(combineProviders(training,health));response.headers.set('Server-Timing',`${payload.phase};dur=${Math.round(performance.now()-started)}`);return response;
  }

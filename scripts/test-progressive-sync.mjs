@@ -1,5 +1,5 @@
 import ts from 'typescript';import {readFileSync} from 'node:fs';import assert from 'node:assert/strict';
-const load=(p,name)=>new Function(ts.transpileModule(readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replaceAll('export ','')+';return '+name)();
+const load=(p,name)=>new Function('mergeBodyValues',ts.transpileModule(readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','')+';return '+name)(name==='mergeBodyValues'?undefined:load('app/provider-data.ts','mergeBodyValues'));
 const merge=load('app/api/sync/recent-snapshot.ts','mergeRecentSnapshot');
 const prior={activities:[{id:'old',date:'2026-08-01'},{id:'updated',date:'2026-09-24',summary:{distance:5}},{id:'deleted',date:'2026-09-23'}],sleep:{night:[8]},hrv:{night:[90]},historyStart:'2025-01-01',historyComplete:true,fullSyncedAt:'2026-09-25T00:00:00Z',extra:{zones:{v:1},efforts:{trainingEfforts:{20260801:[[40]]}}},sources:{zones:{status:'synced'}}};
 const fresh={activities:[{id:'updated',date:'2026-09-24',summary:{distance:6}},{id:'new',date:'2026-09-25'}],sleep:{},hrv:{},historyStart:'2026-09-18',historyComplete:true,extra:{efforts:{trainingEfforts:{20260925:[[60]]}}},sources:{efforts:{status:'synced'}}};
