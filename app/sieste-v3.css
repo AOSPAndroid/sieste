@@ -430,3 +430,15 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 .sieste-v3 .primary-button,.sieste-v3 .connect-banner button{background:var(--s-accent-soft);color:var(--s-accent);border:1px solid #dfe2fa}
 .sieste-v3 .unified-toggles button[aria-pressed=true],.sieste-v3 .unified-segments button[aria-pressed=true]{background:var(--s-accent-soft);border-color:#c7d2fe;color:var(--s-accent)}
 .sieste-v3 .journal-month-grid.log-heat-grid .is-selected{outline-color:var(--s-accent)}
+/* Weekly distribution: compact, readable on phone, no chart library or requests. */
+.sieste-v3 .weekly-zones{background:#fff;border:1px solid #e7e7eb;border-radius:14px;padding:12px;margin-bottom:10px;min-width:0;color:#52525b}
+.sieste-v3 .weekly-zones header,.sieste-v3 .weekly-zones nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.sieste-v3 .weekly-zones h2{font-size:14px;margin:0;color:#27272a;font-weight:650}
+.sieste-v3 .weekly-zones select{max-width:100%;font-size:12px;padding:4px 7px;background:#fafafa;border:1px solid #e7e7eb;border-radius:7px}
+.sieste-v3 .weekly-zones nav{font-size:12px}.sieste-v3 .weekly-zones nav button{display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid #e7e7eb;border-radius:7px;background:#fff}.sieste-v3 .weekly-zones button:disabled{opacity:.35}
+.sieste-v3 .weekly-zone-total{display:flex;gap:8px;align-items:baseline;font-size:12px;margin:6px 0}.sieste-v3 .weekly-zone-total b{color:#27272a;font-size:16px}
+.sieste-v3 .weekly-zone-stack{display:flex;height:7px;overflow:hidden;border-radius:4px;margin-bottom:8px}.sieste-v3 .weekly-zone-stack i{height:100%}
+.sieste-v3 .weekly-zone-rows>div{display:grid;grid-template-columns:85px minmax(20px,1fr) 70px 32px;gap:6px;align-items:center;min-height:30px;font-size:12px}
+.sieste-v3 .weekly-zone-rows b{margin-right:5px}.sieste-v3 .weekly-zone-rows small{font-size:11px;color:#71717a}.sieste-v3 .weekly-zone-rows strong,.sieste-v3 .weekly-zone-rows>div>span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.sieste-v3 .weekly-zone-track{height:5px;background:#f4f4f5;border-radius:4px;overflow:hidden}.sieste-v3 .weekly-zone-track i{display:block;height:100%;border-radius:4px}
+.sieste-v3 .weekly-zones footer,.sieste-v3 .weekly-zone-empty{font-size:11px;line-height:1.4;color:#71717a;margin:7px 0 0}
