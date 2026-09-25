@@ -9,6 +9,7 @@ import "./activity-detail.css";
 import "./athlete-glance.css";
 import "./training-coach.css";
 import "./compact-tabs.css";
+import "./sieste-v2.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sieste.daaalil.chatgpt.site"),
