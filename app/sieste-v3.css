@@ -1,0 +1,392 @@
+/* sieste 3: ink navigation, precise numbers and uninterrupted data surfaces.
+   The previous compact primitives remain the layout fallback. */
+:root{--s-ink:#17202b;--s-muted:#697583;--s-faint:#8994a1;--s-canvas:#f3f5f8;--s-line:#e5e9ef;--s-accent:#d8f36a;--s-blue:#3569e8;--s-radius:16px}
+body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.sieste-v3{background:var(--s-canvas);color:var(--s-ink);--v2-ink:var(--s-ink);--v2-muted:var(--s-muted);--v2-bg:var(--s-canvas);--v2-line:var(--s-line);--v2-accent:var(--s-ink);--v2-radius:var(--s-radius)}
+.sieste-v3 .content main{max-width:1220px;padding:22px 30px 90px}
+.sieste-v3 :is(h1,h2,h3,strong,b){font-synthesis:none}
+.sieste-v3 :is(h1,h2,h3){color:var(--s-ink)}
+.sieste-v3 :is(button,summary,a,input,select):focus-visible{outline:2px solid var(--s-blue);outline-offset:3px}
+.sieste-v3 button{transition:background .15s,color .15s,box-shadow .15s,transform .15s}
+.sieste-v3 button:active:not(:disabled){transform:translateY(1px)}
+.sieste-v3 button:disabled{opacity:.4}
+.sieste-v3 .sieste-topbar{height:58px;min-height:58px;padding:0 30px;background:var(--s-canvas);border:0;position:relative;gap:14px}
+.sieste-v3 .sieste-brand-home strong{font-size:28px;letter-spacing:-1.7px;font-weight:800;color:var(--s-ink);gap:6px}
+.sieste-v3 .v2-brand-version{font-size:10px;font-weight:750;color:var(--s-ink);background:var(--s-accent);border-radius:5px;padding:3px 5px;letter-spacing:0}
+.sieste-v3 .sieste-brand-home>span{font-size:11px;letter-spacing:.1px;color:var(--s-muted);margin-left:10px}
+.sieste-v3 .v2-current-page{font-size:12px;letter-spacing:.2px;color:var(--s-muted)}
+.sieste-v3 .sieste-account{height:34px;width:34px;min-height:34px;padding:8px;background:white;border:1px solid var(--s-line);border-radius:50%}
+.sieste-v3 .mini-dock{display:flex;background:#17202bf5;border:1px solid #ffffff20;border-radius:22px;padding:5px;gap:3px;box-shadow:0 8px 25px #17202b24;backdrop-filter:blur(12px)}
+.sieste-v3 .mini-dock button{color:#b3bdcc;border-radius:17px;min-width:51px;height:46px;padding:5px 10px;gap:3px;background:transparent}
+.sieste-v3 .mini-dock button:hover{background:#ffffff12;color:white}
+.sieste-v3 .mini-dock button[aria-current=page]{color:#17202b;background:var(--s-accent)}
+.sieste-v3 .mini-dock>button[aria-current=page]:hover{color:#17202b;background:var(--s-accent);box-shadow:none}
+.sieste-v3 .mini-dock svg{width:19px;height:19px;stroke-width:1.7}
+.sieste-v3 .mini-dock small{font-size:10px;font-weight:600;line-height:1}
+.sieste-v3 .floating-sync{background:#fff;color:var(--s-ink);border-color:var(--s-line);width:38px;height:38px;box-shadow:0 3px 15px #17202b10}
+.sieste-v3 .connect-banner{padding:7px 11px;border-radius:9px;border:1px dashed #c9d2df;background:transparent;margin-bottom:12px}
+.sieste-v3 .connect-banner button{background:var(--s-ink);color:white;border:0;border-radius:6px;font-size:11px}
+.sieste-v3 .home-board-heading{margin:0 0 13px;align-items:end}
+.sieste-v3 .home-board-heading>div{display:block}
+.sieste-v3 .home-board-heading h1{display:block;font-size:27px;line-height:1.2;font-weight:750;letter-spacing:-1px;margin:0 0 4px}
+.sieste-v3 .home-board-heading p{font-size:12px;color:var(--s-muted)}
+.sieste-v3 .home-board-heading>span{font-size:11px;color:var(--s-muted)}
+.sieste-v3 .home-range-control{border:0;margin:0 0 9px;padding:0;gap:5px}
+.sieste-v3 .home-range-control>span{font-size:11px;color:var(--s-muted);font-weight:500}
+.sieste-v3 .home-range-control>div{background:#e7ebf1;border-radius:8px;padding:3px}
+.sieste-v3 .home-range-control button{border-radius:6px;min-height:28px;font-size:11px}
+.sieste-v3 .home-range-control button[aria-pressed=true]{background:var(--s-ink);color:white;box-shadow:0 2px 4px #17202b16}
+.v3-overview-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:stretch}
+.sieste-v3 :is(.health-week,.fatigue-recovery,.focus-calendar,.weekly-volume,.coros-fitness,.sleep-training,.sleep-regularity-widget,.journal-calendar,.weather-hour-table,.weather-outfit){background:white;border:1px solid #e8ecf2;border-radius:var(--s-radius);box-shadow:0 2px 5px #25395303;margin-top:0}
+.sieste-v3 :is(.health-week,.fatigue-recovery,.focus-calendar,.weekly-volume){padding:13px;margin-bottom:0;min-width:0}
+.sieste-v3 :is(.health-week,.fatigue-recovery,.focus-calendar,.weekly-volume)>header{margin:0 0 9px;padding:0;border:0;min-height:20px}
+.sieste-v3 :is(.health-week,.fatigue-recovery,.focus-calendar,.weekly-volume) h2{font-size:14px;font-weight:700;letter-spacing:-.3px;margin:0}
+.sieste-v3 .health-week{--health-cols:140px minmax(0,1fr) 95px}
+.sieste-v3 .health-date-row{font-size:10px;color:var(--s-muted);margin-bottom:3px}
+.sieste-v3 .health-date-row small{font-size:10px}
+.sieste-v3 .health-metric-row{height:37px;min-height:37px;border-radius:0;padding:3px 4px;border-bottom:1px solid #f0f2f6}
+.sieste-v3 .health-summary{grid-template-columns:23px 1fr;gap:0 6px}
+.sieste-v3 .health-icon{grid-row:1/3;width:23px;height:26px;border-radius:7px;background:color-mix(in srgb,var(--metric-color) 10%,white)}
+.sieste-v3 .health-icon svg{width:14px;height:14px}
+.sieste-v3 .health-name{font-size:11px;font-weight:650;line-height:1.3}
+.sieste-v3 .health-latest{grid-column:2}
+.sieste-v3 .health-latest strong{display:none}
+.sieste-v3 .health-latest>small{font-size:9px;line-height:1.25;margin:1px 0 0;color:var(--s-muted)}
+.sieste-v3 .health-series svg{height:15px}
+.sieste-v3 .health-series-values{font-size:11px;font-weight:550;color:#59677a;line-height:1.15}
+.sieste-v3 .health-today{background:#eef2f8;border-radius:4px;color:var(--s-ink);font-weight:750}
+.sieste-v3 .health-insight{font-size:10px;border:0;padding-left:6px;line-height:1.3}
+.sieste-v3 .health-insight small{font-size:9px;color:var(--s-faint)}
+.sieste-v3 .health-footnote{font-size:9px;margin:6px 0 0;color:var(--s-faint)}
+.sieste-v3 .fatigue-recovery>header>button{font-size:10px;color:var(--s-muted);border-radius:6px;padding:4px 6px;background:#f4f6f9}
+.sieste-v3 .fatigue-title{margin:0;gap:7px}
+.sieste-v3 .fatigue-chart{height:190px}
+.sieste-v3 .home-training-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;margin:0 0 14px}
+.sieste-v3 .home-volume-column{gap:14px}
+.sieste-v3 .home-week-grid{border:0;gap:8px;min-height:0}
+.sieste-v3 .home-week-day{background:#f6f8fb;border:0;border-radius:9px;overflow:hidden}
+.sieste-v3 .home-week-day.current{background:#edf2fa}
+.sieste-v3 .home-day-label{padding:7px 6px;border:0;display:flex;align-items:center;gap:2px;justify-content:space-between;background:transparent}
+.sieste-v3 .home-day-label span{font-size:10px;color:var(--s-muted)}
+.sieste-v3 .home-day-label strong{font-size:11px;color:var(--s-ink);font-weight:700}
+.sieste-v3 .home-week-day.current .home-day-label{border:0;background:var(--s-ink);color:white}
+.sieste-v3 .home-week-day.current .home-day-label :is(span,strong){color:white}
+.sieste-v3 .home-day-sessions{padding:6px;gap:6px}
+.sieste-v3 .focus-calendar .calendar-session-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sieste-v3 .focus-calendar .home-week-day.current .home-day-label{background:var(--s-ink);border:0}
+.sieste-v3 .home-day-sessions .calendar-session-preview{border:0;border-radius:6px;padding:7px;background:white;box-shadow:0 1px 2px #17202b05}
+.sieste-v3 .calendar-session-title{gap:5px}
+.sieste-v3 .calendar-session-title svg{display:block;color:var(--s-blue);width:14px;height:14px}
+.sieste-v3 .calendar-session-title>svg:last-child{display:none}
+.sieste-v3 .calendar-session-title b{font-size:11px;line-height:1.3;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sieste-v3 .calendar-session-title small{font-size:9px;color:var(--s-muted)}
+.sieste-v3 .calendar-session-stats{gap:6px 3px}
+.sieste-v3 .calendar-session-stats small{font-size:9px;color:var(--s-muted);line-height:1.3}
+.sieste-v3 .calendar-session-stats strong{font-size:12px;font-weight:650;letter-spacing:-.3px}
+.sieste-v3 .calendar-lap-preview{border-top:1px dashed var(--s-line);margin-top:4px;padding-top:5px}
+.sieste-v3 .calendar-lap-bars i{background:#7898ec;border-radius:2px 2px 0 0}
+.sieste-v3 .calendar-lap-preview>small{display:none}
+.sieste-v3 .home-day-empty{font-size:11px;min-height:55px;color:var(--s-faint)}
+.sieste-v3 .weekly-volume-grid{gap:8px}
+.sieste-v3 .weekly-volume-card{background:#f6f8fb;border:0;border-radius:10px;padding:10px;text-align:left}
+.sieste-v3 .weekly-volume-title{font-size:11px;gap:4px}
+.sieste-v3 .weekly-volume-card>strong{font-size:26px;letter-spacing:-1px;color:var(--s-ink);font-weight:750}
+.sieste-v3 .weekly-volume-card>strong small{font-size:11px;font-weight:500;color:var(--s-muted);letter-spacing:0}
+.sieste-v3 .weekly-volume-caption,.sieste-v3 .weekly-volume-average{font-size:10px}
+.sieste-v3 .weekly-volume>header{flex-wrap:wrap;gap:4px}
+.sieste-v3 .weekly-volume>header select{font-size:10px;background:#f5f7fa;border:0;padding:5px;border-radius:5px}
+.sieste-v3 .weekly-volume-note{font-size:9px;line-height:1.4;color:var(--s-faint)}
+.sieste-v3 :is(.v2-explore,.home-method,.sleep-zones,.sleep-night-log){background:transparent;border:0;border-bottom:1px solid #dfe5ee;border-radius:0;margin:4px 0;overflow:visible}
+.sieste-v3 :is(.v2-explore,.home-method,.sleep-zones,.sleep-night-log)>summary{padding:13px 2px;font-size:12px;color:#536174;letter-spacing:0;font-weight:550;list-style:none;display:flex;align-items:center;gap:9px}
+.sieste-v3 :is(.v2-explore,.home-method,.sleep-zones,.sleep-night-log)>summary::before{content:'+';display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;background:#e8ecf3;color:#65758a;border-radius:50%;font-size:15px;font-weight:400;flex-shrink:0}
+.sieste-v3 :is(.v2-explore,.home-method,.sleep-zones,.sleep-night-log)[open]>summary{background:transparent;border:0;color:var(--s-ink)}
+.sieste-v3 :is(.v2-explore,.home-method,.sleep-zones,.sleep-night-log)[open]>summary::before{content:'−';background:var(--s-ink);color:white}
+.sieste-v3 .v2-explore>div{padding:0 0 10px}
+.sieste-v3 .coros-fitness{padding:13px;margin:14px 0}
+.sieste-v3 .coros-fitness :is(.coros-fitness-metrics,.coros-races)>button{border:0;background:#f5f7fb;border-radius:9px;padding:10px}
+.sieste-v3 .workspace-tools{margin:0 0 12px;padding:0}
+.sieste-v3 .workspace-tool-buttons{gap:4px;border-bottom:1px solid #dfe5ec;padding:0 0 8px}
+.sieste-v3 .workspace-tool-buttons button{flex:0 1 auto;border:0;background:transparent;border-radius:7px;padding:7px 12px;min-height:32px;font-size:11px;color:#637086}
+.sieste-v3 .workspace-tool-buttons button:hover{background:#e5ebf3;color:var(--s-ink)}
+.sieste-v3 .workspace-tool-buttons svg{width:14px;height:14px}
+.sieste-v3 .training-journal{max-width:none}
+.sieste-v3 .journal-toolbar{padding:0 0 10px;gap:10px}
+.sieste-v3 .journal-toolbar .journal-sport{font-size:23px;font-weight:750;letter-spacing:-.8px;background:transparent;border:0;padding:0 20px 0 0}
+.sieste-v3 .journal-search{background:white;border:1px solid var(--s-line);border-radius:9px;padding:0 8px;max-width:210px}
+.sieste-v3 .journal-search input{font-size:12px;background:transparent;padding:7px 0;border:0}
+.sieste-v3 .log-compare-toggle{border:1px solid #d8dfe9;border-radius:8px;background:transparent;font-size:11px;padding:7px 9px}
+.sieste-v3 .log-quick-filters{gap:4px;padding:0 0 12px}
+.sieste-v3 .log-quick-filters button{border:0;border-radius:20px;font-size:11px;padding:6px 12px;background:#e9edf3;color:#607087}
+.sieste-v3 .log-quick-filters button[aria-pressed=true]{background:var(--s-ink);color:white}
+.sieste-v3 .v2-log-totals{background:var(--s-ink);color:white;border:0;border-radius:13px;padding:13px 0;margin:0 0 14px}
+.sieste-v3 .v2-log-totals>span{padding:0 16px;border-color:#ffffff17}
+.sieste-v3 .v2-log-totals small{font-size:10px;color:#aebbc9;margin:0 0 5px}
+.sieste-v3 .v2-log-totals b{font-size:25px;letter-spacing:-.8px;font-weight:650;color:white}
+.sieste-v3 .v2-log-totals em{font-size:12px;color:#b2bfcd}
+.v3-log-body{display:grid;grid-template-columns:330px minmax(0,1fr);gap:20px;align-items:start}
+.v3-log-calendar{position:sticky;top:15px;min-width:0}
+.sieste-v3 .journal-calendar{padding:12px}
+.sieste-v3 .journal-calendar header{padding:0 0 6px}
+.sieste-v3 .journal-month-picker{width:100%;justify-content:space-between}
+.sieste-v3 .journal-month-picker input{font-size:13px;font-weight:650;background:transparent;border:0}
+.sieste-v3 .journal-month-grid.log-heat-grid{gap:4px}
+.sieste-v3 .journal-month-grid.log-heat-grid button{min-height:42px;border:0;border-radius:7px;font-size:12px}
+.sieste-v3 .journal-month-grid.log-heat-grid .is-today{outline:1px solid #6683a8;outline-offset:1px}
+.sieste-v3 .journal-month-grid.log-heat-grid .is-selected{outline:2px solid var(--s-ink);outline-offset:1px}
+.sieste-v3 .journal-calendar-key{font-size:10px;margin-top:10px}
+.sieste-v3 .journal-day-dots{background:transparent}
+.sieste-v3 .journal-list{margin:0;gap:0}
+.sieste-v3 .log-day-heading{padding:7px 2px 6px;font-size:11px;color:var(--s-muted);align-items:center}
+.sieste-v3 .log-day-heading b{font-weight:700;color:var(--s-ink)}
+.sieste-v3 .journal-activity{position:relative;padding:12px;border:0;border-radius:12px;background:white;margin:0 0 4px;gap:10px;box-shadow:0 1px 2px #17202b04}
+.sieste-v3 .journal-activity:hover{box-shadow:0 3px 12px #17202b09;background:#fcfdff}
+.sieste-v3 .journal-activity-main strong{font-size:24px;font-weight:700;letter-spacing:-.8px;color:var(--s-ink)}
+.sieste-v3 .journal-activity-main>svg{padding:5px;background:#eef3fc;width:29px;height:29px;border-radius:9px}
+.sieste-v3 .journal-activity.sport-cycling .journal-activity-main>svg{background:#f1edfb}
+.sieste-v3 .journal-activity-stats{font-size:12px;margin:5px 0;color:#5e6d81;gap:8px}
+.sieste-v3 .journal-activity-title{font-size:11px;color:#7a8798}
+.sieste-v3 .journal-activity-date{font-size:10px;color:#96a0ae}
+.sieste-v3 :is(.journal-route,.journal-sport-art){width:94px;height:68px;min-height:68px;border:0;border-radius:10px;background:#f4f6fa;overflow:hidden}
+.sieste-v3 .journal-sport-art>svg{width:30px;height:30px}
+.sieste-v3 .journal-session-divider{height:10px;gap:4px}
+.sieste-v3 .v2-load-more{background:transparent;border:1px solid #d9e0e9;border-radius:9px;color:var(--s-ink);margin:10px 0;font-size:12px}
+.sieste-v3 .sleep-page{gap:14px}
+.sieste-v3 .sleep-page-heading{border:0;padding:0;gap:7px;margin:0}
+.sieste-v3 .sleep-page-heading h1,.sieste-v3 .weather-title h1{font-size:23px;letter-spacing:-.8px;font-weight:750;gap:7px}
+.sieste-v3 .sleep-page-heading h1>svg{width:18px;color:#7c70db}
+.sieste-v3 .sleep-page-heading [role=group]{background:#e7ebf2;border-radius:8px;padding:3px}
+.sieste-v3 .sleep-page-heading button{font-size:11px;padding:5px 8px;border:0;border-radius:6px}
+.sieste-v3 .sleep-page-heading button[aria-pressed=true]{background:var(--s-ink);color:white}
+.sieste-v3 .sleep-night-picker select{font-size:11px;border:1px solid #dfe5ef;background:white;padding:7px 5px;border-radius:7px}
+.sieste-v3 .sleep-period-nav{font-size:11px;color:var(--s-muted);padding:5px 0;gap:7px}
+.sieste-v3 .sleep-period-nav button{background:white;border:1px solid var(--s-line);border-radius:7px;min-height:28px}
+.sieste-v3 .sleep-vital-cards{gap:10px;margin:0 0 4px}
+.sieste-v3 .sleep-vital-cards>button{background:white;border:1px solid #e1e8e4;border-top:3px solid currentColor;border-radius:12px;padding:12px;text-align:left}
+.sieste-v3 .sleep-vital-cards small{font-size:12px;font-weight:600;color:#617187}
+.sieste-v3 .sleep-vital-cards strong{font-size:32px;letter-spacing:-1.1px;line-height:1.2;margin:7px 0 4px;color:var(--s-ink);font-weight:750}
+.sieste-v3 .sleep-vital-cards em{font-size:13px;font-weight:500;color:var(--s-muted);letter-spacing:0}
+.sieste-v3 .sleep-vital-cards span{font-size:11px;line-height:1.3}
+.sieste-v3 .sleep-vital-cards .widget-spark{height:24px;margin:10px 0 5px}
+.sieste-v3 .sleep-training,.sieste-v3 .sleep-regularity-widget{padding:13px;margin:0}
+.sieste-v3 .sleep-training h2,.sieste-v3 .sleep-regularity-widget h2{font-size:14px;letter-spacing:-.3px;font-weight:700}
+.sieste-v3 .sleep-training>p{font-size:10px;line-height:1.5;color:var(--s-muted)}
+.sieste-v3 .sleep-window-plot svg{height:205px}
+.sieste-v3 .sleep-timing-caption{font-size:10px;line-height:1.5;color:var(--s-muted);margin-top:5px}
+.sieste-v3 .sleep-page-note{font-size:10px;line-height:1.5;color:var(--s-muted)}
+.sieste-v3 .weather-recon{max-width:850px;margin:auto}
+.sieste-v3 .weather-title{border:0;padding:0 0 12px;margin:0;align-items:center}
+.sieste-v3 .weather-title>div>svg{color:#bc932a;width:19px;height:19px}
+.sieste-v3 .weather-title>span{font-size:11px;color:var(--s-muted)}
+.sieste-v3 .weather-location{font-size:12px;margin:0 0 7px}
+.sieste-v3 .weather-day-controls{margin:0 0 12px;gap:9px}
+.sieste-v3 .weather-days{background:transparent;gap:4px;padding:0;scrollbar-width:none}
+.sieste-v3 .weather-days button{border:0;border-radius:8px;background:#e7ecf4;padding:8px 12px;font-size:11px;color:#5b6d84;min-height:32px}
+.sieste-v3 .weather-days button[aria-pressed=true]{background:var(--s-ink);color:white}
+.sieste-v3 .weather-window.has-window{background:var(--s-ink);border:0;color:white;padding:18px;border-radius:14px;gap:13px}
+.sieste-v3 .weather-window.has-window>svg{color:var(--s-accent);width:28px;height:28px}
+.sieste-v3 .weather-window.has-window small{color:var(--s-accent);font-size:11px;font-weight:600;letter-spacing:.2px}
+.sieste-v3 .weather-window.has-window strong{color:white;font-size:32px;letter-spacing:-1px;font-weight:650;line-height:1.2;margin:3px 0}
+.sieste-v3 .weather-window.has-window span{color:#acbbcf;font-size:10px}
+.sieste-v3 .weather-window:not(.has-window){padding:14px;border-radius:13px;background:#e8edf5;border:0}
+.sieste-v3 .weather-now{margin:9px 0 0;padding:12px;border-radius:13px;border:1px solid var(--s-line);background:white;box-shadow:none}
+.sieste-v3 .weather-now-title{font-size:12px}
+.sieste-v3 .weather-now-title small{font-size:10px}
+.sieste-v3 .weather-metrics strong{font-size:25px;font-weight:700;letter-spacing:-.7px}
+.sieste-v3 .weather-sun-times{font-size:11px;padding:8px 1px;margin:0}
+.sieste-v3 .weather-hour-head{background:#f8f9fc;font-size:11px;padding:9px 12px}
+.sieste-v3 .weather-hour{padding:8px 12px;min-height:44px;font-size:13px;border-bottom:1px solid #eff2f6}
+.sieste-v3 .weather-hour small{font-size:10px;color:#8190a1}
+.sieste-v3 .weather-hour.is-best-ride{background:#f0f6e9;border-left:3px solid #739a35}
+.sieste-v3 .weather-hour.is-best-ride>span:first-child{font-weight:700;color:#386b42}
+.sieste-v3 .weather-outfit{padding:14px;margin-top:12px}
+.sieste-v3 .weather-outfit h2{font-size:14px;font-weight:700}
+.sieste-v3 .weather-outfit article{background:#f6f8fb;border:0;border-radius:9px;padding:10px}
+.sieste-v3 .weather-outfit article strong{font-size:13px}
+.sieste-v3 .weather-source{font-size:10px;line-height:1.5;color:var(--s-muted)}
+/* The same visual language continues inside activity and metric sheets. */
+.sieste-v3 .workout-modal{background:var(--s-canvas);border:0;border-radius:22px;box-shadow:0 30px 100px #0c182948;padding:16px!important}
+.sieste-v3 .activity-sheet-heading{padding:10px 8px 12px!important;border:0}
+.sieste-v3 .workout-modal h2{font-size:23px;letter-spacing:-.7px;font-weight:750}
+.sieste-v3 .workout-modal .detail-tabs{border:0;background:#e7ecf3;border-radius:10px;padding:4px;margin:0 0 14px;scrollbar-width:none}
+.sieste-v3 .workout-modal .detail-tabs button{background:transparent;font-size:12px;border-radius:7px;color:#6c7b8f;padding:7px 12px}
+.sieste-v3 .workout-modal .detail-tabs button.active{background:var(--s-ink);color:white;box-shadow:0 2px 5px #17202b12}
+.sieste-v3 :is(.activity-profile,.activity-laps,.activity-zones,.activity-route-card){border:1px solid var(--s-line);border-radius:14px;background:white;box-shadow:none}
+.sieste-v3 .activity-glance-card{border:1px solid var(--s-line);border-radius:12px;background:white;padding:12px}
+.sieste-v3 .activity-glance-value strong{font-size:24px;letter-spacing:-.6px;font-weight:700}
+.sieste-v3 .activity-glance-heading{font-size:12px;color:var(--s-muted)}
+.sieste-v3 :is(.unified-profile,.compact-laps,.activity-mini-map){border:1px solid var(--s-line);border-radius:14px;background:white;overflow:hidden}
+.sieste-v3 .unified-profile>header{padding-bottom:8px}
+.sieste-v3 .unified-profile h2,.sieste-v3 .activity-mini-map h2{font-size:14px;font-weight:700;letter-spacing:-.3px}
+.sieste-v3 .unified-toggles{gap:5px;margin-bottom:10px}
+.sieste-v3 .unified-toggles button{border:1px solid transparent;border-radius:20px;background:#f0f3f8;padding:6px 10px;font-size:11px}
+.sieste-v3 .unified-toggles button[aria-pressed=true]{border-color:#b5c5dc;background:#eaf0f9;color:#243c60}
+.sieste-v3 .unified-modes{background:#edf1f6;border-radius:9px;padding:3px;gap:3px}
+.sieste-v3 .unified-modes button{border:0;border-radius:6px;background:transparent;padding:7px 4px;font-size:11px}
+.sieste-v3 .unified-modes button[aria-pressed=true]{background:var(--s-ink);color:white}
+.sieste-v3 .unified-segments button{border-radius:8px;border-color:#e2e8f0;background:#f7f9fc;font-size:11px}
+.sieste-v3 .unified-segments button[aria-pressed=true]{border-color:#a9bdd5;background:#eaf0f9}
+.sieste-v3 .unified-selection{background:#f5f7fb;border:0;border-radius:9px;padding:10px}
+.sieste-v3 .profile-table-toolbar button{border-radius:7px;background:#edf1f6;border:0;font-size:11px}
+.sieste-v3 .activity-section-label{font-size:12px;font-weight:700;color:#67758a;padding:4px 2px}
+.sieste-v3 .lab-panel{border-radius:13px;background:white;border:1px solid var(--s-line);padding:12px}
+.sieste-v3 .lab-panel h2{font-size:15px;font-weight:700}
+.sieste-v3 .table-wrap th{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:550;background:#f7f9fc;color:#8190a0}
+.sieste-v3 .table-wrap td{font-size:12px;padding:9px;border-color:#edf1f6}
+.metric-expansion .expanded-widget{border-radius:18px;background:var(--s-canvas);border:0;box-shadow:0 25px 80px #17202b25}
+.metric-expansion .expanded-widget>header{background:white;padding:14px 16px;border-color:var(--s-line)}
+.metric-expansion .expanded-widget>header h2{font-size:21px;letter-spacing:-.6px;font-weight:700}
+.sieste-v3 main>footer{font-size:10px;color:#8c97a5;margin:14px 0 0}
+.sieste-v3 .v2-page-pending{background:var(--s-ink);color:var(--s-accent);border-radius:8px;padding:8px 12px;top:60px}
+@media(min-width:1050px){
+ .sieste-v3 .health-metric-row{height:46px;min-height:46px}
+ .sieste-v3 .health-name{font-size:12px}
+ .sieste-v3 .health-series-values{font-size:13px}
+ .sieste-v3 .health-series svg{height:17px}
+ .sieste-v3 .health-insight{font-size:11px}
+ .sieste-v3 .sieste-topbar{margin-left:88px;padding:0 max(30px,calc((100vw - 88px - 1160px)/2))}
+ .sieste-v3 .content{padding-left:88px}
+ .sieste-v3 .mini-dock{left:12px;top:12px;bottom:12px;transform:none;width:64px;flex-direction:column;justify-content:center;border-radius:22px;padding:7px;gap:14px;box-shadow:none}
+ .sieste-v3 .mini-dock button{width:50px;height:55px;min-width:0;border-radius:14px;padding:7px 3px;gap:6px}
+ .sieste-v3 .mini-dock::before{content:'s';font-weight:800;font-size:32px;letter-spacing:-2px;color:#fff;position:absolute;top:18px;left:22px;line-height:1}
+ .sieste-v3 .mini-dock small{font-size:10px}
+ .chrome-is-scrolling .sieste-v3 .mini-dock{opacity:1;pointer-events:auto;transform:none}
+ .sieste-v3 .floating-sync{bottom:24px;right:25px}
+ .sieste-v3 .sleep-page{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+@media(max-width:1049px){
+ .sieste-v3 .content main{padding:14px 16px 92px}
+ .v3-overview-grid,.sieste-v3 .home-training-grid{grid-template-columns:1fr;gap:10px}
+ .sieste-v3 .v3-overview-grid .fatigue-recovery{order:2}
+ .v3-log-body{grid-template-columns:280px minmax(0,1fr);gap:12px}
+}
+@media(max-width:650px){
+ .sieste-v3 .sieste-topbar{height:44px;min-height:44px;padding:0 12px}
+ .sieste-v3 .sieste-brand-home strong{font-size:25px}
+ .sieste-v3 .v2-current-page{font-size:11px}
+ .sieste-v3 .sieste-account{width:29px;height:29px;min-height:29px;padding:6px}
+ .sieste-v3 .content main{padding:7px 10px 92px}
+ .sieste-v3 .home-board-heading{margin-bottom:9px}
+ .sieste-v3 .home-board-heading h1{font-size:21px;letter-spacing:-.7px;margin:0 0 3px}
+ .sieste-v3 .home-board-heading p{font-size:10px}
+ .sieste-v3 .home-board-heading>span{display:none}
+ .sieste-v3 .home-range-control{margin-bottom:7px}
+ .sieste-v3 .home-range-control>span{font-size:10px}
+ .sieste-v3 .home-range-control button{font-size:10px;min-height:26px;padding:3px 7px}
+ .v3-overview-grid{display:contents}
+ .sieste-v3 .home-board{display:flex;flex-direction:column}
+ .sieste-v3 .home-board>.home-board-heading{order:0}
+ .sieste-v3 .home-board>.home-range-control{order:1}
+ .sieste-v3 .v3-overview-grid .health-week{order:2;margin-bottom:10px}
+ .sieste-v3 .home-training-grid{order:3;display:flex;flex-direction:column;margin:0 0 10px}
+ .sieste-v3 .v3-overview-grid .fatigue-recovery{order:4;margin-bottom:10px}
+ .sieste-v3 .home-board>.v2-explore{order:5}
+ .sieste-v3 .home-board>.home-method{order:6}
+ .sieste-v3 :is(.health-week,.fatigue-recovery,.focus-calendar,.weekly-volume){padding:10px;border-radius:13px}
+ .sieste-v3 :is(.health-week,.fatigue-recovery,.focus-calendar,.weekly-volume)>header{margin-bottom:6px;min-height:17px}
+ .sieste-v3 :is(.health-week,.fatigue-recovery,.focus-calendar,.weekly-volume) h2{font-size:12px}
+ .sieste-v3 .health-week{--health-cols:91px minmax(0,1fr)}
+ .sieste-v3 .health-metric-row{height:29px;min-height:29px;padding:2px 0;gap:5px;margin:0}
+ .sieste-v3 .health-summary{grid-template-columns:17px 1fr;gap:0 4px}
+ .sieste-v3 .health-name{font-size:10px;letter-spacing:-.2px}
+ .sieste-v3 .health-icon{width:17px;height:23px;border-radius:5px}
+ .sieste-v3 .health-icon svg{width:12px;height:12px}
+ .sieste-v3 .health-latest>small{font-size:8px;white-space:normal;line-height:1.05;margin:0}
+ .sieste-v3 .health-series svg{height:11px}
+ .sieste-v3 .health-series-values{font-size:11px;line-height:1.1}
+ .sieste-v3 .health-date-row{font-size:10px;padding:0;gap:5px;margin:0}
+ .sieste-v3 .health-date-row small{font-size:8px}
+ .sieste-v3 .health-insight{display:none}
+ .sieste-v3 .health-footnote{font-size:8px;margin:3px 0 0}
+ .sieste-v3 .health-count-7{--health-cols:70px minmax(0,1fr)}
+ .sieste-v3 .health-count-7 .health-series-values{font-size:9px;letter-spacing:-.4px}
+ .sieste-v3 .health-count-7 .health-name{font-size:9px}
+ .sieste-v3 .health-count-7 .health-latest>small{font-size:7px}
+ .sieste-v3 .home-training-grid{gap:10px}
+ .sieste-v3 .home-volume-column{margin:0;width:100%}
+ .sieste-v3 .home-week-grid{gap:5px}
+ .sieste-v3 .home-day-label{padding:5px 4px;display:block;text-align:left}
+ .sieste-v3 .home-day-label span{font-size:8px;display:block}
+ .sieste-v3 .home-day-label strong{font-size:10px}
+ .sieste-v3 .home-day-sessions{padding:4px;gap:4px}
+ .sieste-v3 .home-day-sessions .calendar-session-preview{padding:5px}
+ .sieste-v3 .calendar-session-title b{font-size:10px}
+ .sieste-v3 .calendar-session-title>svg{display:none}
+ .sieste-v3 .calendar-session-title small{font-size:8px}
+ .sieste-v3 .focus-calendar .calendar-session-stats{grid-template-columns:1fr;gap:3px}
+ .sieste-v3 .calendar-session-stats>span{display:flex;justify-content:space-between;gap:2px;flex-wrap:wrap;align-items:baseline}
+ .sieste-v3 .calendar-session-stats small{font-size:8px}
+ .sieste-v3 .calendar-session-stats strong{font-size:11px;letter-spacing:-.3px}
+ .sieste-v3 .calendar-lap-preview>span{font-size:8px}
+ .sieste-v3 .weekly-volume-grid{gap:5px}
+ .sieste-v3 .weekly-volume-card{padding:8px 6px}
+ .sieste-v3 .weekly-volume-card>strong{font-size:23px}
+ .sieste-v3 .weekly-volume-title{font-size:10px;flex-wrap:wrap}
+ .sieste-v3 .weekly-volume-title>svg{width:12px;height:12px}
+ .sieste-v3 .weekly-volume-card .weekly-change{font-size:9px}
+ .sieste-v3 .workspace-tools{margin-bottom:8px}
+ .sieste-v3 .workspace-tool-buttons{gap:2px;padding-bottom:5px}
+ .sieste-v3 .workspace-tool-buttons button{flex:1;min-width:0;min-height:29px;padding:5px 3px;font-size:10px;gap:4px;justify-content:center}
+ .sieste-v3 .workspace-tool-buttons svg{width:12px;height:12px}
+ .sieste-v3 .journal-toolbar{gap:6px;flex-wrap:wrap;padding-bottom:8px}
+ .sieste-v3 .journal-toolbar .journal-sport{font-size:20px;flex:1;min-width:145px}
+ .sieste-v3 .journal-search{max-width:95px}
+ .sieste-v3 .journal-search input{font-size:11px}
+ .sieste-v3 .log-compare-toggle{font-size:10px;padding:6px}
+ .sieste-v3 .log-quick-filters{padding-bottom:9px}
+ .sieste-v3 .log-quick-filters button{font-size:10px;padding:5px 10px}
+ .sieste-v3 .v2-log-totals{padding:10px 0;margin-bottom:10px;border-radius:11px}
+ .sieste-v3 .v2-log-totals>span{padding:0 9px}
+ .sieste-v3 .v2-log-totals small{font-size:9px;margin-bottom:3px}
+ .sieste-v3 .v2-log-totals b{font-size:19px;letter-spacing:-.6px;white-space:nowrap}
+ .sieste-v3 .v2-log-totals em{font-size:10px}
+ .v3-log-body{display:block}
+ .v3-log-calendar{position:static;margin-bottom:6px}
+ .sieste-v3 .journal-calendar{padding:9px;border-radius:13px}
+ .sieste-v3 .journal-month-grid.log-heat-grid button{min-height:37px}
+ .sieste-v3 .journal-activity{padding:10px;gap:8px;border-radius:11px}
+ .sieste-v3 .journal-activity-main strong{font-size:22px}
+ .sieste-v3 .journal-activity-stats{font-size:11px;gap:6px;margin:4px 0}
+ .sieste-v3 .journal-activity-title{font-size:10px}
+ .sieste-v3 .journal-route,.sieste-v3 .journal-activity>.journal-route,.sieste-v3 .journal-sport-art{width:67px;height:53px;min-height:53px}
+ .sieste-v3 .log-day-heading{font-size:10px;gap:5px;flex-wrap:wrap}
+ .sieste-v3 .sleep-page{display:block}
+ .sieste-v3 .sleep-page-heading h1,.sieste-v3 .weather-title h1{font-size:21px}
+ .sieste-v3 .sleep-page-heading{gap:4px}
+ .sieste-v3 .sleep-page-heading button{font-size:10px;padding:5px 6px}
+ .sieste-v3 .sleep-night-picker{max-width:103px}
+ .sieste-v3 .sleep-night-picker select{font-size:10px;padding:6px 3px}
+ .sieste-v3 .sleep-period-nav{font-size:10px;padding:6px 0}
+ .sieste-v3 .sleep-vital-cards{gap:6px;margin:0 0 10px}
+ .sieste-v3 .sleep-vital-cards>button{padding:8px;border-radius:10px;border-top-width:2px}
+ .sieste-v3 .sleep-vital-cards small{font-size:10px}
+ .sieste-v3 .sleep-vital-cards strong{font-size:24px;letter-spacing:-.8px;margin:6px 0 3px}
+ .sieste-v3 .sleep-vital-cards em{font-size:10px}
+ .sieste-v3 .sleep-vital-cards span{font-size:9px;line-height:1.3}
+ .sieste-v3 .sleep-vital-cards .widget-spark{height:17px;margin:7px 0 4px}
+ .sieste-v3 .sleep-training,.sieste-v3 .sleep-regularity-widget{padding:10px;border-radius:13px;margin:0 0 10px}
+ .sieste-v3 .sleep-training h2,.sieste-v3 .sleep-regularity-widget h2{font-size:12px}
+ .sieste-v3 .sleep-window-plot svg{height:170px}
+ .sieste-v3 .weather-title{padding-bottom:8px}
+ .sieste-v3 .weather-title>span{font-size:10px}
+ .sieste-v3 .weather-days button{font-size:10px;padding:7px 10px}
+ .sieste-v3 .weather-window.has-window{padding:13px;gap:10px;border-radius:12px}
+ .sieste-v3 .weather-window.has-window strong{font-size:28px}
+ .sieste-v3 .weather-window.has-window span{font-size:9px}
+ .sieste-v3 .weather-now{padding:10px;border-radius:12px}
+ .sieste-v3 .weather-metrics strong{font-size:22px}
+ .sieste-v3 .weather-hour{font-size:12px;min-height:38px;padding:6px 9px}
+ .sieste-v3 .weather-hour small{font-size:9px}
+ .sieste-v3 .weather-hour-head{padding:7px 9px;font-size:10px}
+ .sieste-v3 .weather-sun-times{font-size:10px;padding:8px 0}
+ .sieste-v3 .weather-outfit{padding:10px}
+ .sieste-v3 .weather-outfit article{padding:8px}
+ .sieste-v3 .weather-outfit article strong{font-size:12px}
+ .sieste-v3 .workout-modal{padding:10px!important;border-radius:20px 20px 0 0}
+ .sieste-v3 .workout-modal h2{font-size:21px}
+ .sieste-v3 .workout-modal .detail-tabs{margin-bottom:10px}
+ .sieste-v3 .workout-modal .detail-tabs button{font-size:11px;padding:7px 10px}
+ .sieste-v3 .activity-glance-value strong{font-size:21px}
+ .sieste-v3 .activity-glance-card{padding:9px;border-radius:11px}
+}
+@media(prefers-reduced-motion:no-preference){.sieste-v3 main>div:not([hidden])>section{animation:sieste-surface-in .2s ease-out}@keyframes sieste-surface-in{from{opacity:.7;transform:translateY(3px)}to{opacity:1;transform:none}}}
+@media(prefers-reduced-motion:reduce){.sieste-v3 *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
