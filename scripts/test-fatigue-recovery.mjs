@@ -15,3 +15,10 @@ rows=fatigueRecovery({...data,extra:{}},now);assert.ok(rows.every(r=>r.effort===
 rows=fatigueRecovery({...data,syncedAt:'2026-09-17T12:00:00Z'},now);assert.equal(rows.at(-2).effort,null);
 assert.equal(fatigueRecovery(data,new Date('2026-01-02T12:00:00Z'),7)[0].iso,'2025-12-27');
 console.log('Passed fatigue/recovery: rolling means, coverage, missing signals, exclusions, stale sync, future body readings and year boundary.');
+
+const recorded={...data,provider:'tredict',activities:[{id:'ride',date:'2026-09-18T08:00:00Z',summary:{effort:{heartrate:150}}}]};
+assert.equal(fatigueRecovery(recorded,now).find(r=>r.iso==='2026-09-18').effort,150,'Recorded workout effort fills delayed daily feed');
+assert.equal(fatigueRecovery({...data,extra:{...data.extra,efforts:{trainingEfforts:{20260919:[]}}}},now).at(-1).effort,0,'Confirmed empty rest-day feed is zero');
+const partial={...recorded,activities:[...recorded.activities,{id:'unknown',date:'2026-09-18T09:00:00Z',summary:{}}]};assert.equal(fatigueRecovery(partial,now).find(r=>r.iso==='2026-09-18').effort,null,'Incomplete workouts are not a complete daily load');
+const mixed={...recorded,activities:[recorded.activities[0],{id:'other',date:'2026-09-18T09:00:00Z',provider:'coros',summary:{trainingLoad:100}}]};assert.equal(fatigueRecovery(mixed,now).find(r=>r.iso==='2026-09-18').effort,null,'Provider scales stay separate');
+console.log('Rest-day coverage and same-provider recorded effort fallback passed.');

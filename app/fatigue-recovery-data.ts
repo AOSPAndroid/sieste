@@ -9,7 +9,12 @@ export function fatigueRecovery(data:AthleteData,now:Date,days=28){
   const iso=localDate(date),key=iso.replaceAll('-',''),covered=!!data.historyStart&&data.historyStart.slice(0,10)<=iso&&data.historyComplete!==false&&(!data.syncedAt||iso<=localDate(new Date(data.syncedAt)));
   const sessions=data.activities.filter(a=>localDate(new Date(a.date))===iso&&new Date(a.date)<=now);
   const raw=source?.[key],values=Array.isArray(raw)?raw.map((v:any)=>Array.isArray(v)?v[0]:v):[];
-  const effort=effortExcluded(data,iso)?null:values.length&&values.every(valid)?values.reduce((a:number,b:number)=>a+b,0):source&&covered&&raw===undefined&&sessions.length===0?0:null;
+  // The daily endpoint can lag behind workout summaries. Only use a complete,
+  // same-provider set; never combine COROS load with Tredict effort.
+  const channel=sessions.every(a=>valid(a.summary?.effort?.heartrate))?'heartrate':'power';
+  const recorded=sessions.map(a=>data.provider==='coros'?a.provider==='coros'?a.summary?.trainingLoad:null:a.provider==='coros'?null:a.summary?.effort?.[channel]);
+  const completeSessions=recorded.length>0&&recorded.every(valid);
+  const effort=effortExcluded(data,iso)?null:completeSessions?recorded.reduce((sum:number,v:number)=>sum+v,0):values.length&&values.every(valid)?values.reduce((a:number,b:number)=>a+b,0):source&&covered&&(raw===undefined||Array.isArray(raw)&&raw.length===0)&&sessions.length===0?0:null;
   const body=(data.extra?.bodyvalues?.bodyvalues??[]).filter((r:any)=>new Date(r.timestamp)<=now&&localDate(new Date(r.timestamp))===iso&&valid(r.hrRestDynamic)).sort((a:any,b:any)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime());
   return {iso,label:date.toLocaleDateString('en-GB',{day:'numeric',month:'short'}),effort:effort as number|null,sleep:valid(data.sleep[key]?.[0])?data.sleep[key][0]/3600:null,hrv:valid(data.hrv[key]?.[0])?data.hrv[key][0]:null,rhr:(body[0]?.hrRestDynamic??null) as number|null};
  });
