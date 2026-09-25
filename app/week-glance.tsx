@@ -1,0 +1,27 @@
+"use client";
+import WidgetSpark from './widget-spark';
+import {useExpand} from "./expansion";
+import {metricStatus} from './metric-status';
+import {Fragment} from "react";
+import TrendBadge from "./trend-badge";
+import {valueTrend,recoveryTrend} from "./trend";
+import {weekOverview} from './week-overview';
+import {sportFamily} from './sports';
+import type {AthleteData} from './analytics';
+const num=(v:number|null,d=0)=>v==null?'—':v.toLocaleString('en-GB',{maximumFractionDigits:d});
+function Spark({values,label,positiveFrom}:{values:(number|null)[];label:string;positiveFrom?:number}){return <WidgetSpark className="week-spark" values={values} label={label} positiveFrom={positiveFrom} negativeBelow={positiveFrom===8?6:undefined} amberBelow={positiveFrom===8?7:undefined} yellowBelow={positiveFrom===8?7.5:undefined} lightGreenFrom={positiveFrom===8?7.5:undefined}/>}
+export default function WeekGlance({data,isDemo}:{data:AthleteData;isDemo:boolean}){
+ const expand=useExpand(),now=isDemo?new Date('2026-09-17T23:59:59'):new Date();
+ const w=weekOverview(data,isDemo?new Date('2026-09-17T23:59:59'):new Date(),sportFamily),c=w.current,p=w.previous;
+ const delta=(value:number|null,before:number|null,unit:string,percent=false)=>{if(!isDemo&&!w.historyComplete)return 'Prior history incomplete';if(value==null||before==null)return 'No prior comparison';if(percent){if(before===0)return value===0?'No change':'No prior baseline';const d=(value/before-1)*100;return `${d>=0?'+':''}${num(d)}% vs prior 7d`}const d=value-before;return `${d>=0?'+':''}${num(d,1)}${unit} vs prior 7d`};
+ const cards=[
+ {label:'Training time',value:c.minutes==null?'—':`${Math.floor(c.minutes/60)}h ${Math.round(c.minutes%60)}m`,change:delta(c.minutes,p.minutes,'',true),note:`${c.sessions} sessions · ${c.durationCoverage}/${c.sessions} durations`,key:'minutes',tab:'Training load'},
+ {label:'Training load',value:num(c.effort),change:c.effortDays===7&&p.effortDays===7?delta(c.effort,p.effort,'',true):'Partial load coverage',note:`${data.provider==="coros"?"COROS load":"recorded load"} · ${c.effortDays}/7 days`,key:'effort',tab:'Training load'},
+ {label:'Running',value:`${num(c.runKm,1)} km`,change:delta(c.runKm,p.runKm,' km'),note:'Recorded running distance',key:'runKm',tab:'Performance lab'},
+ {label:'Cycling',value:`${num(c.rideKm,1)} km`,change:delta(c.rideKm,p.rideKm,' km'),note:'Recorded cycling distance',key:'rideKm',tab:'Performance lab'},
+ {label:'Average sleep',value:c.sleep==null?'—':`${Math.floor(c.sleep)}h ${Math.round(c.sleep%1*60)}m`,change:delta(c.sleep==null?null:c.sleep*60,p.sleep==null?null:p.sleep*60,' min'),note:`${c.sleepDays}/7 nights`,key:'sleep',tab:'Recovery lab'},
+ {label:'Average HRV',value:`${num(c.hrv)} ms`,change:delta(c.hrv,p.hrv,' ms'),note:`Nightly RMSSD · ${c.hrvDays}/7 nights`,key:'hrv',tab:'Recovery lab'},
+ {label:'Resting HR',value:`${num(c.rhr)} bpm`,change:delta(c.rhr,p.rhr,' bpm'),note:`Daily reading mean · ${c.rhrDays}/7 days`,key:'rhr',tab:'Recovery lab'},
+ ].map(t=>({...t,status:metricStatus(t.key,data,now,sportFamily,true)}));
+ return <section className="week-glance"><header><h2>Your last 7 days</h2><span>{w.start.slice(5)} — {w.end.slice(5)} · today included</span></header><div className="week-cards">{cards.map((t,i)=><Fragment key={t.label}>{(i===0||i===4)&&<h3 className="week-group-label">{i===0?"Training & load":"Recovery & fitness"}</h3>}<button className={`status-${t.status.tone}`} title={t.status.reason} onClick={()=>expand.metric(t.label)}><span>{t.label}</span><div className="week-value"><strong>{t.value}</strong><Spark positiveFrom={t.key==='sleep'?8:undefined} values={w.rows.map((r:any)=>r[t.key])} label={`${t.label}, last seven days`}/></div><TrendBadge trend={['sleep','hrv','rhr'].includes(t.key)?recoveryTrend((c as any)[t.key],(p as any)[t.key],t.status,'previous 7 days'):valueTrend(t.change.startsWith('+')||t.change.startsWith('-')?(c as any)[t.key]:null,(p as any)[t.key],t.key==='rhr'?'lower':['sleep','hrv','vo2'].includes(t.key)?'higher':'neutral','previous 7 days')} caption="vs prior 7d"/><small className="metric-state">{t.status.label}</small><small>{t.status.rangeLabel?`Usual ${t.status.rangeLabel} · ${t.note}`:t.note}</small></button></Fragment>)}</div><div className="week-extras"><span><b>{c.strength}</b> strength sessions</span><span><b>{c.restDays}</b> days without sessions</span><span><b>{num(c.calories)}</b> workout kcal <small>({c.calorieCoverage}/{c.sessions} sessions)</small></span></div><details className="week-day-detail"><summary>Day-by-day training & recovery</summary><div className="week-calendar" aria-label="Daily training and recovery"><div className="week-calendar-labels"><span>Day</span><span>Training</span><span>Load</span><span>Sleep</span><span>HRV</span></div>{w.rows.map(r=><div key={r.iso}><strong>{r.label}</strong><span>{num(r.minutes)}m</span><span>{num(r.effort)}</span><span className={r.sleep!==null&&r.sleep>=8?'positive-value':undefined}>{num(r.sleep,1)}h</span><span>{num(r.hrv)}</span></div>)}</div></details><details className="week-method"><summary>How to read this overview</summary><p>The seven days through today are compared with the preceding seven days. Today is partial. Training load uses the active provider’s scores, not TSS or an injury prediction. Only COROS activity loads are used for connected COROS accounts. Daily recovery charts keep missing readings as gaps; averages use observed readings only. Distances and calories cover synced sessions.</p></details></section>
+}

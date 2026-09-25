@@ -1,0 +1,33 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+process.env.TZ='UTC';
+function moduleUrl(name){let s=ts.transpileModule(readFileSync(new URL('../app/'+name+'.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;s=s.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,dep)=>`from "${moduleUrl(dep)}"`);return 'data:text/javascript;base64,'+Buffer.from(s).toString('base64')}
+const {sampledBest,workoutEvidence,sleepTrainingPattern,planComparison,progressRecords,intervalConsistency}=await import(moduleUrl('training-coach-data'));
+assert.equal(sampledBest(Array(60).fill(200),1,60,60).value,200);
+assert.equal(sampledBest([100,200,300,400],20,50,80).value,280); // 20s*200 + 20s*300 + 10s*400
+assert.equal(sampledBest([100,null,200],20,40,60),null);
+assert.equal(sampledBest([100,0,200],20,40,60).value,100);
+assert.equal(sampledBest(Array(60).fill(500),1,60,59),null);
+assert.equal(sampledBest(Array(120).fill(1),0,60,120),null);
+const evidence=workoutEvidence({summary:{durationTotal:1200},seriesSampled:{sampleSize:1,data:{speed:Array(1200).fill(3),power:Array(1200).fill(250)}}});
+assert.equal(evidence.best.power.find(p=>p.seconds===1200).value,250);assert.equal(evidence.best.speed.length,3);
+const now=new Date('2026-09-19T12:00:00Z');const empty={activities:[],sleep:{},hrv:{},historyStart:'2025-01-01',historyComplete:true,syncedAt:now.toISOString(),extra:{}};
+const workout=(id,date,sportType='running',duration=3600)=>({id,date:date+'T10:00:00Z',sportType,summary:{duration,distance:10000},evidence});
+let d={...empty,activities:[workout('a','2026-09-19')],sleep:{20260918:[5*3600],20260919:[5.5*3600]}};
+assert.equal(sleepTrainingPattern(d,now).tone,'bad');assert.equal(sleepTrainingPattern({...d,sleep:{20260919:[5*3600]}},now).tone,'watch');assert.equal(sleepTrainingPattern(empty,now).coverage,0);
+assert.equal(sleepTrainingPattern({...d,sleep:{20260918:[0],20260919:[5*3600]}},now).overlap,0);
+d={...empty,activities:[workout('done','2026-09-18'),workout('today','2026-09-19')],extra:{plannedTrainingList:{_embedded:{plannedWorkoutList:[{...workout('p','2026-09-18'),duration:7200},{...workout('future','2026-09-20'),duration:10800}]}}}};
+let plan=planComparison(d,now);assert.equal(plan.rows[0].planned,120);assert.equal(plan.rows[0].actual,60);assert.equal(plan.rows[0].weekPlan,300);assert.equal(plan.rows[0].change,-50);
+assert.equal(planComparison({...d,historyComplete:false},now).rows[0].actual,null);
+assert.equal(planComparison({...d,syncedAt:'2026-09-15'},now).rows[0].actual,null);
+assert.equal(planComparison(empty,now).available,false);
+const missing=structuredClone(d);delete missing.activities[0].summary.duration;assert.equal(planComparison(missing,now).rows[0].actual,null);
+const a=workout('r','2026-09-18'),b=workout('p','2026-08-05');d={...empty,activities:[a,a,b,workout('future','2026-09-20')]};
+let records=progressRecords(d,now,'running');assert.equal(records.eligible,2);assert.equal(records.rows[2].recent.activity.id,'r');assert.equal(records.rows[2].prior.activity.id,'p');assert.equal(records.rows[3].recent,null);
+const laps=[300,301,311,312,318,320].map(pace=>({summary:{distance:1000,duration:pace,heartrate:140,cadence:180,stepLength:110}}));
+let r=intervalConsistency(laps,[0,1,2,3,4,5],'running');assert.equal(r.valid,true);assert.equal(r.firstFade,2);assert.equal(r.n,2);assert.equal(r.changes[0].first,300.5);assert.equal(r.changes[0].last,319);
+assert.equal(intervalConsistency(laps,[],'running').valid,false);
+assert.equal(intervalConsistency([laps[0],{summary:{distance:100,duration:60}},laps[2]],[0,1,2],'running').valid,false);
+const noHR=structuredClone(laps);delete noHR[0].summary.heartrate;assert.equal(intervalConsistency(noHR,[0,1,2],'running').changes[1].first,null);
+console.log('Training coach: exact effort windows, gaps and zeroes, duplicate IDs, future exclusion, plan coverage, sleep sequences and comparable intervals passed.');

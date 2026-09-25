@@ -1,0 +1,12 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+const src=ts.transpileModule(readFileSync(new URL('../app/daily-ring-data.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const {dailyRingMetrics}=await import('data:text/javascript;base64,'+Buffer.from(src).toString('base64'));
+const now=new Date('2026-09-18T12:00:00Z'),key=d=>d.toISOString().slice(0,10);
+let data={activities:[]};let r=dailyRingMetrics(data,now,key);assert.equal(r[0].value,null);assert.equal(r[1].value,0);assert.equal(r[2].reference,null);
+data={activities:[{date:'2026-09-18T10:00:00Z',summary:{steps:5000,duration:1800}},{date:'2026-09-18T11:00:00Z',summary:{duration:3600}},{date:'2026-09-18T20:00:00Z',summary:{steps:99999}}],extra:{efforts:{trainingEfforts:{20260918:[[40],[20]]}}}};
+r=dailyRingMetrics(data,now,key);assert.equal(r[0].value,60);assert.equal(r[1].value,5000);assert.equal(r[1].partial,true);assert.equal(r[2].value,90);
+for(let i=1;i<=3;i++)data.activities.push({date:`2026-09-${18-i}T10:00:00Z`,summary:{steps:i*1000,duration:i*600}});
+r=dailyRingMetrics(data,now,key);assert.equal(r[1].reference,3000);assert.equal(r[2].reference,30);
+console.log('Passed: empty day, unavailable exertion, missing steps, summed efforts, future exclusion and reference coverage.');

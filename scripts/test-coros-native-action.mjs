@@ -1,0 +1,14 @@
+import fs from 'node:fs';import ts from 'typescript';import assert from 'node:assert/strict';
+const source=p=>ts.transpileModule(fs.readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
+const native=new Function(source('app/coros-native.ts')+';return {COROS_NATIVE_VERSION,corosNativeActivity,corosNativeSnapshot}')();
+const activity={id:'coros_100_abc',provider:'coros',date:'2026-09-19',coros:{labelId:'abc',sportType:100},summary:{duration:60,vo2max:53.2,steps:11127}};
+const files=new Map([['snapshot',JSON.stringify({provider:'coros',activities:[activity],extra:{coros:{importVersion:2}}})],['owner/rev/fit/coros_100_abc.fit',new Uint8Array([1,2,3])]]);
+let downloads=0,quota=0,calls=0,saved=0;
+const bucket={get:async key=>files.has(key)?{json:async()=>JSON.parse(files.get(key)),arrayBuffer:async()=>files.get(key).buffer}:null,put:async(k,v)=>files.set(k,v)};
+const dependencies={...native,storage:()=>({bucket,db:{prepare:sql=>({bind:()=>({first:async()=>{if(sql.includes('coros_fit_usage')){quota++;throw Error('Must reuse saved FIT')}return null}})})}}),corosPrefix:async()=> 'owner/',workoutExclusions:async()=>[],corosConnection:async()=>({revision:'rev'}),createCorosClient:async()=>({call:async()=>{calls++;return {}},callRaw:async()=>{downloads++;throw Error('Should not download')}}),corosSummary:()=>({trainingLoad:100}),corosLaps:()=>[],fitDetail:(blob,a)=>{assert.equal(blob,'AQID');assert.equal(a.summary.vo2max,undefined);return {...a,summary:{...a.summary,cadence:180},evidence:{version:1}}},saveAnalysis:async()=>{saved++},CorosError:Error};
+const {corosAction}=new Function(...Object.keys(dependencies),source('app/api/coros/sync.ts')+';return {corosAction}')(...Object.values(dependencies));
+const row={owner:'a',revision:'rev',snapshot_key:'snapshot'};
+const result=await corosAction(row,{action:'detail',id:activity.id});assert.equal(result.details[0].summary.vo2max,undefined);assert.equal(result.details[0].summary.steps,undefined);assert.equal(result.details[0].summary.cadence,180);assert.equal(result.details[0].nativeVersion,3);assert.equal(saved,1);assert.equal(quota,0);assert.equal(downloads,0);assert.equal(calls,2);
+await corosAction(row,{action:'detail',id:activity.id});assert.equal(calls,2);assert.equal(quota,0);assert.equal(downloads,0);
+await assert.rejects(()=>corosAction(row,{action:'detail',id:'coros_100_someoneelse'}),/not found/);
+console.log('COROS detail migration: saved FIT reused, no download quota consumed, clean v3 cache, subsequent cache hit and account activity guard passed.');

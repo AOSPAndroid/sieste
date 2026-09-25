@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789679503323,
+      "tag": "0000_bizarre_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789843609327,
+      "tag": "0001_plain_captain_universe",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789846796512,
+      "tag": "0002_narrow_randall",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789855922468,
+      "tag": "0003_colossal_quasimodo",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1789856160575,
+      "tag": "0004_aromatic_doorman",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789857002886,
+      "tag": "0005_smooth_emma_frost",
+      "breakpoints": true
+    }
+  ]
+}

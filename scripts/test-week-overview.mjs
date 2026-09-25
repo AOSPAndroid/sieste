@@ -1,0 +1,12 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+process.env.TZ='UTC';
+const exclusionSource=ts.transpileModule(readFileSync(new URL('../app/workout-exclusions.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const source=ts.transpileModule(readFileSync(new URL('../app/week-overview.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const {weekOverview}=await import('data:text/javascript;base64,'+Buffer.from(source.replace('./workout-exclusions','data:text/javascript;base64,'+Buffer.from(exclusionSource).toString('base64'))).toString('base64'));
+const now=new Date('2026-09-17T20:00:00Z'),data={historyStart:'2026-01-01',activities:[{date:'2026-09-17T10:00:00Z',sportType:'running',summary:{duration:3600,distance:10000,calories:500,vo2max:55}},{date:'2026-09-10T10:00:00Z',sportType:'running',summary:{duration:1800,distance:5000}},{date:'2026-09-18T10:00:00Z',sportType:'running',summary:{duration:9999}}],sleep:{20260917:[28800,28800]},hrv:{20260917:[60,60]},extra:{efforts:{trainingEfforts:{20260917:[[60]],20260910:[[30]]}}}};
+const result=weekOverview(data,now,a=>a.sportType);assert.equal(result.current.minutes,60);assert.equal(result.previous.minutes,30);assert.equal(result.current.sessions,1);assert.equal(result.current.effort,60);assert.equal(result.current.effortDays,7);assert.equal(result.current.sleep,8);assert.equal(result.current.sleepDays,1);assert.equal(result.current.restDays,6);assert.equal(result.rows.length,7);assert.equal(result.start,'2026-09-11');assert.equal(result.historyComplete,true);
+const missing=weekOverview({...data,activities:[{date:'2026-09-17T10:00:00Z',summary:{}}],extra:{efforts:{trainingEfforts:{}}}},now,()=> 'running');assert.equal(missing.current.minutes,null);assert.equal(missing.current.calories,null);assert.equal(missing.current.effort,null);assert.equal(missing.current.effortDays,6);
+const excluded=weekOverview({...data,excludedWorkouts:[{id:'removed',date:'2026-09-17T08:00:00Z'}]},now,a=>a.sportType);assert.equal(excluded.rows.at(-1).effort,null);assert.equal(excluded.current.effortDays,6);
+console.log('Passed: 7-day boundaries, prior-week comparison, future exclusion, load totals, recovery coverage and missing metrics.');

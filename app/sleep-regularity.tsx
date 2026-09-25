@@ -1,0 +1,8 @@
+"use client";
+import {Bar,BarChart,ResponsiveContainer,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
+import {sleepOverview} from './sleep-overview';
+import {CorosSleepWindows} from './coros-recovery';
+export default function SleepRegularity({isDemo,sleep,windows}:{isDemo:boolean;sleep:Record<string,number[]>;windows?:Record<string,any>}){
+ const day=isDemo?'2026-09-17':new Date().toLocaleDateString('en-CA'),stats=sleepOverview(sleep,day),rows=Array.from({length:7},(_,i)=>{const d=new Date(day+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-6+i);return {label:d.toLocaleDateString('en-GB',{weekday:'short',timeZone:'UTC'}),hours:sleep[d.toISOString().slice(0,10).replaceAll('-','')]?.[0]/3600||null}});
+ return <section className="panel sleep-automatic"><div className="panel-head"><div><h2>Sleep duration consistency</h2><p>Last seven days · automatically synced</p></div></div><div className="workout-highlights"><div><span>Duration variability</span><strong>{stats.variabilityMinutes==null?'—':`${Math.round(stats.variabilityMinutes)} min`}</strong></div><div><span>Nights recorded</span><strong>{stats.count} / 7</strong></div></div><div className="review-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={rows}><CartesianGrid stroke="#eee" vertical={false}/><XAxis dataKey="label"/><YAxis unit="h"/><Tooltip formatter={(v:any)=>`${Number(v).toFixed(1)} h`}/><Bar dataKey="hours" name="Sleep duration" fill="#777" maxBarSize={36} radius={3}/></BarChart></ResponsiveContainer></div>{windows&&<CorosSleepWindows windows={windows}/>}<p className="lab-note">Variability is the standard deviation of recorded sleep durations. COROS sleep timing and score are shown when supplied. No manual logging is needed.</p></section>
+}

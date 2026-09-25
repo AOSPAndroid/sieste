@@ -1,0 +1,41 @@
+import {corosNativeActivity} from './coros-native';
+import {sportFamily,cadenceUnit} from './sports';
+type Data=Record<string,any>;
+export const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
+export const numberLabel=(v:unknown,d=1)=>finite(v)?v.toLocaleString('en-GB',{maximumFractionDigits:d}):'—';
+export function paceLabel(v:unknown){if(!finite(v)||v<=0)return '—';const seconds=Math.round(v);return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`}
+export function durationLabel(v:unknown){if(!finite(v)||v<0)return '—';const s=Math.round(v);return s>=3600?`${Math.floor(s/3600)}h ${Math.floor(s%3600/60)}m ${s%60}s`:`${Math.floor(s/60)}m ${s%60}s`}
+export type ActivityMetric={id:string;title:string;value:string;unit:string;note:string;color:string;values:(number|null)[];pace?:boolean;group:'Session'|'Technique'|'Conditions';explanation:string};
+export function activityMetrics(detail:Data){
+ if(detail.provider==='coros')detail=corosNativeActivity(detail);
+ const s=detail.summary??{},streams=detail.seriesSampled?.data??{},family=sportFamily(detail),run=family==='running';
+ const foot=['running','walking','hiking'].includes(family);const runningOnly=new Set(['stepLength','groundContactTime','flightTime','verticalOscillation','verticalRatio','groundContactTimeBalance','formPower']);
+ const cards:ActivityMetric[]=[];const used=new Set<string>(['positionLat','positionLong']);
+ const raw=(key:string):any[]=>Array.isArray(streams[key])?streams[key]:[];
+ const series=(key:string,convert=(v:number)=>v)=>raw(key).map(v=>finite(v)?convert(v):null);
+ const average=(values:(number|null)[])=>{const valid=values.filter(finite);return valid.length?valid.reduce((a,b)=>a+b,0)/valid.length:null};
+ function add(card:ActivityMetric){if(card.value!=='—'||card.values.some(finite))cards.push(card)}
+ used.add('distance');const distance=finite(s.distance)?s.distance:raw('distance').filter(finite).at(-1);
+ add({id:'distance',title:'Distance',value:numberLabel(finite(distance)?distance/1000:null,2),unit:'km',note:finite(s.distance)?'Total distance':'Last recorded distance',color:'#3268d6',values:series('distance',v=>v/1000),group:'Session',explanation:'Recorded distance in kilometres. The total comes from the workout summary, or the last valid cumulative reading when no summary total is supplied. It is never an average of distance samples.'});
+ add({id:'duration',title:'Activity time',value:durationLabel(s.duration),unit:'',note:finite(s.durationTotal)&&s.durationTotal>s.duration?`${durationLabel(s.durationTotal)} elapsed`:'Recorded duration',color:'#3268d6',values:[],group:'Session',explanation:'Recorded activity duration. Elapsed time is shown separately when supplied.'});
+ used.add('speed');const speed=finite(s.speed)?s.speed:finite(s.distance)&&s.duration>0?s.distance/s.duration:null;
+ const pace=finite(s.pace)&&s.pace>0?s.pace:finite(s.distance)&&s.distance>0&&s.duration>0?s.duration/s.distance*1000:null;
+ if(family!=='strength_training')add({id:'speed',title:run?'Pace':'Speed',value:run?paceLabel(pace):numberLabel(finite(speed)?speed*3.6:null),unit:run?'/km':'km/h',note:(run?finite(pace):finite(speed))?'Workout average':'Average unavailable',color:'#3268d6',values:raw('speed').map(v=>finite(v)?run?(v>0?1000/v:null):v*3.6:null),pace:run,group:'Session',explanation:run?'Average pace from the workout summary or total duration divided by distance. The chart shows instantaneous pace; stopped samples remain gaps.':'Average speed from the workout summary or distance divided by duration. Chart values are converted from metres/second to km/h.'});
+ function sensor(key:string,title:string,unit:string,color:string,group:ActivityMetric['group']='Session',maxKey?:string){
+  used.add(key);if(runningOnly.has(key)&&!run)return;const values=series(key),fromSummary=finite(s[key]),v=fromSummary?s[key]:average(values),valid=values.filter(finite);let max:number|null=finite(s[maxKey??key+'Max'])?s[maxKey??key+'Max']:(valid.length?valid.reduce((a,b)=>Math.max(a,b)):null);
+  add({id:key,title,value:numberLabel(v,['heartrate','cadence','power','groundContactTime','flightTime'].includes(key)?0:1),unit,note:`${fromSummary?'Avg':'Sample avg'}${finite(max)?` · max ${numberLabel(max,unit==='%'?1:0)}`:''}`,color,values,group,explanation:`${({stepLength:'Distance from one footfall to the next, not a two-step stride. ',groundContactTime:'Time your foot stays on the ground per step. ',verticalOscillation:'Vertical movement of your body while running. ',verticalRatio:'Vertical movement relative to step length. ',flightTime:'Time airborne between ground contacts. '} as Record<string,string>)[key]??''}${title}: ${fromSummary?'recorded workout average':'average of available sensor samples; gaps are excluded'}. Values are in ${unit}. Maximum is taken from the summary when supplied, otherwise from valid samples.`});
+ }
+ sensor('heartrate','Heart rate','bpm','#d75570');sensor('cadence','Cadence',cadenceUnit(family),'#b17e21');sensor('power','Power','W','#8b5bd1');
+ used.add('altitude');const ascent=s.altitude?.ascent,descent=s.altitude?.descent,alt=series('altitude');
+ add({id:'altitude',title:'Elevation',value:finite(ascent)||finite(descent)?`↑ ${numberLabel(ascent,0)} · ↓ ${numberLabel(finite(descent)?Math.abs(descent):null,0)}`:'—',unit:'m',note:'Gain · loss',color:'#528b6a',values:alt,group:'Session',explanation:'Headline values are total elevation gain and loss from the workout summary. The chart shows recorded altitude, not accumulated climbing. Missing gain/loss is not inferred from noisy GPS samples.'});
+ for(const [key,title,unit,color] of [['calories','Calories','kcal','#b17e21'],['steps','Steps','steps','#218e86'],['vo2max','VO₂ max','ml/kg/min','#8b5bd1']]){used.add(key);if(key==='steps'&&!foot)continue;add({id:key,title,value:numberLabel(s[key],key==='vo2max'?1:0),unit,note:key==='vo2max'?'Workout estimate':'Recorded total',color,values:[],group:'Session',explanation:`${title} supplied in the workout summary. Missing values are not estimated.`})}
+ const effort=s.effort?.heartrate??s.effort?.power;
+ if(detail.provider==='coros')add({id:'trainingLoad',title:'Training load',value:numberLabel(s.trainingLoad,0),unit:'',note:'COROS load',color:'#8b5bd1',values:[],group:'Session',explanation:'COROS recorded activity training load; separate from other providers’ scores.'});
+ else add({id:'effort',title:'Training effort',value:numberLabel(effort,0),unit:'',note:'Tredict effort',color:'#8b5bd1',values:[],group:'Session',explanation:'Tredict’s recorded workout effort, not a readiness score or an injury prediction.'});
+ for(const [key,title,unit,color] of [['stepLength','Step length','cm','#218e86'],['groundContactTime','Ground contact','ms','#b88646'],['flightTime','Flight time','ms','#7b88b9'],['verticalOscillation','Vertical bounce','cm','#9980bc'],['verticalRatio','Vertical ratio','%','#7a80b6'],['groundContactTimeBalance','Contact balance','%','#8b7aaa'],['leftRightBalance','Power balance','%','#8b7aaa'],['formPower','Form power','W','#8b5bd1'],['airPower','Air power','W','#769aaa']])sensor(key,title,unit,color,'Technique');
+ for(const [key,title,unit] of [['torqueEffectiveness','Torque effectiveness','%'],['pedalSmoothness','Pedal smoothness','%'],['temperature','Temperature','°C'],['grade','Gradient','%'],['respirationRate','Breathing rate','breaths/min']])sensor(key,title,unit,'#6f8c9e','Conditions');
+ // Recognized adjusted speed is transformed into athlete-facing pace or km/h.
+ used.add('speedGradeAdjusted');const adjusted=raw('speedGradeAdjusted');if(adjusted.some(finite)){const mean=average(series('speedGradeAdjusted'));add({id:'speedGradeAdjusted',title:run?'Grade-adjusted pace':'Grade-adjusted speed',value:run?paceLabel(finite(mean)&&mean>0?1000/mean:null):numberLabel(finite(mean)?mean*3.6:null),unit:run?'/km':'km/h',note:'From sampled adjusted speed',color:'#3268d6',values:adjusted.map(v=>finite(v)?run?(v>0?1000/v:null):v*3.6:null),pace:run,group:'Conditions',explanation:'Calculated from the supplied grade-adjusted speed samples. Adjusted pace uses the inverse of mean speed, not the average of instantaneous pace.'})}
+ const other=Object.keys(streams).filter(k=>!used.has(k)&&raw(k).some(finite));
+ return {cards,other,family};
+}

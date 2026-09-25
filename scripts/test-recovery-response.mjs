@@ -1,0 +1,10 @@
+import ts from 'typescript';import {readFileSync} from 'node:fs';import assert from 'node:assert/strict';
+const src=p=>ts.transpileModule(readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
+const shift=(s,n)=>{const d=new Date(s+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)},local=d=>d.toISOString().slice(0,10);
+const rows=Array.from({length:14},(_,i)=>({date:shift('2026-09-01',i),prior:shift('2026-09-01',i-1),load:i===10?200:50,sessions:[],hrv:i===10?70:90,rhr:50,hours:8,bed:1380,hrvStatus:{range:[80,100]},rhrStatus:{range:[47,52]}}));
+const fn=new Function('sleepTraining','shiftSleepDate','localDate',src('app/recovery-response-data.ts')+';return recoveryResponse')(()=>({rows}),shift,local);
+let d=fn({},'2026-09-14');assert.equal(d.hard.length,1);assert.equal(d.hard[0].observed,2);assert.equal(d.hard[0].mornings[0].normal,false);
+rows[10].hrv=null;d=fn({},'2026-09-14');assert.equal(d.hard[0].observed,null);
+const verdict=new Function('localDate','shiftSleepDate','sportFamily',src('app/weekly-verdict-data.ts')+';return weeklyVerdict')(local,shift,a=>a.sport);
+const data={historyStart:'2026-01-01',historyComplete:true,syncedAt:'2026-09-20T12:00:00Z',activities:[{sport:'running',date:'2026-09-19',summary:{distance:12000}},{sport:'running',date:'2026-09-12',summary:{distance:10000}}],sleep:{}};
+let v=verdict(data,new Date('2026-09-20T12:00:00Z'),'running');assert.ok(Math.abs(v.volumeChange-20)<.001);assert.equal(v.sleepChange,null);data.historyComplete=false;v=verdict(data,new Date('2026-09-20T12:00:00Z'),'running');assert.equal(v.volumeChange,null);console.log('Recovery response and weekly verdict: missing mornings, delayed normal range, full-day windows and incomplete history passed.');

@@ -1,0 +1,32 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+const source=ts.transpileModule(readFileSync(new URL('../app/api/sync/tredict.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const {POST}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const request=(token='test-only-token',origin='https://apex.test')=>new Request('https://apex.test/api/sync',{method:'POST',headers:{'Content-Type':'application/json',origin},body:JSON.stringify({token})});
+assert.equal((await POST(request(''))).status,400);
+assert.equal((await POST(request('bad token with spaces'))).status,400);
+assert.equal((await POST(request('x','https://other.test'))).status,403);
+const originalFetch=globalThis.fetch;
+try {
+ const now=new Date().toISOString();let requests=0;
+ globalThis.fetch=async(url,options)=>{requests++;assert.equal(options.headers.Authorization,'Bearer test-only-token');assert.equal(options.redirect,'manual');const path=new URL(url).pathname;
+ if(!['activityList','sleep','hrv'].some(k=>path.endsWith(k)))return Response.json({fixture:true});
+ if(path.endsWith('sleep'))return Response.json({sleep:{20260917:[28800,28000]}});
+ if(path.endsWith('hrv'))return Response.json({error:'no permission'},{status:403});
+ if(new URL(url).searchParams.has('cursor'))return Response.json({_embedded:{activityList:[{id:'a',date:now,sportType:'running',summary:{duration:3600,distance:10000}},{id:'b',date:now,sportType:'cycling',extendedSummary:{duration:5400,power:250}}]}});
+ return Response.json({_embedded:{activityList:[{id:'a',date:now,sportType:'running',summary:{duration:3600,distance:10000}}]},_links:{next:{href:'https://www.tredict.com/api/oauth/v2/activityList?cursor=2'}}});};
+ const result=await POST(request('Bearer test-only-token','https://apex-athlete-performance.dalilooksk.chatgpt.site'));assert.equal(result.status,200);assert.equal(result.headers.get('cache-control'),'no-store, private');const body=await result.json();assert.equal(body.activities.length,2);assert.equal(body.activities.find(a=>a.id==='b').summary.duration,5400);assert.equal(body.sleep['20260917'][0],28800);assert.equal(body.historyVersion,2);assert.equal(body.historyComplete,true);assert.ok(new Date(body.historyStart)<new Date(new Date().getFullYear()-1,0,1));assert.deepEqual(body.hrv,{});assert.ok(body.warnings.some(w=>w.includes('HRV')));assert.equal(requests,10);assert.ok(!JSON.stringify(body).includes('test-only-token'));
+ globalThis.fetch=async()=>Response.json({error:'secret upstream detail'},{status:401});const rejected=await POST(request());assert.equal(rejected.status,401);assert.ok(!(await rejected.text()).includes('secret upstream detail'));
+ globalThis.fetch=async(url)=>new URL(url).pathname.endsWith('activityList')?Response.json({_embedded:{activityList:[]},_links:{next:{href:'https://attacker.test/token'}}}):Response.json({sleep:{},hrv:{}});assert.equal((await POST(request())).status,502);
+ const actionRequest=body=>new Request('https://apex.test/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:'test-only-token',...body})});
+ assert.equal((await POST(actionRequest({action:'detail',id:'../secrets'}))).status,400);
+ assert.equal((await POST(actionRequest({action:'enrich',ids:['a','b','c','d','e']}))).status,400);
+ let detailCalls=0;
+ globalThis.fetch=async(url,options)=>{detailCalls++;assert.equal(options.redirect,'manual');assert.equal(new URL(url).searchParams.get('extraValues'),'1');return Response.json({_id:'a',summary:{vo2max:57.04,groundContactTime:208,effort:{heartrate:33},zonesDistribution:{heartrate:[1605,7,0]}},seriesSampled:{sampleSize:2,data:{heartrate:[120,130]}},laps:[{duration:300}]});};
+ const enriched=await (await POST(actionRequest({action:'enrich',ids:['a','b']}))).json();assert.equal(detailCalls,2);assert.equal(enriched.details[0].summary.vo2max,57.04);assert.equal(enriched.details[0].seriesSampled,undefined);
+ const detail=await (await POST(actionRequest({action:'detail',id:'a'}))).json();assert.equal(detail.details[0].laps.length,1);assert.equal(detail.details[0].hrHistogram.validSeconds,4);assert.equal(detail.details[0].hrHistogram.secondsByBpm['120'],2);assert.deepEqual(detail.details[0].seriesSampled.data.heartrate,[120,130]);assert.ok(!JSON.stringify(detail).includes('test-only-token'));
+ const preview=await (await POST(actionRequest({action:'preview',id:'a'}))).json();assert.equal(preview.details[0].laps.length,1);assert.equal(preview.details[0].seriesSampled,undefined);
+ globalThis.fetch=async()=>Response.json({summary:{durationTotal:5},seriesSampled:{sampleSize:2,data:{heartrate:[120,null,130]}}});const clipped=await (await POST(actionRequest({action:'enrich',ids:['a']}))).json();assert.equal(clipped.details[0].hrHistogram.validSeconds,3);assert.equal(clipped.details[0].hrHistogram.missingSeconds,2);
+ console.log('Passed: token validation, origin protection, pagination, deduplication, metric mapping, partial health failure, non-caching, token redaction, upstream auth errors and untrusted pagination links.');
+} finally {globalThis.fetch=originalFetch}

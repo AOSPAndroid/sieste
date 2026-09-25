@@ -1,0 +1,21 @@
+"use client";
+import {useMemo} from 'react';
+import type {AthleteData} from './analytics';
+import {sleepToolsData} from './sleep-tools-data';
+import {shiftSleepDate} from './sleep-insights-data';
+import {metricStatus} from './metric-status';
+import {SleepSpark} from './sleep-insights';
+import {useExpand} from './expansion';
+import {ResponsiveContainer,LineChart,Line,XAxis,YAxis,Tooltip,ReferenceArea,CartesianGrid} from 'recharts';
+const defs={hours:{title:'Sleep duration',unit:'h',status:'sleep',color:'#398265'},hrv:{title:'Overnight HRV',unit:'ms',status:'hrv',color:'#248e81'},rhr:{title:'Resting HR',unit:'bpm',status:'rhr',color:'#d47689'}} as const;
+type Key=keyof typeof defs;
+const format=(v:number|null,k:Key)=>v===null?'—':k==='hours'?`${Math.floor(Math.round(v*60)/60)}h ${Math.round(v*60)%60}m`:Math.round(v).toString();
+const change=(d:number|null,k:Key)=>d===null?'—':`${Math.abs(d)<(k==='hours'?1/60:.5)?'→':d>0?'↑':'↓'} ${Math.round(Math.abs(d)*(k==='hours'?60:1))}${k==='hours'?'m':' '+defs[k].unit}`;
+export default function SleepVitals({data,end,days,date}:{data:AthleteData;end:string;days:number;date:string}){
+ const expand=useExpand(),history=useMemo(()=>sleepToolsData(data,end,days+31,8).rows,[data,end,days]),rows=history.slice(-days),selected=history.find(r=>r.date===date),previous=history.find(r=>r.date===shiftSleepDate(date,-1));
+ const assessments=Object.fromEntries((Object.keys(defs) as Key[]).map(k=>[k,metricStatus(defs[k].status,data,new Date(date+'T23:59:59'),()=> '')])) as Record<Key,ReturnType<typeof metricStatus>>;
+ const comparisons=(k:Key)=>[1,7,30].map(n=>{const v=history.filter(r=>r.date<date&&r.date>=shiftSleepDate(date,-n)).map(r=>r[k]).filter((v):v is number=>v!==null),need=n===1?1:n===7?4:15,mean=v.length>=need?v.reduce((s,v)=>s+v,0)/v.length:null;return {n,count:v.length,mean,delta:mean!==null&&selected?.[k]!=null?selected[k]!-mean:null}});
+ const chart=(k:Key,large=false)=><div className={large?'sleep-vital-chart large':'sleep-vital-chart'}><ResponsiveContainer width="100%" height="100%"><LineChart data={rows} margin={{left:0,right:8,top:5,bottom:0}}><CartesianGrid vertical={false} stroke="#e5eaf0" strokeDasharray="2 4"/><XAxis dataKey="label" minTickGap={25} tick={{fontSize:10}} axisLine={false} tickLine={false}/><YAxis width={32} domain={['auto','auto']} tick={{fontSize:10}} axisLine={false} tickLine={false}/>{assessments[k].range&&<ReferenceArea y1={assessments[k].range![0]} y2={assessments[k].range![1]} fill="#87bf9c" fillOpacity={.12} strokeOpacity={0} ifOverflow="extendDomain"/>}<Tooltip formatter={(v:any)=>[format(Number(v),k)+(k==='hours'?'':' '+defs[k].unit),defs[k].title]} labelFormatter={(_,p)=>p?.[0]?.payload?.date??''}/><Line dataKey={k} stroke={defs[k].color} strokeWidth={1.3} strokeDasharray="2 3" dot={{r:2,strokeWidth:0}} connectNulls={false} isAnimationActive={false}/></LineChart></ResponsiveContainer></div>;
+ const detail=(k:Key)=><><p>{date} · {format(selected?.[k]??null,k)} {k==='hours'?'':defs[k].unit}</p>{chart(k,true)}{comparisons(k).map(c=><p key={c.n}><b>{change(c.delta,k)}</b> vs {c.n===1?'yesterday':`prior ${c.n}-day average`} · {c.count}/{c.n} readings{c.mean===null?' · insufficient history':''}</p>)}<p>{assessments[k].reason}</p><p>Daily COROS readings, matched to the wake-up date. Resting HR is a daily reading, not an overnight heart-rate trace. Shading uses the selected date’s normal range; gaps are missing readings.</p></>;
+ return <section className="sleep-vitals" aria-label="Main sleep indicators"><div className="sleep-vital-cards">{(Object.keys(defs) as Key[]).map(k=>{const value=selected?.[k]??null,status=assessments[k],diff=value!==null&&previous?.[k]!=null?value-previous[k]!:null;return <button key={k} className={`status-${value===null?'neutral':status.tone}`} onClick={()=>expand.widget(defs[k].title,detail(k))}><small>{defs[k].title}</small><strong>{format(value,k)} <em>{k==='hours'?'':defs[k].unit}</em></strong><span>{value===null?'No reading':status.rangeLabel??status.label}</span><SleepSpark values={rows.map(r=>r[k])} color={defs[k].color}/><span>{change(diff,k)} · vs yesterday</span></button>})}</div></section>;
+}

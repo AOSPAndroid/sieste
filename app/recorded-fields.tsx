@@ -1,0 +1,9 @@
+'use client';
+import {useState} from 'react';
+const label=(s:string)=>s.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase());
+export default function RecordedFields({detail}:{detail:any}){
+ const [open,setOpen]=useState(false),[raw,setRaw]=useState(false);const streams=detail.seriesSampled?.data??{};
+ const rows:{key:string;value:string}[]=[];function walk(v:any,path:string){if(v===null||v===undefined)return;if(typeof v==='object'&&!Array.isArray(v)){for(const [k,x] of Object.entries(v))walk(x,path?path+'.'+k:k)}else rows.push({key:path,value:typeof v==='number'?v.toLocaleString('en-GB',{maximumFractionDigits:3}):typeof v==='string'?v:JSON.stringify(v)})}walk(detail.summary??{},'');
+ function download(){const url=URL.createObjectURL(new Blob([JSON.stringify(detail,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='sieste-activity-'+String(detail.id??'record').replace(/[^a-zA-Z0-9_-]/g,'')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+ return <section className="recorded-fields"><button className="recorded-fields-toggle" aria-expanded={open} onClick={()=>setOpen(!open)}>All recorded data · {rows.length} summary fields · {Object.keys(streams).length} sensors <span>{open?'−':'+'}</span></button>{open&&<><p>Original provider fields and units. Irrelevant sport fields can appear in the source record; they are excluded from the main sport cards.</p><div className="recorded-fields-grid">{rows.map(r=><div key={r.key}><small title={r.key}>{label(r.key)}</small><strong>{r.value}</strong></div>)}</div><p>Sensors: {Object.keys(streams).map(label).join(' · ')||'No samples supplied'}</p><button onClick={download}>Download complete activity JSON</button><button onClick={()=>setRaw(!raw)} aria-expanded={raw}>{raw?'Hide':'Inspect'} full source record</button>{raw&&<pre>{JSON.stringify(detail,null,2)}</pre>}</>}</section>
+}

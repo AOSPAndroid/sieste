@@ -1,0 +1,15 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+const source=ts.transpileModule(readFileSync(new URL('../app/sleep-overview.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const {sleepOverview}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const result=sleepOverview({'20260916':[25200,28800],'20260917':[32400,28800]},'2026-09-17');
+assert.equal(result.differenceMinutes,60);
+assert.equal(result.variabilityMinutes,60);
+assert.equal(result.count,2);
+assert.equal(sleepOverview({'20260916':[28800,0]},'2026-09-17').differenceMinutes,null);
+assert.equal(sleepOverview({'20260916':[28800,28800]},'2026-09-17').date,'2026-09-16');
+assert.equal(sleepOverview({'20260901':[28800,28800]},'2026-09-17').variabilityMinutes,null);
+assert.equal(sleepOverview({},'2026-09-17').seconds,null);
+assert.equal(sleepOverview({'20260918':[36000,28800]},'2026-09-17').seconds,null);
+console.log('Sleep summary tests passed.');

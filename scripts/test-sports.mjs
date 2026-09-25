@@ -1,0 +1,17 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+const source=ts.transpileModule(readFileSync(new URL('../app/sports.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const {sportFamily,sportName,sportDescription,cadenceUnit,runningPace,workoutSpeed}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+for(const subtype of ['strength_training','strengthTraining','Weight Training','weightlifting'])assert.equal(sportFamily({sportType:'misc',subSportType:subtype}),'strength_training');
+assert.equal(sportFamily({sportType:'strength',subSportType:'generic'}),'strength_training');
+assert.equal(sportName('strength_training'),'Strength training');
+assert.equal(sportDescription({sportType:'misc',subSportType:'strength_training'}),'Strength training');
+for(const subtype of ['road','indoor_cycling','mountain','generic'])assert.equal(sportFamily({sportType:'cycling',subSportType:subtype}),'cycling');
+for(const subtype of ['trail','treadmill','track','generic'])assert.equal(sportFamily({sportType:'running',subSportType:subtype}),'running');
+assert.equal(sportFamily({sportType:'running',subSportType:'walking'}),'walking');
+assert.equal(sportFamily({sportType:'misc',subSportType:'generic'}),'misc');
+assert.equal(cadenceUnit('cycling'),'rpm');assert.equal(cadenceUnit('running'),'steps/min');
+assert.equal(runningPace(319),'5:19 /km');assert.equal(runningPace(359.8),'6:00 /km');assert.equal(runningPace(null),'—');
+assert.equal(workoutSpeed({summary:{speed:10}}),36);assert.equal(workoutSpeed({summary:{distance:20000,duration:3600}}),20);assert.equal(workoutSpeed({summary:{distance:0,duration:0}}),null);
+console.log('Sport mappings: strength aliases, cycling and running subtypes, walking exclusion, discipline labels, cadence units, pace and speed passed.');

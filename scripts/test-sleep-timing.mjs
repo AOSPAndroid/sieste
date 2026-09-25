@@ -1,0 +1,12 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+const source=ts.transpileModule(readFileSync('app/sleep-timing-data.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replaceAll('export ','');
+const {sleepTiming,clockLabel,clockMinutes}=new Function(source+';return {sleepTiming,clockLabel,clockMinutes}')();
+const d=sleepTiming({'20260918':{bedtime:'2026-09-17 23:55',wakeTime:'2026-09-18 08:00'},'20260920':{bedtime:'2026-09-20 00:05',wakeTime:'2026-09-20 08:20'}},{'20260920':[7*3600]},'2026-09-20',3);
+assert.equal(clockLabel(d.bed.mean),'00:00');assert.equal(d.bed.sd,5);assert.equal(clockLabel(d.wake.mean),'08:10');
+assert.equal(d.rows[1].bed,null);assert.equal(d.rows[1].hours,null);assert.equal(d.bed.count,2);assert.equal(d.span,180);assert.equal(d.latest.hours,7);
+assert.equal(clockMinutes('2026-09-20 08:20'),500);assert.equal(clockMinutes('24:00'),null);assert.equal(clockMinutes(undefined),null);
+const empty=sleepTiming({}, {},'2026-01-01',7);assert.equal(empty.rows[0].date,'2025-12-26');assert.equal(empty.bed.mean,null);assert.equal(empty.latest,undefined);
+const one=sleepTiming({'20260101':{bedtime:'23:40'}},{},'2026-01-01',7);assert.equal(one.bed.sd,null);assert.equal(one.bed.count,1);
+console.log('Sleep timing: midnight, missing nights, calendar boundaries, duration and variation passed.');

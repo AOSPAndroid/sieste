@@ -1,0 +1,20 @@
+import ts from 'typescript';import {readFileSync} from 'node:fs';import assert from 'node:assert/strict';
+const load=(path,names)=>new Function(ts.transpileModule(readFileSync(path,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replaceAll('export ','')+';return {'+names+'}')();
+const {activityClimbs,paceFromSpeed}=load('app/activity-terrain-data.ts','activityClimbs,paceFromSpeed');
+const {effortProfile}=load('app/effort-profile-data.ts','effortProfile');
+assert.equal(paceFromSpeed(4), '4:10');assert.equal(paceFromSpeed(0),'—');assert.equal(paceFromSpeed(null),'—');assert.equal(paceFromSpeed(2,100),'0:50');
+const detail={summary:{durationTotal:900},seriesSampled:{sampleSize:5,data:{speed:Array.from({length:181},(_,i)=>i>=50&&i<90?4.5:3),altitude:Array.from({length:181},(_,i)=>i*1.2),distance:Array.from({length:181},(_,i)=>i*15)}}};
+const climbs=activityClimbs(detail);assert.ok(climbs.length>0,'Running climbs work without power');assert.ok(climbs[0].grade>2);
+const effort=effortProfile(detail,'speed');assert.ok(effort.efforts.length>0);assert.ok(effort.efforts[0].mean>4);assert.equal(effortProfile({...detail,seriesSampled:{sampleSize:5,data:{speed:Array(181).fill(3)}}},'speed').efforts.length,0,'Steady easy run is not an interval');
+assert.equal(activityClimbs({...detail,seriesSampled:{sampleSize:5,data:{...detail.seriesSampled.data,altitude:Array(181).fill(null)}}}).length,0);
+assert.equal(activityClimbs({...detail,seriesSampled:{sampleSize:5,data:{...detail.seriesSampled.data,distance:[]}}}).length,0);
+console.log('Running pace conversion, speed effort detection, power-free climbs and missing data passed.');
+// Regression fixtures are synthetic; private COROS recordings stay outside Git.
+const running={sportType:'running',summary:{durationTotal:240},seriesSampled:{sampleSize:1,data:{altitude:Array.from({length:241},(_,i)=>50+(i<100?i*.1:i<115?10:(i-15)*.1)),distance:Array.from({length:241},(_,i)=>i*3)}}};
+assert.equal(activityClimbs(running).length,1,'A brief flat does not erase a running climb');
+assert.equal(activityClimbs({...running,seriesSampled:{sampleSize:1,data:{...running.seriesSampled.data,altitude:Array.from({length:241},(_,i)=>50+Math.sin(i)*.8)}}}).length,0,'Flat elevation noise is not a climb');
+assert.equal(activityClimbs({...running,seriesSampled:{sampleSize:1,data:{...running.seriesSampled.data,altitude:Array.from({length:241},(_,i)=>i===120?100:50)}}}).length,0,'Isolated elevation spike is rejected');
+const gap={...running,seriesSampled:{sampleSize:1,data:{...running.seriesSampled.data,altitude:running.seriesSampled.data.altitude.map((a,i)=>i>=90&&i<130?null:a)}}};
+assert.ok(activityClimbs(gap).every(c=>c.end<90||c.start>=130),'Missing elevation is never bridged');
+const short=effortProfile({summary:{durationTotal:180},seriesSampled:{sampleSize:1,data:{speed:Array.from({length:181},(_,i)=>i>=60&&i<100?4.5:3)}}},'speed');assert.equal(short.efforts.length,1,'A sustained 40 second running surge survives smoothing');
+console.log('Rolling climbs, flat sections, noise, gaps and short running efforts passed.');

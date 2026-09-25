@@ -1,0 +1,1 @@
+export function timing(n:{bed:string;wake:string}){const parse=(s:string)=>{const [h,m]=s.split(':').map(Number);return h+m/60};let bed=parse(n.bed),wake=parse(n.wake);if(bed<12)bed+=24;while(wake<=bed)wake+=24;return {bedHour:bed,wakeHour:wake,interval:[bed,wake]}}

@@ -1,0 +1,1 @@
+ALTER TABLE `coros_connections` ADD `refresh_lock` real DEFAULT 0 NOT NULL;

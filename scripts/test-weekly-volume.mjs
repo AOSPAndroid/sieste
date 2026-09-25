@@ -1,0 +1,20 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+process.env.TZ='UTC';
+function moduleUrl(name){let source=ts.transpileModule(readFileSync(new URL('../app/'+name+'.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;source=source.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,dep)=>`from "${moduleUrl(dep)}"`);return 'data:text/javascript;base64,'+Buffer.from(source).toString('base64')}
+const {weeklyVolume}=await import(moduleUrl('weekly-volume-data'));
+const now=new Date('2026-09-18T12:00:00Z'),a=(id,date,sportType,summary,subSportType)=>({id,date,sportType,summary,subSportType});
+const data={historyStart:'2025-01-01',historyComplete:true,sleep:{},hrv:{},activities:[a('run','2026-09-14T08:00:00Z','running',{distance:10000,duration:3600}),a('prior','2026-09-13T08:00:00Z','running',{distance:5000,duration:1800}),a('ride','2026-09-15T08:00:00Z','cycling',{distance:30000,duration:3600}),a('strength','2026-09-15T08:00:00Z','misc',{duration:1800},'strength_training'),a('future','2026-09-18T20:00:00Z','running',{distance:99999,duration:99999})]};
+let r=weeklyVolume(data,now,'running',8,'sport');assert.equal(r.current.start,'2026-09-14');assert.equal(r.current.value,10);assert.equal(r.rows.at(-2).value,5);assert.equal(r.average,1.25);assert.equal(r.rows[0].value,0);assert.equal(r.unit,'km');
+assert.equal(weeklyVolume(data,now,'cycling',8,'sport').current.value,30);r=weeklyVolume(data,now,'strength_training',8,'sport');assert.equal(r.current.value,.5);assert.equal(r.unit,'h');assert.equal(weeklyVolume(data,now,'running',8,'hours').current.value,1);assert.equal(weeklyVolume(data,now,'running',8,'sessions').current.value,1);
+assert.equal(weeklyVolume({...data,excludedWorkouts:[{id:'run',date:data.activities[0].date}]},now,'running',8,'sport').current.value,0);
+r=weeklyVolume({...data,historyStart:'2026-09-16'},now,'running',8,'sport');assert.equal(r.current.incomplete,true);assert.equal(r.rows[0].value,null);assert.equal(r.average,null);
+r=weeklyVolume({...data,activities:[a('missing','2026-09-15','running',{})]},now,'running',8,'sport');assert.equal(r.current.value,null);assert.equal(r.current.missing,1);
+r=weeklyVolume(data,new Date('2026-01-01T12:00:00Z'),'running',8,'sport');assert.equal(r.current.start,'2025-12-29');assert.equal(r.current.end,'2026-01-04');
+const paired={...data,activities:[...data.activities,a('early','2026-09-08T08:00:00Z','running',{distance:5000,duration:1800}),a('late','2026-09-11T20:00:00Z','running',{distance:20000,duration:3600})]};
+r=weeklyVolume(paired,now,'running',8,'sport');assert.equal(r.comparison.previous,5);assert.equal(r.comparison.percent,100);assert.equal(r.comparison.direction,'up');
+r=weeklyVolume(data,now,'running',8,'sport');assert.equal(r.comparison.previous,0);assert.equal(r.comparison.percent,null);assert.equal(r.comparison.absolute,10);
+r=weeklyVolume({...paired,activities:paired.activities.filter(a=>a.id!=='run')},now,'running',8,'sport');assert.equal(r.comparison.direction,'down');assert.equal(r.comparison.percent,-100);
+r=weeklyVolume({...paired,historyStart:'2026-09-14'},now,'running',8,'sport');assert.equal(r.comparison.direction,'unavailable');assert.equal(r.comparison.absolute,null);
+console.log('Passed: Monday boundaries, year crossover, sport aliases, distance/hours/sessions, future and removed exclusions, four-week mean and missing history.');

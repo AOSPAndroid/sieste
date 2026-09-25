@@ -1,0 +1,5 @@
+import {getChatGPTUser} from '../../../chatgpt-auth';
+import {storage,privateJson} from '../../../../db/storage';
+import {corosConnection,corosPrefix} from '../../../../db/coros';
+export const dynamic='force-dynamic';
+export async function GET(request:Request){const user=await getChatGPTUser();if(!user)return privateJson({error:'Sign in first.'},401);const id=new URL(request.url).searchParams.get('id');if(!id||!/^coros_\d+_[\w-]{1,100}$/.test(id))return privateJson({error:'Invalid workout.'},400);const row=await corosConnection(user.userId);if(!row)return privateJson({error:'Connect COROS first.'},409);const object=await storage().bucket.get((await corosPrefix(user.userId))+row.revision+'/fit/'+id+'.fit');if(!object)return privateJson({error:'Open this activity to import its file first.'},404);return new Response(await object.arrayBuffer(),{headers:{'Content-Type':'application/octet-stream','Content-Disposition':`attachment; filename="sieste-${id}.fit"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}})}

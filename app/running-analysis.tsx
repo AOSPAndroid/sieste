@@ -1,0 +1,15 @@
+"use client";
+import {useMemo} from 'react';
+import {sampledBest} from './training-coach-data';
+import {effortProfile} from './effort-profile-data';
+import {paceFromSpeed} from './activity-terrain-data';
+const valid=(v:any):v is number=>typeof v==='number'&&Number.isFinite(v);
+export default function RunningAnalysis({detail}:{detail:any}){
+ const data=useMemo(()=>{const streams=detail.seriesSampled?.data??{},speed=streams.speed??[],step=detail.seriesSampled?.sampleSize,cap=Math.min(detail.summary?.durationTotal??Infinity,speed.length*(step??0));
+ const bests=[30,60,300,1200].map(seconds=>({seconds,best:sampledBest(speed,step,seconds,cap)}));
+ const efforts=effortProfile(detail,'speed').efforts,first=efforts[0],repeats=first?efforts.filter(e=>Math.abs((e.end-e.start)/(first.end-first.start)-1)<=.2):[];
+ const avg=(key:string,e:any)=>{const a=(streams[key]??[]).slice(Math.ceil(e.start*60/step),Math.ceil(e.end*60/step)).filter((x:any)=>valid(x)&&x>0);return a.length?a.reduce((s:number,v:number)=>s+v,0)/a.length:null};
+ const last=repeats.at(-1),change=repeats.length>=3&&first.mean>0&&last?{speed:(last.mean/first.mean-1)*100,hr:avg('heartrate',first)!==null&&avg('heartrate',last)!==null?avg('heartrate',last)!-avg('heartrate',first)!:null,cadence:avg('cadence',first)!==null&&avg('cadence',last)!==null?avg('cadence',last)!-avg('cadence',first)!:null,first,last}:null;
+ return {bests,repeats,change};},[detail]);
+ return <section className="running-analysis"><div className="running-best-grid">{data.bests.map(({seconds,best})=><div key={seconds}><small>Best {seconds<60?seconds+'s':seconds/60+' min'}</small><strong>{best?paceFromSpeed(best.value):'—'} <small>/km</small></strong><small>{best?`At ${Math.floor(best.start/60)}:${String(Math.round(best.start%60)).padStart(2,'0')} elapsed`:'Complete samples needed'}</small></div>)}</div>{data.change?<div className="running-repeat"><strong>Comparable repeats · {data.repeats.length}</strong><p>{paceFromSpeed(data.change.first.mean)} → {paceFromSpeed(data.change.last.mean)} /km <b style={{color:data.change.speed< -3?'#b77923':data.change.speed>3?'#328263':'#778496'}}>{Math.abs(data.change.speed)<1?'→':data.change.speed>0?'↑':'↓'} {Math.abs(data.change.speed).toFixed(1)}% speed</b></p><p>{data.change.hr!==null?`HR ${data.change.hr>=0?'+':''}${Math.round(data.change.hr)} bpm`:'HR unavailable'} · {data.change.cadence!==null?`Cadence ${data.change.cadence>=0?'+':''}${Math.round(data.change.cadence)} steps/min`:'Cadence unavailable'}</p><small>First vs last effort of similar duration (±20%). Pace depends on gradient, wind and the planned session; this is a consistency cue, not a fitness verdict.</small></div>:<p className="activity-data-note">At least three detected efforts of similar duration are needed to compare repeats.</p>}<p className="activity-data-note">Best paces use complete timed speed samples, including recorded stops. Missing samples are not filled. These are this activity’s best windows, not race predictions.</p></section>;
+}

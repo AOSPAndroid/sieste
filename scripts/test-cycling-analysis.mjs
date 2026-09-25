@@ -1,0 +1,9 @@
+import ts from 'typescript';import {readFileSync} from 'node:fs';import assert from 'node:assert/strict';
+const code=ts.transpileModule(readFileSync('app/cycling-analysis-data.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replaceAll('export ','');const analyse=new Function(code+';return cyclingAnalysis')();
+const count=720,step=5;const make=(change=false)=>({summary:{durationTotal:3600},seriesSampled:{sampleSize:step,data:{power:Array(count).fill(200),heartrate:Array.from({length:count},(_,i)=>change&&i*step>=2010?154:140),cadence:Array(count).fill(85),speed:Array(count).fill(7)}}});
+let r=analyse(make());assert.equal(r.power,200);assert.equal(r.work,720);assert.equal(r.cadence,85);assert.equal(r.coverage,1);assert.equal(r.coasting,0);assert.equal(r.drift,0);assert.equal(r.bests.find(b=>b.seconds===1200).watts,200);
+r=analyse(make(true));assert.ok(Math.abs(r.drift-10)<.1);
+const gaps=make();gaps.seriesSampled.data.power=gaps.seriesSampled.data.power.map((v,i)=>i%10===0?null:v);r=analyse(gaps);assert.equal(r.coverage,.9);assert.equal(r.work,648);assert.equal(r.bests.find(b=>b.seconds===60).watts,null);assert.equal(r.drift,null);
+const zeros=make();zeros.seriesSampled.data.power=zeros.seriesSampled.data.power.map((v,i)=>i<360?0:v);zeros.seriesSampled.data.cadence=zeros.seriesSampled.data.cadence.map((v,i)=>i<360?0:v);r=analyse(zeros);assert.equal(r.power,100);assert.equal(r.cadence,85);assert.equal(r.coasting,50);assert.equal(r.work,360);
+r=analyse(make(),600,900);assert.equal(r.seconds,300);assert.equal(r.work,60);assert.equal(r.bests.find(b=>b.seconds===1200).watts,null);assert.equal(r.drift,null);
+assert.equal(analyse({}).rows.length,0);console.log('Cycling analysis: power windows, matched HR, missing data, zeros, work and lap selection passed.');

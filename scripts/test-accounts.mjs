@@ -1,0 +1,43 @@
+import {Miniflare} from 'miniflare';
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+const compile=path=>ts.transpileModule(readFileSync(new URL('../'+path,import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'').replace(/export const dynamic='force-dynamic';/g,''),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const cryptoSource=compile('db/token-crypto.ts'),storageSource=compile('db/storage.ts'),syncSource=compile('app/api/sync/route.ts'),profileSource=compile('app/api/profile/route.ts').replace(/export async function (GET|PUT|DELETE)/g,'async function profile$1');
+const script=`let env,currentUser;const getChatGPTUser=async()=>currentUser;const chatGPTSignInPath=()=>'/signin-with-chatgpt';const chatGPTSignOutPath=()=>'/signout-with-chatgpt';
+async function tredict(request){const body=await request.json();if(body.token==='invalid')return Response.json({error:'Rejected'},{status:401});const label=body.token==='test-athlete-a'?'A':'B';return Response.json(body.action?{details:[{id:body.id??body.ids[0],summary:{duration:label==='A'?100:200}}]}:{activities:[{id:label,date:'2026-09-17',summary:{duration:100}}],sleep:{},hrv:{},syncedAt:'2026-09-17T00:00:00Z'})}
+${cryptoSource}\n${storageSource}\n${compile('app/workout-exclusions.ts')}\n${compile('db/workout-exclusions.ts')}\n${syncSource}\n${profileSource}\nexport default{async fetch(request,bindings){env=bindings;const owner=request.headers.get('x-test-user');currentUser=owner?{userId:owner,displayName:owner}:null;const fn=new URL(request.url).pathname==='/api/profile'?({GET:profileGET,PUT:profilePUT,DELETE:profileDELETE}[request.method]):({GET,POST,DELETE}[request.method]);return fn(request)}};`;
+const worker=new Miniflare({modules:true,script,compatibilityDate:'2026-05-15',d1Databases:['DB'],r2Buckets:['ATHLETE_DATA'],bindings:{TOKEN_ENCRYPTION_KEY:Buffer.alloc(32,7).toString('base64')}});
+try{
+ const db=await worker.getD1Database('DB');for(const statement of readFileSync(new URL('../drizzle/0000_bizarre_exodus.sql',import.meta.url),'utf8').split('--> statement-breakpoint'))await db.prepare(statement.trim()).run();
+ const call=(user,method='GET',body,path='/api/sync',origin='https://flemme.test')=>worker.dispatchFetch('https://flemme.test'+path,{method,headers:{...(user?{'x-test-user':user}:{}),'Content-Type':'application/json','Origin':origin},...(body?{body:JSON.stringify(body)}:{})});
+ assert.equal((await call(null,'POST',{token:'test-athlete-a'})).status,401);
+ assert.equal((await call('A','POST',{token:'test-athlete-a'},'/api/sync','https://evil.test')).status,403);
+ assert.equal((await call('A','POST',{token:'invalid'})).status,401);
+ assert.equal((await (await call('A')).json()).connected,false);
+ assert.equal((await call('A','POST',{token:'test-athlete-a',owner:'B'})).status,200);
+ assert.equal((await call('B','POST',{token:'test-athlete-b'})).status,200);
+ const a=await (await call('A')).json(),b=await (await call('B')).json();assert.equal(a.data.activities[0].id,'A');assert.equal(b.data.activities[0].id,'B');assert.equal(JSON.stringify(a).includes('test-athlete'),false);
+ const rows=await db.prepare('SELECT * FROM athlete_connections').all();assert.equal(rows.results.length,2);assert.ok(rows.results.every(r=>r.token_ciphertext.startsWith('v1.')&&!r.token_ciphertext.includes('test-athlete')));
+ assert.equal((await call('A','POST',{token:'__saved__',action:'detail',id:'session'})).status,200);
+ const detailA=await (await call('A','POST',{action:'detail',id:'session'})).json(),detailB=await (await call('B','POST',{action:'detail',id:'session'})).json();assert.equal(detailA.details[0].summary.duration,100);assert.equal(detailB.details[0].summary.duration,200);
+ assert.equal((await call('A','PUT',{weight:72,height:178,owner:'B'},'/api/profile')).status,200);
+ assert.equal((await (await call('B','GET',undefined,'/api/profile')).json()).profile,null);
+ assert.equal((await (await call('A','GET',undefined,'/api/profile')).json()).profile.weight,72);
+ assert.equal((await call('A','PUT',{weight:-1,height:null},'/api/profile')).status,400);
+ assert.equal((await call(null,'POST',{action:'remove',id:'A'})).status,401);
+ assert.equal((await call('A','POST',{action:'remove',id:'B'})).status,404);
+ assert.equal((await call('A','POST',{action:'remove',id:'A'},'/api/sync','https://evil.test')).status,403);
+ assert.equal((await call('A','POST',{action:'remove',id:'A'})).status,200);
+ assert.equal((await (await call('A')).json()).data.activities.length,0);
+ assert.equal((await (await call('B')).json()).data.activities.length,1);
+ assert.equal((await call('A','POST',{action:'detail',id:'A'})).status,404);
+ assert.equal((await (await call('A','POST',{token:'__saved__'})).json()).activities.length,0);
+ assert.equal((await call('A','POST',{action:'restore',id:'A'})).status,200);
+ assert.equal((await (await call('A')).json()).data.activities.length,1);
+ assert.equal((await call('A','DELETE')).status,200);assert.equal((await (await call('A')).json()).connected,false);assert.equal((await (await call('B')).json()).connected,true);
+ assert.equal((await call('A','POST',{action:'detail',id:'session'})).status,409);
+ assert.equal((await call('A','DELETE',undefined,'/api/profile')).status,200);
+ assert.equal((await (await call('A','GET',undefined,'/api/profile')).json()).profile,null);
+ console.log('Passed: real D1/R2 persistence, two-athlete separation, encrypted tokens, refresh restore, saved-token detail cache, invalid-token rejection, profile ownership, origin checks and disconnect isolation.');
+}finally{await worker.dispose()}

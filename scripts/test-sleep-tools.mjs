@@ -1,0 +1,6 @@
+import ts from 'typescript';import {readFileSync} from 'node:fs';import assert from 'node:assert/strict';
+const src=p=>ts.transpileModule(readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
+const fn=new Function(src('app/sleep-timing-data.ts')+src('app/sleep-tools-data.ts')+';return sleepToolsData')();
+const data={sleep:{},hrv:{},extra:{coros:{sleepWindows:{}},bodyvalues:{bodyvalues:[]}}};for(let i=14;i<=20;i++){const key='202609'+i;data.sleep[key]=[i<17?6*3600:9*3600];data.hrv[key]=[i<17?70:90];data.extra.coros.sleepWindows[key]={bedtime:`2026-09-${i} 00:00`,wakeTime:`2026-09-${i} 08:00`,awakeMinutes:20}}
+let d=fn(data,'2026-09-20',7,8);assert.equal(d.shortfall,6);assert.equal(d.met,4);assert.equal(d.shortNights,3);assert.equal(d.hrv[0].value,70);assert.equal(d.hrv[1].value,90);assert.equal(d.rhr[0].value,null);assert.equal(d.groups[1].nights,2);
+delete data.sleep['20260914'];d=fn(data,'2026-09-20',7,8);assert.equal(d.shortfall,null);assert.equal(d.coverage,6);assert.equal(d.hrv[0].value,null);console.log('Sleep tools: missing nights, non-offset shortfall, paired sample thresholds and weekend grouping passed.');

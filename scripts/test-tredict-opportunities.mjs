@@ -1,0 +1,16 @@
+import {readFileSync} from 'node:fs';import ts from 'typescript';import assert from 'node:assert/strict';
+function url(name){let s=ts.transpileModule(readFileSync(new URL('../app/'+name+'.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;s=s.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,d)=>`from "${url(d)}"`);return 'data:text/javascript;base64,'+Buffer.from(s).toString('base64')}
+const {sensorEvidence,planLinks,equipmentHistory,comparableSessions,factorComparison,pedalComparison,conditionsComparison}=await import(url('tredict-opportunities-data'));
+const d={summary:{durationTotal:300},seriesSampled:{sampleSize:5,data:{power:Array(60).fill(210),leftRightBalance:Array(60).fill(48),airPower:Array(60).fill(15),temperature:Array(60).fill(0)}}};
+const sensors=sensorEvidence(d);assert.equal(sensors.sensors.temperature.value,0);assert.equal(sensors.powerBands['200'].leftRightBalance.value,48);assert.equal(sensors.sensors.airPower.coverage,1);
+const bad=structuredClone(d);bad.seriesSampled.data.leftRightBalance.fill(null);assert.equal(sensorEvidence(bad).sensors.leftRightBalance,undefined);bad.seriesSampled.data.leftRightBalance.fill(150);assert.equal(sensorEvidence(bad).sensors.leftRightBalance,undefined);
+const partial=structuredClone(d);partial.seriesSampled.data.airPower=Array(12).fill(20);assert.equal(sensorEvidence(partial).sensors.airPower.coverage,.2);
+const now=new Date('2026-09-19T12:00:00Z'),w=(id,date='2026-09-18',sportType='cycling')=>({id,date,sportType,summary:{duration:3600,distance:30000,power:210,altitude:{ascent:100},speedAerobicFactor:1.5},evidence:{sensors}}),a=w('a'),peers=[w('b','2026-09-17'),w('c','2026-09-16'),w('d','2026-09-15')];
+assert.equal(comparableSessions(a,[...peers,a,...peers]).length,3);assert.equal(comparableSessions(a,[w('future','2026-09-20')]).length,0);assert.equal(comparableSessions(a,[{...peers[0],summary:{...peers[0].summary,power:100}}]).length,0);
+assert.equal(pedalComparison(a,peers,'200')[0].baseline,48);assert.equal(pedalComparison(a,peers.slice(0,2),'200')[0].baseline,null);assert.equal(factorComparison(a,peers)[1].baseline,1.5);assert.equal(conditionsComparison(a,peers)[0].baseline,0);
+assert.equal(conditionsComparison({...a,evidence:{sensors:sensorEvidence(partial)}},peers)[1].value,null);
+const data={activities:[a,a],sleep:{},hrv:{},extra:{plannedTrainingList:{_embedded:{plannedWorkoutList:[{id:'p',date:'2026-09-17',duration:4000,executedTrainingId:'a'},{id:'q',date:'2026-09-17',executedTrainingId:'not-synced'},{id:'r',date:'2026-09-17'}]}},equipmentList:{equipment:[{id:'shoe',type:'shoes',name:'Test',trainingIds:['a','a']}]}}};
+const p=planLinks(data,now);assert.equal(p.rows[0].status,'Linked');assert.equal(p.rows[1].status,'Linked activity not synced');assert.equal(p.rows[2].status,'No completion link');assert.equal(p.rows[0].actual,3600);
+const e=equipmentHistory(data,now)[0];assert.equal(e.sessions.length,1);assert.equal(e.km,30);assert.equal(e.minutes,60);
+assert.equal(equipmentHistory({...data,activities:[{...a,summary:{duration:3600}}]},now)[0].km,null);
+console.log('Tredict opportunities: weighted sensors, missing/zero data, power bands, comparable sessions, baseline minimum, plan linkage and equipment deduplication passed.');

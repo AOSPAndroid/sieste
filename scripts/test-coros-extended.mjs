@@ -1,0 +1,25 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+const source=p=>ts.transpileModule(readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
+const core=new Function('sportFamily',source('app/coros-data.ts')+';return {corosText,seconds,corosRecords,corosSleep,corosHrv,corosResting}')(a=>a.sportType);
+const e=new Function('corosText','seconds',source('app/coros-extended-data.ts')+';return {corosProfile,corosHeartDays,corosStressDays,corosStressPoints,corosDevices,corosPredictions}')(core.corosText,core.seconds);
+assert.deepEqual(e.corosProfile('User Profile Information\nHeight: 170.0 cm\nWeight: 65.1 kg'),{height:170,weight:65.1,nickname:undefined,source:'COROS'});
+assert.equal(e.corosHeartDays('2026-09-19: 71 bpm (Min: 41, Max: 149)')['20260919'].max,149);
+assert.equal(e.corosStressPoints('timestamp=123, timezone=8, stress=16, score=1, stressHrv=0, stressHr=0')[0].hrv,null);
+assert.equal(e.corosPredictions('5 km Prediction: 19:09')['5 km'],1149);
+assert.deepEqual(core.corosSleep('No sleep data found.'),{sleep:{},windows:{}});
+const day=d=>d.toISOString().slice(0,10).replaceAll('-','');
+const history=new Function('corosRecords','corosSleep','corosHrv','corosResting','day','captureCoros',source('app/api/coros/history.ts')+';return {importCorosHistory,importRecoveryHistory}')(v=>v,core.corosSleep,core.corosHrv,core.corosResting,day,()=>{});
+const calls=[];const many=Array.from({length:1500},(_,i)=>({id:String(i),provider:'coros',date:'2020-09-19'}));
+const client={call:async(name,args)=>{calls.push(args);return args.startDate==='20000101'&&args.endDate==='20260920'?many:[]}};
+const imported=await history.importCorosHistory(client,null,new Date('2026-09-20'));
+assert.equal(imported.history.complete,false);assert.ok(imported.history.pending.length>0);assert.ok(calls.some(c=>c.endDate!=='20260920'));
+const next=await history.importCorosHistory(client,{activities:imported.activities,extra:{coros:{importVersion:2,history:imported.history}}},new Date('2026-09-20'));
+assert.equal(next.history.complete,true);assert.equal(next.activities.length,1500);
+const failed=await history.importRecoveryHistory('a',{call:async()=>{throw Error()}},null,'20200101',new Date('2026-09-20'));assert.equal(failed.state.nextEnd,'20260823');assert.ok(failed.state.issue);
+const empty=await history.importRecoveryHistory('a',{call:async(name)=>name==='querySleepData'?'No sleep data found.':'No HRV data'},null,'20260820',new Date('2026-09-20'));assert.equal(empty.state.nextEnd,'20260816');assert.equal(empty.state.complete,true);
+const db=new DatabaseSync(':memory:');db.exec('CREATE TABLE coros_fit_usage(owner TEXT,day TEXT,count INTEGER,PRIMARY KEY(owner,day))');const reserve=db.prepare('INSERT INTO coros_fit_usage VALUES (?,?,1) ON CONFLICT(owner,day) DO UPDATE SET count=count+1 WHERE count<? RETURNING count');for(let i=0;i<45;i++)assert.ok(reserve.get('a','2026-09-20',45));assert.equal(reserve.get('a','2026-09-20',45),undefined);for(let i=0;i<5;i++)assert.ok(reserve.get('a','2026-09-20',50));assert.equal(reserve.get('a','2026-09-20',50),undefined);assert.ok(reserve.get('b','2026-09-20',45));assert.ok(reserve.get('a','2026-09-21',45));
+if(process.argv.includes('--private-fixtures')){for(const [fn,name] of [['corosProfile','queryUserInfo'],['corosHeartDays','queryAvgHeartRate'],['corosStressDays','queryStressLevel'],['corosStressPoints','queryStressTimeSeries'],['corosDevices','queryDevices']])assert.ok(Object.keys(e[fn](JSON.parse(readFileSync('.sites-runtime/'+name+'.json','utf8')))).length)}
+console.log('COROS extended: real formats, absent readings, history splitting/resumption, failed backfill preservation, quota reservations and owner/day isolation passed.');

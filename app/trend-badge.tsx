@@ -1,0 +1,2 @@
+import type {Trend} from './trend';
+export default function TrendBadge({trend,label,caption}:{trend:Trend;label?:string;caption?:string}){return <span className={`trend-badge trend-${trend.tone}`} title={trend.description} aria-label={`${label??''} ${trend.arrow} ${trend.text}. ${trend.description}`}><b>{trend.arrow}</b> {label&&<span>{label}</span>} {trend.text}{caption&&<small>{caption}</small>}</span>}

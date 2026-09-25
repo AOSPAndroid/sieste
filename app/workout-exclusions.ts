@@ -1,0 +1,3 @@
+export type WorkoutExclusion={id:string;date:string};
+export function applyWorkoutExclusions<T extends {activities:any[];excludedWorkouts?:WorkoutExclusion[]}>(data:T,excluded:WorkoutExclusion[]):T{return {...data,activities:data.activities.filter(a=>!excluded.some(e=>e.id===a.id)),excludedWorkouts:excluded}}
+export function effortExcluded(data:any,day:string){const iso=day.includes('-')?day:`${day.slice(0,4)}-${day.slice(4,6)}-${day.slice(6)}`;return (data.excludedWorkouts??[]).some((e:WorkoutExclusion)=>{const d=new Date(e.date),local=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;return e.date.slice(0,10)===iso||local===iso})}

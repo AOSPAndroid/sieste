@@ -1,0 +1,8 @@
+import ts from 'typescript';import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import {readFileSync} from 'node:fs';import assert from 'node:assert/strict';
+const source=ts.transpileModule(readFileSync('app/widget-comparisons.tsx','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.React}}).outputText.replace(/^import .*;\s*$/gm,'').replace('export default function','function');
+const metricSource=ts.transpileModule(readFileSync('app/metric-status.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replaceAll('export ','');
+const metricStatus=new Function(metricSource+';return metricStatus')();
+const C=new Function('React','sportFamily','clockMinutes','clockLabel','metricStatus','useState',source+';return WidgetComparisons')(React,a=>a.sportType,()=>null,String,metricStatus,React.useState);
+const data={activities:[],sleep:{},hrv:{},extra:{}};for(let i=0;i<16;i++){const d=new Date('2026-09-17T12:00:00Z');d.setUTCDate(d.getUTCDate()-i);data.sleep[d.toISOString().slice(0,10).replaceAll('-','')]=[(i<=7?8:7)*3600]}
+const html=()=>renderToStaticMarkup(React.createElement(C,{title:'Latest sleep',data,isDemo:true}));assert.match(html(),/↑ 1 h/);assert.match(html(),/8 vs 7 h/);assert.match(html(),/7\/7 vs 0\/7 days/);delete data.sleep['20260915'];assert.match(html(),/6\/7/);assert.match(html(),/complete pair/);
+const run=renderToStaticMarkup(React.createElement(C,{title:'Running · weekly volume',data,isDemo:true}));assert.match(run,/Missing readings/);assert.doesNotMatch(run,/0 vs 0 km/);console.log('Comparisons: exact day windows, missing history, week averages and unknown training coverage passed.');
