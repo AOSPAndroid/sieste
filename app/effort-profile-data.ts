@@ -1,6 +1,6 @@
 const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
 const quantile=(v:number[],q:number)=>{const a=[...v].sort((a,b)=>a-b);return a[Math.floor((a.length-1)*q)]};
-export function effortProfile(detail:any,sensor='power'){
+function computeeffortProfile(detail:any,sensor='power'){
  const streams=detail.seriesSampled?.data??{},step=detail.seriesSampled?.sampleSize;
  if(!finite(step)||step<=0)return {rows:[],laps:[],efforts:[],threshold:null,reason:'Timed sensor samples are needed to align the profile.'};
  const n=Math.max(...['altitude',sensor].map(k=>Array.isArray(streams[k])?streams[k].length:0)),duration=detail.summary?.durationTotal;
@@ -18,4 +18,10 @@ export function effortProfile(detail:any,sensor='power'){
  // Cumulative active laps cannot be overlaid reliably onto elapsed samples when pauses differ.
  const extent=rows.length?rows.at(-1)!.time*60+step:0;if(Math.abs(cursor-extent)>Math.max(10,step*2))aligned=false;
  return {rows,laps:aligned?laps:[],efforts,threshold,reason:!aligned&&detail.laps?.length?'Lap timing does not match the sensor timeline; lap overlay omitted.':null};
+}
+
+const resultCache=new WeakMap<object,Map<string,ReturnType<typeof computeeffortProfile>>>();
+export function effortProfile(detail:any,sensor='power'){
+ let entries=resultCache.get(detail);if(!entries){entries=new Map();resultCache.set(detail,entries)}
+ const key=String(sensor);const cached=entries.get(key);if(cached)return cached;const result=computeeffortProfile(detail,sensor);entries.set(key,result);return result;
 }

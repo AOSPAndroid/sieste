@@ -2,7 +2,7 @@ const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
 const median=(a:number[])=>{const b=[...a].sort((a,b)=>a-b);return b[Math.floor(b.length/2)]};
 // Valley-to-peak detection: aggregate noisy samples, then tolerate small flats/dips.
 // Boundaries remain elapsed seconds so the profile and map select the same section.
-export function activityClimbs(detail:any,family=detail.sportType){
+function computeactivityClimbs(detail:any,family=detail.sportType){
  const s=detail.seriesSampled?.data??{},step=detail.seriesSampled?.sampleSize;
  if(!finite(step)||step<=0||step>30)return [];
  const running=['running','walking','hiking','trail_running'].includes(family),minGain=running?12:20,minTime=running?45:120,minGrade=running?1:2;
@@ -23,3 +23,9 @@ export function activityClimbs(detail:any,family=detail.sportType){
  }finish();return climbs;
 }
 export function paceFromSpeed(speed:unknown,metres=1000){if(!finite(speed)||speed<=0)return '—';const s=Math.round(metres/speed);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`}
+
+const resultCache=new WeakMap<object,Map<string,ReturnType<typeof computeactivityClimbs>>>();
+export function activityClimbs(detail:any,family=detail.sportType){
+ let entries=resultCache.get(detail);if(!entries){entries=new Map();resultCache.set(detail,entries)}
+ const key=String(family);const cached=entries.get(key);if(cached)return cached;const result=computeactivityClimbs(detail,family);entries.set(key,result);return result;
+}

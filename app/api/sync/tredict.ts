@@ -13,11 +13,12 @@ export async function POST(request:Request){
  if(origin&&origin!==new URL(request.url).origin&&origin!=='https://apex-athlete-performance.dalilooksk.chatgpt.site')return reply({error:'Cross-site requests are not allowed.'},403);
  if(!request.headers.get('content-type')?.includes('application/json'))return reply({error:'Expected JSON.'},415);
  const raw=await request.text();if(raw.length>10000)return reply({error:'Invalid token.'},400);
- let token:unknown,payload:{action?:string;ids?:string[];id?:string};try{payload=JSON.parse(raw);token=JSON.parse(raw).token}catch{return reply({error:'Invalid request.'},400)}
+ let token:unknown,payload:{action?:string;ids?:string[];id?:string;recentOnly?:boolean};try{payload=JSON.parse(raw);token=JSON.parse(raw).token}catch{return reply({error:'Invalid request.'},400)}
  if(typeof token!=='string'||!token.trim()||token.length>8192||/[\r\n]/.test(token))return reply({error:'Enter a valid Tredict personal access token.'},400);
  const accessToken=token.trim().replace(/^Bearer\s+/i,'');
  if(!accessToken||/\s/.test(accessToken))return reply({error:'The token contains spaces. Copy the complete personal API token from Tredict.'},400);
  const newest=new Date(),oldest=new Date(newest);oldest.setUTCHours(0,0,0,0);oldest.setUTCFullYear(newest.getUTCFullYear()-1,0,1);oldest.setUTCDate(oldest.getUTCDate()-31);
+ if(payload.recentOnly)oldest.setTime(newest.getTime()-7*86400000);
  const query=new URLSearchParams({startDate:newest.toISOString(),endDate:oldest.toISOString()});
  async function get(url:string):Promise<ApiResult>{const parsed=new URL(url);if(parsed.origin!=='https://www.tredict.com'||!parsed.pathname.startsWith('/api/oauth/v2/'))throw new Error('Unexpected API link');const res=await fetch(parsed,{headers:{Authorization:`Bearer ${accessToken}`,Accept:'application/json'},cache:'no-store',redirect:'manual',signal:AbortSignal.timeout(20000)});if(res.status>=300&&res.status<400)throw new Error('Unexpected Tredict redirect');if(!res.ok)throw new UpstreamError(res.status);return res.json() as Promise<ApiResult>}
  try{
@@ -28,7 +29,7 @@ export async function POST(request:Request){
   for(const id of ids){const detail=await get(`${API}activity/${encodeURIComponent(id!)}?extraValues=1&withLaps=1${payload.action!=='preview'?'&allSeries=1':''}`) as unknown as Record<string,unknown>;const hrHistogram=heartRateHistogram(detail),evidence=workoutEvidence(detail);details.push(payload.action==='preview'?{id,summary:detail.summary,laps:detail.laps}:payload.action==='detail'?{...detail,hrHistogram,evidence}:{id,summary:detail.summary,hrHistogram,evidence});}
   return reply({details});
  }
- const results=await Promise.allSettled([get(`${API}activityList?${query}&pageSize=500&extendedSummary=1`),get(`${API}sleep?${query}`),get(`${API}hrv?${query}`)]);
+ const results=await Promise.allSettled([get(`${API}activityList?${query}&pageSize=500&extendedSummary=1`),payload.recentOnly?Promise.resolve({sleep:{}}):get(`${API}sleep?${query}`),payload.recentOnly?Promise.resolve({hrv:{}}):get(`${API}hrv?${query}`)]);
  const activityResult=results[0];if(activityResult.status==='rejected')throw activityResult.reason;
  const warnings:string[]=[];let page=activityResult.value;const rawActivities:RawActivity[]=[];const visited=new Set<string>();
  for(let i=0;i<20;i++){
@@ -45,8 +46,8 @@ export async function POST(request:Request){
  for(const a of rawActivities){if(!a.date||isNaN(Date.parse(a.date))||new Date(a.date)<oldest||new Date(a.date)>newest)continue;const s=a.summary??a.extendedSummary??{};const id=a.id??a._id;if(!id)continue;unique.set(id,{id,date:a.date,sportType:a.sportType??'misc',subSportType:typeof a.subSportType==='string'?a.subSportType:undefined,title:a.title??(typeof s.title==='string'?s.title:undefined),summary:s})}
  const activities=Array.from(unique.values()).sort((a,b)=>b.date.localeCompare(a.date));
  if(activities.some(a=>a.summary.duration==null))warnings.push('Some sessions have no duration. Training totals exclude missing durations.');
- function health(index:number,key:"sleep"|"hrv"){const r=results[index];if(r.status==='rejected'){warnings.push(`${key==='hrv'?'HRV':'Sleep'} could not be synced. ${r.reason instanceof UpstreamError?message(r.reason.status):'Please try again.'}`);return {}}const source=r.value?.[key];if(!source||typeof source!=='object'){warnings.push(`${key==='hrv'?'HRV':'Sleep'} data was unavailable in the Tredict response.`);return {}}return Object.fromEntries(Object.entries(source).filter(([date,v])=>/^\d{8}$/.test(date)&&Array.isArray(v)&&number(v[0])!==undefined).map(([date,v])=>{const pair=v as unknown[];return [date,[number(pair[0]),number(pair[1])??null]]}))}
- const endpoints=['efforts','bodyvalues','capacity','zones','equipmentList','plannedTrainingList'];
+ function health(index:number,key:"sleep"|"hrv"){const r=results[index];if(r.status==='rejected'){warnings.push(`${key==='hrv'?'HRV':'Sleep'} could not be synced. ${r.reason instanceof UpstreamError?message(r.reason.status):'Please try again.'}`);return {}}const source=(r.value as ApiResult)?.[key];if(!source||typeof source!=='object'){warnings.push(`${key==='hrv'?'HRV':'Sleep'} data was unavailable in the Tredict response.`);return {}}return Object.fromEntries(Object.entries(source).filter(([date,v])=>/^\d{8}$/.test(date)&&Array.isArray(v)&&number(v[0])!==undefined).map(([date,v])=>{const pair=v as unknown[];return [date,[number(pair[0]),number(pair[1])??null]]}))}
+ const endpoints=payload.recentOnly?['efforts']:['efforts','bodyvalues','capacity','zones','equipmentList','plannedTrainingList'];
  const upcoming=new Date(newest);upcoming.setUTCDate(upcoming.getUTCDate()+90);
  const extras=await Promise.allSettled(endpoints.map(key=>get(`${API}${key}${key==='efforts'?'?'+query:key==='plannedTrainingList'?'?'+new URLSearchParams({startDate:oldest.toISOString(),endDate:upcoming.toISOString()}):''}`)));
  const sources:Record<string,{status:string;message?:string}>={},extra:Record<string,unknown>={};
