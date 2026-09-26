@@ -1,3 +1,5 @@
+import {activityMerges,saveActivityMerge,undoActivityMerge} from '../../../db/activity-merges';
+import {applyMerges,validateMerge,mergeDetails} from '../../activity-merge-data';
 import * as tredict from './tredict-saved';
 import {getChatGPTUser,chatGPTSignOutPath} from '../../chatgpt-auth';
 import {privateJson,sameOrigin,connection} from '../../../db/storage';
@@ -5,8 +7,8 @@ import {corosConnection,CorosError} from '../../../db/coros';
 import {corosSnapshot,syncCoros,corosAction} from '../coros/sync';
 import {combineProviders} from '../../provider-data';
 export const dynamic='force-dynamic';
-export async function GET(){const user=await getChatGPTUser();if(!user)return privateJson({signedIn:false,connected:false,corosConnected:false,data:null});try{const [row,saved]=await Promise.all([corosConnection(user.userId),tredict.GET().then(async r=>await r.json() as any)]);const health=row?await corosSnapshot(row):null;return privateJson({signedIn:true,name:user.displayName,connected:!!row||!!saved.connected,corosConnected:!!row,preferredProvider:saved.connected?'tredict':'coros',data:combineProviders(saved.data,health),signOutUrl:chatGPTSignOutPath('/')})}catch{return privateJson({error:'Your saved dashboard could not be loaded. Please retry.'},503)}}
-export async function POST(request:Request){if(!sameOrigin(request))return privateJson({error:'Cross-site request rejected.'},403);const user=await getChatGPTUser();if(!user)return privateJson({error:'Sign in first.'},401);try{if(!request.headers.get('content-type')?.includes('application/json'))return privateJson({error:'Expected JSON.'},415);const raw=await request.text();if(raw.length>10000)return privateJson({error:'Request too large.'},413);const payload=JSON.parse(raw);if(!payload||typeof payload!=='object'||Array.isArray(payload))return privateJson({error:'Invalid request.'},400);const action=payload.action??'sync';if(!['sync','detail','preview','enrich','remove','restore','classify'].includes(action))return privateJson({error:'Invalid action.'},400);const legacy=(body:any)=>tredict.POST(new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)}));const [row,workouts]=await Promise.all([corosConnection(user.userId),connection(user.userId)]);const supplied=typeof payload.token==='string'&&payload.token!=='__saved__'&&payload.token.trim();const hybrid=!!workouts||!!supplied;
+async function providerGET(){const user=await getChatGPTUser();if(!user)return privateJson({signedIn:false,connected:false,corosConnected:false,data:null});try{const [row,saved]=await Promise.all([corosConnection(user.userId),tredict.GET().then(async r=>await r.json() as any)]);const health=row?await corosSnapshot(row):null;return privateJson({signedIn:true,name:user.displayName,connected:!!row||!!saved.connected,corosConnected:!!row,preferredProvider:saved.connected?'tredict':'coros',data:combineProviders(saved.data,health),signOutUrl:chatGPTSignOutPath('/')})}catch{return privateJson({error:'Your saved dashboard could not be loaded. Please retry.'},503)}}
+async function providerPOST(request:Request){if(!sameOrigin(request))return privateJson({error:'Cross-site request rejected.'},403);const user=await getChatGPTUser();if(!user)return privateJson({error:'Sign in first.'},401);try{if(!request.headers.get('content-type')?.includes('application/json'))return privateJson({error:'Expected JSON.'},415);const raw=await request.text();if(raw.length>10000)return privateJson({error:'Request too large.'},413);const payload=JSON.parse(raw);if(!payload||typeof payload!=='object'||Array.isArray(payload))return privateJson({error:'Invalid request.'},400);const action=payload.action??'sync';if(!['sync','detail','preview','enrich','remove','restore','classify'].includes(action))return privateJson({error:'Invalid action.'},400);const legacy=(body:any)=>tredict.POST(new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)}));const [row,workouts]=await Promise.all([corosConnection(user.userId),connection(user.userId)]);const supplied=typeof payload.token==='string'&&payload.token!=='__saved__'&&payload.token.trim();const hybrid=!!workouts||!!supplied;
 if(action==='sync'){
  const options={manual:payload.manual===true,timeZone:typeof payload.timeZone==='string'?payload.timeZone:'UTC'};
  if(!hybrid){if(!row)return privateJson({error:'Connect COROS or Tredict in account settings.'},409);return privateJson(await syncCoros(row,false,options))}
@@ -28,3 +30,39 @@ if(action==='enrich'){if(!Array.isArray(payload.ids)||payload.ids.length<1||payl
 if(typeof payload.id==='string'&&payload.id.startsWith('coros_')){if(!row)return privateJson({error:'Reconnect COROS.'},409);return privateJson(await corosAction(row,payload))}return legacy(payload);
 }catch(e){return privateJson({error:e instanceof Error?e.message:'Sync could not finish. Saved data remains.'},e instanceof CorosError?e.status:502)}}
 export const DELETE=tredict.DELETE;
+
+// Apply saved groups only at the API boundary. Provider snapshots remain intact.
+export async function GET(){try{const response=await providerGET();if(!response.ok)return response;const body:any=await response.json(),user=await getChatGPTUser();if(user&&body.data)body.data=applyMerges(body.data,await activityMerges(user.userId));return privateJson(body)}catch{return privateJson({error:'Your saved dashboard could not load. Please retry.'},503)}}
+export async function POST(request:Request){
+ if(!sameOrigin(request))return privateJson({error:'Cross-site request rejected.'},403);
+ const user=await getChatGPTUser();if(!user)return privateJson({error:'Sign in first.'},401);
+ try{
+  if(!request.headers.get('content-type')?.includes('application/json'))return privateJson({error:'Expected JSON.'},415);
+  const text=await request.clone().text();if(text.length>10000)return privateJson({error:'Request too large.'},413);
+  let payload:any;try{payload=JSON.parse(text)}catch{return privateJson({error:'Invalid request.'},400)}if(!payload||typeof payload!=='object'||Array.isArray(payload))return privateJson({error:'Invalid request.'},400);const action=payload.action??'sync';
+  const groups=await activityMerges(user.userId);
+  const rawData=async()=>{const r=await providerGET();if(!r.ok)throw Error('Saved activities could not load.');return (await r.json() as any).data};
+  if(action==='merge'||action==='unmerge'){
+   const data=await rawData();if(!data)return privateJson({error:'Sync activities first.'},409);
+   if(action==='unmerge'){if(typeof payload.id!=='string'||!groups.some(g=>g.id===payload.id))return privateJson({error:'Merged activity not found.'},404);await undoActivityMerge(user.userId,payload.id);}
+   else {
+    if(!Array.isArray(payload.ids)||payload.ids.length<2||payload.ids.length>10||payload.ids.some((id:any)=>typeof id!=='string'))return privateJson({error:'Choose 2–10 activities.'},400);
+    const parts=payload.ids.map((id:string)=>data.activities.find((a:any)=>a.id===id));if(parts.some((a:any)=>!a))return privateJson({error:'Activity not found in your account.'},404);
+    if(groups.some(g=>g.ids.some(id=>payload.ids.includes(id))))return privateJson({error:'Undo the existing merge before merging these activities again.'},409);
+    const timeZone=typeof payload.timeZone==='string'?payload.timeZone:'UTC';try{validateMerge(parts,timeZone)}catch(e){return privateJson({error:(e as Error).message},400)}
+    await saveActivityMerge(user.userId,{id:'merged_'+crypto.randomUUID(),ids:payload.ids,timeZone});
+   }
+   return privateJson(applyMerges(data,await activityMerges(user.userId)));
+  }
+  const group=groups.find(g=>g.id===payload.id);
+  if(group){
+   if(!['detail','preview'].includes(action))return privateJson({error:'Undo this merge in the training log before editing individual recordings.'},400);
+   const data=await rawData(),parts=group.ids.map(id=>data?.activities?.find((a:any)=>a.id===id));if(parts.some(a=>!a))return privateJson({error:'An original recording is unavailable. Undo the merge in the training log.'},409);
+   const details=[];for(const part of parts){const r=await providerPOST(new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify({...payload,action,id:part.id})}));const body:any=await r.json();if(!r.ok)return privateJson(body,r.status);details.push({...part,...body.details[0]});}
+   return privateJson({details:[mergeDetails(details,group.id)]});
+  }
+  if(action==='enrich'&&Array.isArray(payload.ids)&&payload.ids.some((id:string)=>id.startsWith('merged_')))return privateJson({details:[]});
+  const response=await providerPOST(request);if(!response.ok)return response;
+  const body:any=await response.json();return privateJson(body.activities?applyMerges(body,groups):body);
+ }catch{return privateJson({error:'Could not save or load the merge. Your original recordings are unchanged. Please retry.'},503)}
+}

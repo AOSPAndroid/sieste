@@ -1,0 +1,5 @@
+import {storage} from './storage';
+import type {MergeGroup} from '../app/activity-merge-data';
+export async function activityMerges(owner:string){const r=await storage().db.prepare('SELECT activity_id,merge_id,time_zone FROM activity_merge_members WHERE owner = ?').bind(owner).all<{activity_id:string;merge_id:string;time_zone:string}>();const groups=new Map<string,MergeGroup>();for(const row of r.results){const g=groups.get(row.merge_id)??{id:row.merge_id,ids:[],timeZone:row.time_zone};g.ids.push(row.activity_id);groups.set(g.id,g)}return [...groups.values()]}
+export async function saveActivityMerge(owner:string,group:MergeGroup){const db=storage().db;await db.batch(group.ids.map(id=>db.prepare('INSERT INTO activity_merge_members (owner,activity_id,merge_id,time_zone) VALUES (?,?,?,?)').bind(owner,id,group.id,group.timeZone)))}
+export async function undoActivityMerge(owner:string,id:string){await storage().db.prepare('DELETE FROM activity_merge_members WHERE owner = ? AND merge_id = ?').bind(owner,id).run()}

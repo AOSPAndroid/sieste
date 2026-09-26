@@ -1,4 +1,7 @@
 import {sqliteTable,text,real,primaryKey} from 'drizzle-orm/sqlite-core';
+export const activityMergeMembers=sqliteTable('activity_merge_members',{
+ owner:text('owner').notNull(),activityId:text('activity_id').notNull(),mergeId:text('merge_id').notNull(),timeZone:text('time_zone').notNull()
+},table=>[primaryKey({columns:[table.owner,table.activityId]})]);
 export const connections=sqliteTable('athlete_connections',{
  owner:text('owner').primaryKey(),revision:text('revision').notNull(),token:text('token_ciphertext').notNull(),snapshot:text('snapshot_key').notNull(),updated:text('updated_at').notNull()
 });

@@ -9,7 +9,7 @@ export function useBackgroundAnalysis({data,setData,token,isDemo,enabled,fullHis
   if(fullHistory)completed.current=autoKey; // Pausing a full pass must not start another automatic batch.
   const controller=new AbortController();let cancelled=false;
   const timer=window.setTimeout(async()=>{
-   const pending=latest.current.activities.filter(a=>data.provider==='coros'?(a.provider==='coros'&&(a.analysisSource!=='COROS FIT'||a.nativeVersion!==3)):(!a.analyzed||a.hrHistogram===undefined||a.evidence?.insightVersion!==2)).slice(0,fullHistory?10000:4);
+   const pending=latest.current.activities.filter(a=>!a.mergedIds&&(data.provider==='coros'?(a.provider==='coros'&&(a.analysisSource!=='COROS FIT'||a.nativeVersion!==3)):(!a.analyzed||a.hrHistogram===undefined||a.evidence?.insightVersion!==2))).slice(0,fullHistory?10000:4);
    if(!pending.length){completed.current=key;return}setBusy(true);onError?.('');
    try{for(let i=0;i<pending.length;i+=4){
     if(cancelled)return;
