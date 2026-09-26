@@ -1,4 +1,5 @@
 "use client";
+import LoadGuidance from './load-guidance';
 import {useMemo,useState} from 'react';
 import {ResponsiveContainer,ComposedChart,Line,Bar,XAxis,YAxis,CartesianGrid,Tooltip,ReferenceLine,Cell} from 'recharts';
 import {useExpand} from './expansion';
@@ -16,7 +17,7 @@ function LoadTool({data,now,large=false}:{data:AthleteData;now:Date;large?:boole
  const usual=model.baseline===null?null:model.baseline*7,vsUsual=model.ratio===null?null:(model.ratio-1)*100;
 
  const toggle=(key:string)=>setLayers(v=>v.includes(key)?v.length>1?v.filter(k=>k!==key):v:[...v,key]);
- return <><div className="load-tool-controls"><select aria-label="Load analysis measure" value={mode} onChange={e=>{setMode(e.target.value as 'load'|'time');setHover(null)}}><option value="load">Training load</option><option value="time">Training time</option></select><span>All sports</span>{large&&<select aria-label="Load analysis period" value={days} onChange={e=>{setDays(+e.target.value);setHover(null)}}>{[14,28,90].map(n=><option key={n} value={n}>{n} days</option>)}</select>}</div>
+ return <><LoadGuidance data={data} now={now}/><div className="load-tool-controls"><select aria-label="Load analysis measure" value={mode} onChange={e=>{setMode(e.target.value as 'load'|'time');setHover(null)}}><option value="load">Training load</option><option value="time">Training time</option></select><span>All sports</span>{large&&<select aria-label="Load analysis period" value={days} onChange={e=>{setDays(+e.target.value);setHover(null)}}>{[14,28,90].map(n=><option key={n} value={n}>{n} days</option>)}</select>}</div>
  <div className="load-clear-verdict"><b>{direction}</b><span>{vsUsual===null?'A full 28-day history is needed for your usual level.':Math.abs(vsUsual)<1?'Also close to your usual weekly level.':`${Math.round(Math.abs(vsUsual))}% ${vsUsual>0?'above':'below'} your usual weekly level.`}</span></div>
  <div className="load-tool-kpis"><div><small>Last 7 days</small><strong>{amount(model.total)}{!model.complete&&<em> *</em>}</strong><span>{mode==='load'?'load points · ':''}{range(model.recent)}</span></div><div><small>Previous 7 days</small><strong>{amount(model.previous)}</strong><span>{range(model.prior)}</span></div><div><small>Your usual week</small><strong>{amount(usual)}</strong><span>Based on last 28 days</span></div></div>
  <div className="load-clear-chart-label"><b>Daily {mode==='time'?'training time (min)':'load (points)'}</b><span>{model.baseline!==null?<><i/> Your usual daily level</>:'Usual level unavailable'}</span></div>
