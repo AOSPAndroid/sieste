@@ -2,7 +2,7 @@ import type {routeGeometry} from './route-geometry';
 export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:'solid'|'chrome';ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 export function shareCardSvg(o:ShareDesign){
  const h=o.height,ink=!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
@@ -17,8 +17,8 @@ export function shareCardSvg(o:ShareDesign){
  // Each design is a standalone overlay; canvas padding stays transparent.
  const heavy=(value:string,x:number,y:number,size:number,width:number,color=ink)=>text(value,x,y,size,900,color,width).replace('Arial,Helvetica,sans-serif','Arial Black,Arial,Helvetica,sans-serif');
  const secondary=o.ink==='white'?'#ffffff':'#111111',rgb=[1,3,5].map(i=>parseInt(ink.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4),contrast=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.179?'#111111':'#ffffff';
- const isChrome=o.template.startsWith('chrome');
- if(isChrome)parts.push(`<defs><linearGradient id="metal" x1="0" y1="0" x2=".12" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".18" stop-color="#c8d0dc"/><stop offset=".39" stop-color="#faffff"/><stop offset=".48" stop-color="#9099a8"/><stop offset=".5" stop-color="#252b37"/><stop offset=".61" stop-color="#535e70"/><stop offset=".76" stop-color="#e6edf6"/><stop offset=".88" stop-color="#ffffff"/><stop offset="1" stop-color="#8993a3"/></linearGradient><linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".45" stop-color="#7b8698"/><stop offset=".7" stop-color="#ffffff"/><stop offset="1" stop-color="#363e4b"/></linearGradient></defs>`);
+ const isChrome=o.template.startsWith('chrome')||o.finish==='chrome';
+ if(isChrome)parts.push(`<defs><linearGradient id="metal" x1="0" y1="0" x2=".12" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".18" stop-color="#c8d0dc"/><stop offset=".39" stop-color="#faffff"/><stop offset=".48" stop-color="#9099a8"/><stop offset=".5" stop-color="#252b37"/><stop offset=".61" stop-color="#535e70"/><stop offset=".76" stop-color="#e6edf6"/><stop offset=".88" stop-color="#ffffff"/><stop offset="1" stop-color="#8993a3"/></linearGradient><linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".45" stop-color="#7b8698"/><stop offset=".7" stop-color="#ffffff"/><stop offset="1" stop-color="#363e4b"/></linearGradient><linearGradient id="silverSurface" x1="0" y1="0" x2=".2" y2="1"><stop stop-color="#fafcff"/><stop offset=".4" stop-color="#bcc6d4"/><stop offset=".5" stop-color="#f7faff"/><stop offset=".55" stop-color="#a0adbf"/><stop offset="1" stop-color="#edf2f9"/></linearGradient></defs>`);
  const metal=(v:string,x:number,y:number,size:number,width:number,outline=false)=>{
   const glyph=heavy(v,x,y,size,width,'url(#metal)');
   return (outline?'':`<g transform="translate(0 5)">${glyph.replace('fill="url(#metal)"','fill="#252b37" stroke="#252b37" stroke-width="3"')}</g>`)+
@@ -216,5 +216,27 @@ export function shareCardSvg(o:ShareDesign){
  if(o.route&&o.template!=='laps'&&!routeTemplates.includes(o.template))parts.push(route(840,100,165,165,3));
  if(o.brand)parts.push(text('sieste',72,h-48,23,700));
  if(o.demo)parts.push(text('ILLUSTRATIVE DATA',730,h-48,18,600,ink,280));
- return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}">${parts.join('')}</svg>`;
+ // Apply the finish after layout so hollow lettering stays hollow and every
+ // existing template keeps its geometry. Small labels stay flat for readability.
+ let artwork=parts.join('');
+ if(o.finish==='chrome'){
+  const cardSurface=['ticket','metro','sweatreceipt','glass','daystack','bubble'].includes(o.template);
+  artwork=artwork.replace(/<(text|path|circle|rect)[^>]*>/g,tag=>{
+   if(tag.startsWith('<text')){
+    const size=Number(tag.match(/font-size="([^"]+)"/)?.[1]??0);
+    if(size<64||cardSurface)return tag;
+    return tag.replace(/fill="(?!none|url\()[^"]*"/,'fill="url(#metal)"')
+      .replace(/stroke="(?!none|url\()[^"]*"/,'stroke="url(#rim)"');
+   }
+   if(tag.includes('width="1080"'))return tag;
+   return tag.replaceAll('fill="'+ink+'"','fill="url(#metal)"')
+    .replaceAll('stroke="'+ink+'"','stroke="url(#metal)"')
+    .replaceAll('fill="#087eff"','fill="url(#metal)"');
+  });
+  // Paper/card designs use a silver surface and contrasting flat print.
+  if(cardSurface)artwork=artwork.replace(/(<(?:path|rect)[^>]*fill=")url\(#metal\)"/g,'$1url(#silverSurface)"').replaceAll('fill="#f0e4c9"','fill="url(#silverSurface)"').replaceAll('fill="#faf7ef"','fill="url(#silverSurface)"')
+   .replaceAll('fill="#555555"','fill="url(#metal)"').replaceAll('fill="#eeeeee"','fill="url(#metal)"').replaceAll('fill="#333333"','fill="url(#metal)"')
+   .replace(/(<text[^>]*fill=")[^"]*"/g,'$1#151a22"');
+ }
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}">${artwork}</svg>`;
 }
