@@ -1,6 +1,6 @@
 import type {routeGeometry} from './route-geometry';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant';
-export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit'];
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
@@ -17,7 +17,26 @@ export function shareCardSvg(o:ShareDesign){
  // Each design is a standalone overlay; canvas padding stays transparent.
  const heavy=(value:string,x:number,y:number,size:number,width:number,color=ink)=>text(value,x,y,size,900,color,width).replace('Arial,Helvetica,sans-serif','Arial Black,Arial,Helvetica,sans-serif');
  const secondary=o.ink==='white'?'#ffffff':'#111111',rgb=[1,3,5].map(i=>parseInt(ink.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4),contrast=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.179?'#111111':'#ffffff';
- if(o.template==='metro'){
+ const isChrome=o.template.startsWith('chrome');
+ if(isChrome)parts.push(`<defs><linearGradient id="metal" x1="0" y1="0" x2=".12" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".18" stop-color="#c8d0dc"/><stop offset=".39" stop-color="#faffff"/><stop offset=".48" stop-color="#9099a8"/><stop offset=".5" stop-color="#252b37"/><stop offset=".61" stop-color="#535e70"/><stop offset=".76" stop-color="#e6edf6"/><stop offset=".88" stop-color="#ffffff"/><stop offset="1" stop-color="#8993a3"/></linearGradient><linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".45" stop-color="#7b8698"/><stop offset=".7" stop-color="#ffffff"/><stop offset="1" stop-color="#363e4b"/></linearGradient></defs>`);
+ const metal=(v:string,x:number,y:number,size:number,width:number,outline=false)=>{
+  const glyph=heavy(v,x,y,size,width,'url(#metal)');
+  return (outline?'':`<g transform="translate(0 5)">${glyph.replace('fill="url(#metal)"','fill="#252b37" stroke="#252b37" stroke-width="3"')}</g>`)+
+   glyph.replace('fill="url(#metal)"',`fill="${outline?'none':'url(#metal)'}" stroke="url(#rim)" stroke-width="${outline?3:1.8}" paint-order="stroke fill"`);
+ };
+ if(o.template==='chrome'||o.template==='chromeoutline'){
+  parts.push(text(o.title.toUpperCase(),82,cy-150,25,700,secondary,910));
+  if(first)parts.push(metal(compact(first).toUpperCase(),70,cy+55,176,935,o.template==='chromeoutline'));
+  others.slice(0,3).forEach((v,i)=>{const x=85+i*320;parts.push(text(compact(v),x,cy+140,37,800,secondary,290),text(v.label.toUpperCase(),x,cy+179,17,600,secondary,290))});
+ }else if(o.template==='chromebadge'){
+  parts.push(`<circle cx="540" cy="${cy-75}" r="290" fill="none" stroke="#303846" stroke-width="11"/><circle cx="540" cy="${cy-78}" r="290" fill="none" stroke="url(#metal)" stroke-width="8"/><circle cx="540" cy="${cy-78}" r="275" fill="none" stroke="url(#rim)" stroke-width="1.5"/>`,text(o.sport.toUpperCase(),540,cy-265,24,800,secondary,450,false,'middle'),route(300,cy-210,480,300,7).replaceAll(`stroke="${ink}"`,'stroke="url(#metal)"'));
+  if(first)parts.push(metal(compact(first).toUpperCase(),105,cy+325,137,870));
+  parts.push(text(others.slice(0,3).map(compact).join('   /   '),540,cy+387,28,700,secondary,900,false,'middle'));
+ }else if(o.template==='chromeheadline'){
+  parts.push(metal(o.sport.toUpperCase(),75,cy-80,143,925));
+  if(first)parts.push(metal(compact(first).toUpperCase(),75,cy+90,165,925));
+  parts.push(text(o.title,82,cy+165,26,600,secondary,910),text(others.slice(0,3).map(compact).join('   /   '),82,cy+228,32,800,secondary,910));
+ }else if(o.template==='metro'){
   const top=cy-250,paper='#f0e4c9',print='#263833';
   parts.push(`<g transform="rotate(-5 540 ${cy})"><rect x="85" y="${top}" width="910" height="500" rx="22" fill="${paper}"/><rect x="85" y="${top+366}" width="910" height="56" fill="#65523e"/><path d="M125 ${top+107}H955" stroke="${print}" stroke-width="2"/>`);
   parts.push(text('SIESTE',130,top+72,47,900,print,360),text('PARIS · TICKET SPORT',950,top+68,23,800,print,480,false,'end'),text('ALLER SIMPLE / RETOUR EN SUEUR',130,top+151,22,700,print,805));
