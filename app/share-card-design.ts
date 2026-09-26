@@ -1,5 +1,5 @@
 import type {routeGeometry} from './route-geometry';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit';
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant';
 export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
@@ -17,7 +17,28 @@ export function shareCardSvg(o:ShareDesign){
  // Each design is a standalone overlay; canvas padding stays transparent.
  const heavy=(value:string,x:number,y:number,size:number,width:number,color=ink)=>text(value,x,y,size,900,color,width).replace('Arial,Helvetica,sans-serif','Arial Black,Arial,Helvetica,sans-serif');
  const secondary=o.ink==='white'?'#ffffff':'#111111',rgb=[1,3,5].map(i=>parseInt(ink.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4),contrast=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.179?'#111111':'#ffffff';
- if(o.template==='velocity'){
+ if(o.template==='metro'){
+  const top=cy-250,paper='#f0e4c9',print='#263833';
+  parts.push(`<g transform="rotate(-5 540 ${cy})"><rect x="85" y="${top}" width="910" height="500" rx="22" fill="${paper}"/><rect x="85" y="${top+366}" width="910" height="56" fill="#65523e"/><path d="M125 ${top+107}H955" stroke="${print}" stroke-width="2"/>`);
+  parts.push(text('SIESTE',130,top+72,47,900,print,360),text('PARIS · TICKET SPORT',950,top+68,23,800,print,480,false,'end'),text('ALLER SIMPLE / RETOUR EN SUEUR',130,top+151,22,700,print,805));
+  if(first)parts.push(heavy(compact(first).toUpperCase(),124,top+253,117,825,print));
+  parts.push(text(o.sport.toUpperCase()+' · '+o.title,130,top+299,23,700,print,810),text(others.slice(0,3).map(compact).join('   /   '),130,top+339,25,700,print,810),text('VALIDÉ PAR VOS JAMBES',130,top+462,24,800,print,600),text('S / 01',950,top+462,20,600,print,170,false,'end'),'</g>');
+ }else if(o.template==='sweatreceipt'){
+  const top=cy-350,black='#242424',mono=(v:string,x:number,y:number,size:number,w=730)=>text(v,x,y,size,600,black,w).replace('Arial,Helvetica,sans-serif','Courier New,monospace');
+  parts.push(`<path d="M145 ${top}H935V${top+700}l-25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15H145Z" fill="#faf7ef"/>`);
+  parts.push(mono('REÇU DE TRANSPIRATION',185,top+68,33),mono('SIESTE / '+o.sport.toUpperCase(),185,top+116,23),`<path d="M185 ${top+151}H895" stroke="${black}" stroke-dasharray="7 7"/>`);
+  o.stats.slice(0,4).forEach((v,i)=>{const y=top+212+i*74;parts.push(mono(v.label.toUpperCase(),185,y,20,330),text(compact(v),895,y,32,700,black,350,false,'end').replace('Arial,Helvetica,sans-serif','Courier New,monospace'))});
+  parts.push(`<path d="M185 ${top+466}H895" stroke="${black}" stroke-dasharray="7 7"/>`,mono('PAIEMENT : EN SUEUR',185,top+528,31),mono('REMBOURSEMENT : UNE SIESTE',185,top+580,23),mono('Merci. Revenez transpirer.',185,top+635,21));
+ }else if(o.template==='excuse'){
+  const top=cy-300;
+  parts.push(`<rect x="95" y="${top}" width="890" height="600" rx="20" fill="none" stroke="${ink}" stroke-width="3"/>`,text('ABSENCE JUSTIFIÉE',135,top+83,65,900,ink,805),text('J’ÉTAIS À L’ENTRAÎNEMENT.',135,top+143,29,800,ink,805));
+  if(first)parts.push(heavy(compact(first),130,top+310,127,805));
+  parts.push(text(others.slice(0,3).map(compact).join('   /   '),135,top+382,31,700,ink,805),`<g transform="rotate(-9 740 ${top+495})"><rect x="565" y="${top+438}" width="355" height="91" rx="6" fill="none" stroke="${ink}" stroke-width="5"/>`,text('EXCUSÉ·E',743,top+498,48,900,ink,320,false,'middle'),'</g>',text(o.sport.toUpperCase(),135,top+534,24,700,ink,390));
+ }else if(o.template==='croissant'){
+  parts.push(text('WILL TRAIN',540,cy-205,98,900,ink,910,false,'middle'),text('FOR CROISSANTS.',540,cy-90,99,900,ink,930,false,'middle'),`<path d="M140 ${cy-32}H940" stroke="${ink}" stroke-width="3"/>`);
+  if(first)parts.push(heavy(compact(first),145,cy+112,115,810));
+  parts.push(text(others.slice(0,3).map(compact).join('   /   '),145,cy+180,30,700,ink,810),text(o.title,145,cy+247,24,500,ink,810));
+ }else if(o.template==='velocity'){
   parts.push(text(o.sport.toUpperCase()+' / '+o.title.toUpperCase(),80,cy-235,24,800,secondary,910));
   parts.push(`<g transform="translate(540 ${cy-15}) rotate(-7) translate(-540 ${-cy+15})">`);
   if(first)parts.push(heavy(first.value,75,cy+40,235,910).replace('font-weight="900"','font-weight="900" font-style="italic"'),text(first.unit.toUpperCase(),85,cy+104,35,800));
