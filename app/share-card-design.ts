@@ -1,8 +1,19 @@
 import type {routeGeometry} from './route-geometry';
+export const shareFinishes=[
+ {key:'chrome',name:'Silver chrome',colors:['#ffffff','#c8d0dc','#faffff','#9099a8','#252b37','#535e70','#e6edf6','#ffffff','#8993a3']},
+ {key:'gold',name:'Champagne gold',colors:['#fff9dd','#d8b96e','#fff5c7','#bd8d36','#644317','#9b712a','#f5d995','#fff5d6','#bf9647']},
+ {key:'rose',name:'Rose gold',colors:['#fff3ef','#dbb2ac','#ffe8de','#bb7c7a','#623e48','#a46472','#efc5bd','#fff0e9','#c1888a']},
+ {key:'copper',name:'Burnished copper',colors:['#ffeede','#cf926d','#ffdbb8','#b66b44','#592f26','#985033','#e9b08a','#ffe6ca','#b97851']},
+ {key:'titanium',name:'Titanium violet',colors:['#f4edff','#aca0cd','#eee4ff','#837898','#353148','#645974','#ccc0e6','#faf1ff','#9282ad']},
+ {key:'midnight',name:'Midnight blue',colors:['#e2efff','#7b9fc9','#dceaff','#546f9d','#152842','#35547d','#9ab9e2','#eff6ff','#567ca9']},
+ {key:'iridescent',name:'Iridescent pearl',colors:['#fff1ff','#a9e4ec','#f2e7ff','#c29bd9','#555889','#629cb5','#e7c4ef','#fff8dc','#9ed3d5']}
+] as const;
+export type ShareFinish='solid'|typeof shareFinishes[number]['key'];
+export const finishSwatch=(colors:readonly string[])=>'linear-gradient(165deg,'+colors.map((c,i)=>c+' '+[0,18,39,48,50,61,76,88,100][i]+'%').join(',')+')';
 export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:'solid'|'chrome';ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 export function shareCardSvg(o:ShareDesign){
  const h=o.height,ink=!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
@@ -17,8 +28,12 @@ export function shareCardSvg(o:ShareDesign){
  // Each design is a standalone overlay; canvas padding stays transparent.
  const heavy=(value:string,x:number,y:number,size:number,width:number,color=ink)=>text(value,x,y,size,900,color,width).replace('Arial,Helvetica,sans-serif','Arial Black,Arial,Helvetica,sans-serif');
  const secondary=o.ink==='white'?'#ffffff':'#111111',rgb=[1,3,5].map(i=>parseInt(ink.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4),contrast=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.179?'#111111':'#ffffff';
- const isChrome=o.template.startsWith('chrome')||o.finish==='chrome';
- if(isChrome)parts.push(`<defs><linearGradient id="metal" x1="0" y1="0" x2=".12" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".18" stop-color="#c8d0dc"/><stop offset=".39" stop-color="#faffff"/><stop offset=".48" stop-color="#9099a8"/><stop offset=".5" stop-color="#252b37"/><stop offset=".61" stop-color="#535e70"/><stop offset=".76" stop-color="#e6edf6"/><stop offset=".88" stop-color="#ffffff"/><stop offset="1" stop-color="#8993a3"/></linearGradient><linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".45" stop-color="#7b8698"/><stop offset=".7" stop-color="#ffffff"/><stop offset="1" stop-color="#363e4b"/></linearGradient><linearGradient id="silverSurface" x1="0" y1="0" x2=".2" y2="1"><stop stop-color="#fafcff"/><stop offset=".4" stop-color="#bcc6d4"/><stop offset=".5" stop-color="#f7faff"/><stop offset=".55" stop-color="#a0adbf"/><stop offset="1" stop-color="#edf2f9"/></linearGradient></defs>`);
+ const isChrome=o.template.startsWith('chrome')||!!o.finish&&o.finish!=='solid';
+ const palette=shareFinishes.find(f=>f.key===o.finish)??shareFinishes[0],c=palette.colors;
+ if(isChrome){
+  const gradient=(id:string,colors:readonly string[],offsets:readonly number[])=>`<linearGradient id="${id}" x1="0" y1="0" x2=".12" y2="1">${colors.map((color,i)=>`<stop offset="${offsets[i]}" stop-color="${color}"/>`).join('')}</linearGradient>`;
+  parts.push('<defs>'+gradient('metal',c,[0,.18,.39,.48,.5,.61,.76,.88,1])+gradient('rim',[c[0],c[3],c[7],c[4]],[0,.45,.7,1])+gradient('silverSurface',[c[0],c[1],c[2],c[6],c[7]],[0,.4,.5,.55,1])+'</defs>');
+ }
  const metal=(v:string,x:number,y:number,size:number,width:number,outline=false)=>{
   const glyph=heavy(v,x,y,size,width,'url(#metal)');
   return (outline?'':`<g transform="translate(0 5)">${glyph.replace('fill="url(#metal)"','fill="#252b37" stroke="#252b37" stroke-width="3"')}</g>`)+
@@ -219,7 +234,7 @@ export function shareCardSvg(o:ShareDesign){
  // Apply the finish after layout so hollow lettering stays hollow and every
  // existing template keeps its geometry. Small labels stay flat for readability.
  let artwork=parts.join('');
- if(o.finish==='chrome'){
+ if(o.finish&&o.finish!=='solid'){
   const cardSurface=['ticket','metro','sweatreceipt','glass','daystack','bubble'].includes(o.template);
   artwork=artwork.replace(/<(text|path|circle|rect)[^>]*>/g,tag=>{
    if(tag.startsWith('<text')){
@@ -235,7 +250,7 @@ export function shareCardSvg(o:ShareDesign){
   });
   // Paper/card designs use a silver surface and contrasting flat print.
   if(cardSurface)artwork=artwork.replace(/(<(?:path|rect)[^>]*fill=")url\(#metal\)"/g,'$1url(#silverSurface)"').replaceAll('fill="#f0e4c9"','fill="url(#silverSurface)"').replaceAll('fill="#faf7ef"','fill="url(#silverSurface)"')
-   .replaceAll('fill="#555555"','fill="url(#metal)"').replaceAll('fill="#eeeeee"','fill="url(#metal)"').replaceAll('fill="#333333"','fill="url(#metal)"')
+   .replaceAll('fill="#555555"','fill="url(#silverSurface)"').replaceAll('fill="#eeeeee"','fill="url(#silverSurface)"').replaceAll('fill="#333333"','fill="url(#silverSurface)"')
    .replace(/(<text[^>]*fill=")[^"]*"/g,'$1#151a22"');
  }
  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}">${artwork}</svg>`;
