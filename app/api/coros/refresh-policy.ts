@@ -19,3 +19,11 @@ export function refreshHealth(name:string,old:any,now:Date,hasToday:boolean,manu
  if(age<3600000)return false;
  return !(name==='queryFitnessAssessmentOverview'&&hasToday&&(old?.retrievedAt??'').slice(0,10)===now.toISOString().slice(0,10));
 }
+
+export function hasSleepWindowReading(day:string,sleep:any,windows:any){
+ const w=windows?.[day],pattern=/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
+ if(!hasDailyReading('querySleepData',day,sleep,{},[]))return false;
+ if(!pattern.test(w?.bedtime??'')||!pattern.test(w?.wakeTime??''))return false;
+ const bed=Date.parse(w.bedtime.replace(' ','T')),wake=Date.parse(w.wakeTime.replace(' ','T'));
+ return Number.isFinite(bed)&&Number.isFinite(wake)&&wake>bed&&w.wakeTime.slice(0,10).replaceAll('-','')===day;
+}
