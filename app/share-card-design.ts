@@ -1,6 +1,6 @@
 import type {routeGeometry} from './route-geometry';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack';
-export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday'];
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium';
+export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
@@ -15,7 +15,40 @@ export function shareCardSvg(o:ShareDesign){
  if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${o.ink==='white'?'#181818':'#fafafa'}"/>`);
  const first=o.stats[0],others=o.stats.slice(1),cy=h/2;
  // Each design is a standalone overlay; canvas padding stays transparent.
- if(o.template==='daystack'){
+ const heavy=(value:string,x:number,y:number,size:number,width:number,color=ink)=>text(value,x,y,size,900,color,width).replace('Arial,Helvetica,sans-serif','Arial Black,Arial,Helvetica,sans-serif');
+ const secondary=o.ink==='white'?'#ffffff':'#111111',rgb=[1,3,5].map(i=>parseInt(ink.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4),contrast=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.179?'#111111':'#ffffff';
+ if(o.template==='velocity'){
+  parts.push(text(o.sport.toUpperCase()+' / '+o.title.toUpperCase(),80,cy-235,24,800,secondary,910));
+  parts.push(`<g transform="translate(540 ${cy-15}) rotate(-7) translate(-540 ${-cy+15})">`);
+  if(first)parts.push(heavy(first.value,75,cy+40,235,910).replace('font-weight="900"','font-weight="900" font-style="italic"'),text(first.unit.toUpperCase(),85,cy+104,35,800));
+  parts.push(`<path d="M80 ${cy+135}H995" stroke="${ink}" stroke-width="12"/></g>`);
+  others.slice(0,3).forEach((v,i)=>{const x=85+i*320;parts.push(heavy(compact(v),x,cy+265,43,290,secondary),text(v.label.toUpperCase(),x,cy+305,18,600,secondary,290))});
+ }else if(o.template==='ghost'){
+  parts.push(text(o.title.toUpperCase(),80,cy-300,27,800,secondary));
+  if(first){for(const [dy,opacity] of [[-150,.18],[0,1],[150,.18]]){const t=heavy(first.value,65,cy+60+dy,220,945);parts.push(dy?`<g opacity="${opacity}">${t.replace(`fill="${ink}"`,`fill="none" stroke="${ink}" stroke-width="2"`)}</g>`:t)}parts.push(text(first.unit.toUpperCase(),85,cy+277,36,800));}
+  parts.push(text(others.slice(0,3).map(compact).join('   /   '),85,cy+335,30,700,secondary,910));
+ }else if(o.template==='routefile'){
+  parts.push(text('ROUTE / '+o.sport.toUpperCase(),90,cy-370,24,800,secondary),text(o.title.toUpperCase(),90,cy-320,36,800,secondary,890));
+  parts.push(`<path d="M85 ${cy-230}v-35h55 M940 ${cy-265}h55v35 M85 ${cy+115}v35h55 M940 ${cy+150}h55v-35" fill="none" stroke="${secondary}" stroke-width="2"/>`,route(125,cy-250,830,380,8));
+  if(first)parts.push(heavy(compact(first).toUpperCase(),80,cy+280,128,930));
+  others.slice(0,3).forEach((v,i)=>{const x=85+i*320;parts.push(text(compact(v),x,cy+352,34,800,secondary,285),text(v.label.toUpperCase(),x,cy+386,16,600,secondary,285))});
+ }else if(o.template==='ticket'){
+  const top=cy-290;
+  parts.push(`<path d="M85 ${top}H995V${top+245}a30 30 0 0 0 0 60V${top+580}H85V${top+305}a30 30 0 0 0 0-60Z" fill="${ink}"/>`);
+  parts.push(text(o.sport.toUpperCase()+' / SESSION',130,top+65,25,800,contrast,820),text(o.title.toUpperCase(),130,top+112,26,700,contrast,820));
+  if(first)parts.push(heavy(compact(first).toUpperCase(),125,top+230,122,815,contrast));
+  parts.push(`<path d="M135 ${top+275}H945" stroke="${contrast}" stroke-dasharray="8 10" stroke-width="2" opacity=".5"/>`);
+  others.slice(0,3).forEach((v,i)=>{const x=130+i*280;parts.push(text(v.label.toUpperCase(),x,top+350,16,700,contrast,245),heavy(compact(v),x,top+405,43,245,contrast))});
+  parts.push(text(o.date||'RECORDED / '+o.sport.toUpperCase(),130,top+525,22,700,contrast,790));
+ }else if(o.template==='monolith'){
+  parts.push(text(o.title.toUpperCase(),85,cy-360,28,800,secondary,910));
+  if(first){parts.push(heavy(first.value,72,cy-50,260,935),heavy(first.unit.toUpperCase(),80,cy+115,130,930));}
+  parts.push(`<path d="M85 ${cy+160}H995" stroke="${ink}" stroke-width="3"/>`);
+  others.slice(0,3).forEach((v,i)=>{const y=cy+230+i*62;parts.push(text(v.label.toUpperCase(),85,y,20,700,secondary,430),text(compact(v),995,y,40,800,secondary,440,false,'end'))});
+ }else if(o.template==='podium'){
+  parts.push(text(o.title.toUpperCase(),85,cy-330,27,800,secondary,910));
+  o.stats.slice(0,3).forEach((v,i)=>{const y=cy-155+i*215;parts.push(text('0'+(i+1),85,y-15,25,800,secondary,65),heavy(compact(v).toUpperCase(),190,y+18,104,800),text(v.label.toUpperCase(),195,y+66,19,700,secondary,775),`<path d="M85 ${y+100}H995" stroke="${ink}" stroke-width="${i===0?6:2}"/>`)});
+ }else if(o.template==='daystack'){
   const cards=o.dayCards??[],step=Math.min(190,(h-230)/Math.max(1,cards.length)),top=cy-cards.length*step/2;
   parts.push(text(o.title.toUpperCase(),100,top-30,32,800));
   cards.forEach((c,i)=>{const y=top+i*step;parts.push(`<rect x="80" y="${y}" width="920" height="${step-14}" rx="30" fill="${o.ink==='white'?'#333333':'#eeeeee'}" fill-opacity=".6"/>`,text(c.title,115,y+step*.23,Math.min(25,step*.16),700,ink,845));c.stats.slice(0,3).forEach((s,j)=>{const x=115+j*290;parts.push(text(compact(s),x,y+step*.55,Math.min(43,step*.23),800,ink,265),text(s.label,x,y+step*.76,Math.min(19,step*.12),400,ink,265))})});
