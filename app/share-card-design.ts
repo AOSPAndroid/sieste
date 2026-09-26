@@ -1,6 +1,6 @@
 import type {routeGeometry} from './route-geometry';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium';
-export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile'];
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit';
+export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
@@ -134,6 +134,23 @@ export function shareCardSvg(o:ShareDesign){
   if(first)parts.push(text(compact(first),66,y+35,122,900,ink,948));
   others.slice(0,3).forEach((s,i)=>{const x=72+i*320;parts.push(text(compact(s),x,y+116,38,700,ink,285),text(s.label,x,y+151,20,400,ink,285))});
   if(o.date)parts.push(text(o.date,72,y+206,20));
+ }else if(['halo','capsule','diamond','seal','orbit'].includes(o.template)){
+  const y=cy-80,headline=first?compact(first):o.sport;
+  const footer=(baseline:number)=>{if(others.length)parts.push(text(others.slice(0,3).map(compact).join('  ·  '),540,baseline,28,700,ink,890,false,'middle'));if(o.date)parts.push(text(o.date,540,baseline+40,20,400,ink,860,false,'middle'));};
+  if(o.template==='halo'){
+   parts.push(`<circle cx="540" cy="${y}" r="285" fill="none" stroke="${ink}" stroke-width="2"/><circle cx="540" cy="${y}" r="305" fill="none" stroke="${ink}" stroke-width="1" opacity=".35"/>`,text(o.sport.toUpperCase(),540,y-220,23,800,ink,500,false,'middle'),route(290,y-180,500,345,5),text(o.title,540,y+215,22,500,ink,440,false,'middle'));
+   parts.push(text(headline,540,cy+335,105,900,ink,900,false,'middle'));footer(cy+390);
+  }else if(o.template==='capsule'){
+   parts.push(`<rect x="215" y="${cy-425}" width="650" height="820" rx="315" fill="none" stroke="${ink}" stroke-width="2"/>`,text(o.sport.toUpperCase(),540,cy-335,24,800,ink,460,false,'middle'),route(290,cy-275,500,370,5),text(headline,540,cy+195,86,900,ink,570,false,'middle'),text(o.title,540,cy+249,23,500,ink,545,false,'middle'));
+   if(others.length)parts.push(text(others.slice(0,2).map(compact).join('  ·  '),540,cy+299,26,600,ink,495,false,'middle'));
+  }else if(o.template==='diamond'){
+   parts.push(`<path d="M540 ${y-305}L875 ${y}L540 ${y+305}L205 ${y}Z" fill="none" stroke="${ink}" stroke-width="2"/>`,route(350,y-150,380,300,5),text(o.sport.toUpperCase(),540,cy-425,25,800,ink,890,false,'middle'),text(headline,540,cy+355,105,900,ink,910,false,'middle'));footer(cy+407);
+  }else if(o.template==='seal'){
+   parts.push(`<circle cx="540" cy="${y}" r="305" fill="none" stroke="${ink}" stroke-width="3" stroke-dasharray="2 13" stroke-linecap="round"/><circle cx="540" cy="${y}" r="279" fill="none" stroke="${ink}" stroke-width="1" opacity=".6"/>`,text(o.sport.toUpperCase(),540,y-209,28,800,ink,450,false,'middle'),route(310,y-160,460,305,5),text(o.title.toUpperCase(),540,y+210,19,700,ink,440,false,'middle'));
+   parts.push(text(headline,540,cy+335,105,900,ink,900,false,'middle'));footer(cy+390);
+  }else{
+   parts.push(`<path d="M325 ${y+205}A297 297 0 1 1 755 ${y+205}" fill="none" stroke="${ink}" stroke-width="2"/>`,route(305,y-210,470,345,5),text(o.sport.toUpperCase(),540,cy-425,25,800,ink,890,false,'middle'),text(headline,540,y+260,96,900,ink,890,false,'middle'),text(o.title,540,y+315,24,500,ink,890,false,'middle'));footer(y+367);
+  }
  }else if(o.template==='routebadge'){
   parts.push(`<circle cx="540" cy="${cy-75}" r="292" fill="none" stroke="${ink}" stroke-width="2" opacity=".7"/>`,route(330,cy-285,420,420,5),text(o.sport.toUpperCase(),540,cy-410,25,800,ink,900,false,'middle'));
   if(first)parts.push(text(compact(first),540,cy+295,100,900,ink,936,false,'middle'));
