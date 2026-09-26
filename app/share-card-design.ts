@@ -1,8 +1,8 @@
 import type {routeGeometry} from './route-geometry';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart';
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack';
 export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;weekDays?:{label:string;value:number|null}[]};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 export function shareCardSvg(o:ShareDesign){
  const h=o.height,ink=!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
@@ -15,7 +15,11 @@ export function shareCardSvg(o:ShareDesign){
  if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${o.ink==='white'?'#181818':'#fafafa'}"/>`);
  const first=o.stats[0],others=o.stats.slice(1),cy=h/2;
  // Each design is a standalone overlay; canvas padding stays transparent.
- if(o.template==='bubble'){
+ if(o.template==='daystack'){
+  const cards=o.dayCards??[],step=Math.min(190,(h-230)/Math.max(1,cards.length)),top=cy-cards.length*step/2;
+  parts.push(text(o.title.toUpperCase(),100,top-30,32,800));
+  cards.forEach((c,i)=>{const y=top+i*step;parts.push(`<rect x="80" y="${y}" width="920" height="${step-14}" rx="30" fill="${o.ink==='white'?'#333333':'#eeeeee'}" fill-opacity=".6"/>`,text(c.title,115,y+step*.23,Math.min(25,step*.16),700,ink,845));c.stats.slice(0,3).forEach((s,j)=>{const x=115+j*290;parts.push(text(compact(s),x,y+step*.55,Math.min(43,step*.23),800,ink,265),text(s.label,x,y+step*.76,Math.min(19,step*.12),400,ink,265))})});
+ }else if(o.template==='bubble'){
   const words=o.stats.slice(0,2).map(compact).join(', '),y=cy-85;
   parts.push(`<rect x="120" y="${y}" width="820" height="160" rx="80" fill="#087eff"/><path d="M885 ${y+105}Q920 ${y+168}960 ${y+162}Q906 ${y+190}865 ${y+148}" fill="#087eff"/>`,text(words,530,y+103,65,500,'#ffffff',740,false,'middle'));
   parts.push(text((o.cycling?'Rode':o.sport==='Running'?'Ran':'Trained')+(o.time?' '+o.time:''),935,y+220,30,400,ink,800,false,'end'));
