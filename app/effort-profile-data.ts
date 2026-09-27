@@ -15,9 +15,34 @@ function computeeffortProfile(detail:any,sensor='power'){
  for(let i=0;i<rows.length;i++){const sample=rows.slice(Math.max(0,i-window+1),i+1).map(r=>r.value),valid=sample.length===window&&sample.every(finite);const high=threshold!==null&&valid&&(sample as number[]).reduce((a,b)=>a+b,0)/window>=threshold;if(high){if(start<0)start=i}else finish(i-1)}finish(rows.length-1);
  const laps:{index:number;start:number;end:number;power:number|null;hr:number|null}[]=[];let cursor=0,aligned=true;
  for(const [i,lap] of (detail.laps??[]).entries()){const s={...lap,...lap.summary},d=s.durationTotal??s.duration;if(!finite(d)||d<=0){aligned=false;break}if(detail.mergedIds){if(!finite(lap.mergedStartSeconds)){aligned=false;break}cursor=lap.mergedStartSeconds;}laps.push({index:i+1,start:cursor/60,end:(cursor+d)/60,power:finite(s.power)?s.power:null,hr:finite(s.heartrate)?s.heartrate:null});cursor+=d}
- // Cumulative active laps cannot be overlaid reliably onto elapsed samples when pauses differ.
- const extent=rows.length?rows.at(-1)!.time*60+step:0;if(Math.abs(cursor-extent)>Math.max(10,step*2))aligned=false;
- return {rows,laps:aligned?laps:[],efforts,threshold,reason:!aligned&&detail.laps?.length?'Lap timing does not match the sensor timeline; lap overlay omitted.':null};
+ // Sensor streams may omit pauses while lap timestamps use wall-clock time.
+ // Match cumulative recorded distances instead of stretching lap timer durations.
+ const extent=rows.length?rows.at(-1)!.time*60+step:0;
+ const tolerance=Math.max(10,step*2);
+ if(Math.abs(cursor-extent)>tolerance)aligned=false;
+ let distanceAligned=false;
+ if(!detail.mergedIds&&laps.length===(detail.laps??[]).length&&laps.length){
+  const distances=detail.laps.map((l:any)=>({...l,...l.summary}).distance);
+  const stream=streams.distance;
+  const total=distances.reduce((sum:number,d:any)=>sum+(finite(d)?d:0),0);
+  const complete=Array.isArray(stream)&&stream.length===n&&stream.every((d:any,i:number)=>finite(d)&&d>=0&&(i===0||d>=stream[i-1]));
+  if(complete&&distances.every((d:any)=>finite(d)&&d>0)&&total>0&&Math.abs(stream.at(-1)-total)<=Math.max(5,total*.005)&&stream[0]<=Math.max(100,total*.02)){
+   const boundary=(target:number)=>{
+    const j=stream.findIndex((d:number)=>d>=target);
+    if(j<0)return rows.at(-1)!.time;
+    if(j===0)return 0;
+    const delta=stream[j]-stream[j-1];
+    return ((j-1)+(delta>0?(target-stream[j-1])/delta:0))*step/60;
+   };
+   let distance=0,prior=0;
+   const bounds=distances.map((d:number,i:number)=>{distance+=d;const end=i===distances.length-1?Math.min(extent,detail.summary?.duration??extent)/60:boundary(distance);const result={start:prior,end};prior=end;return result});
+   if(bounds.every((v:any)=>finite(v.end)&&v.end>v.start)){
+    bounds.forEach((v:any,i:number)=>Object.assign(laps[i],v));aligned=true;distanceAligned=true;
+   }
+  }
+ }
+ return {rows,laps:aligned?laps:[],efforts,threshold,reason:distanceAligned?'Lap highlights follow recorded distance; boundaries are approximate at the sensor sample resolution.':!aligned&&detail.laps?.length?'Recorded laps are available below. Their timing cannot be reliably aligned with this sensor timeline.':null};
+
 }
 
 const resultCache=new WeakMap<object,Map<string,ReturnType<typeof computeeffortProfile>>>();

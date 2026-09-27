@@ -12,3 +12,17 @@ const metrics=new Function(source('app/sports.ts')+source('app/activity-metrics.
 const summary={steps:9000,stepLength:100,groundContactTime:210,calories:400,cadence:80,power:150};
 let cards=metrics({sportType:'cycling',summary}).cards;assert.ok(!cards.some(c=>['steps','stepLength','groundContactTime'].includes(c.id)));assert.equal(cards.find(c=>c.id==='cadence').unit,'rpm');assert.ok(cards.some(c=>c.id==='power'));
 cards=metrics({sportType:'running',summary}).cards;assert.ok(cards.some(c=>c.id==='steps'));assert.ok(cards.some(c=>c.id==='stepLength'));console.log('Sport filtering, aligned laps, gaps and sustained effort detection passed.');
+
+// Watch laps include timer rounding/pauses; sampled distance locates the boundary.
+const watch={summary:{duration:4390,durationTotal:4522},seriesSampled:{sampleSize:5,data:{speed:Array(878).fill(3),altitude:Array(878).fill(50),distance:Array.from({length:878},(_,i)=>14011*(i+1)/878)}},laps:[{duration:3791.21,distance:11998.66},{duration:611.67,distance:2013.09}]};
+const watchResult=profile(watch,'speed');
+assert.equal(watchResult.laps.length,2);
+assert.match(watchResult.reason,/recorded distance/);
+assert.ok(watchResult.laps[0].end<3791.21/60);
+assert.equal(watchResult.laps[0].end,watchResult.laps[1].start);
+assert.equal(watchResult.laps[1].end,4390/60);
+const badDistance=[...watch.seriesSampled.data.distance];badDistance[300]=0;
+assert.equal(profile({...watch,seriesSampled:{...watch.seriesSampled,data:{...watch.seriesSampled.data,distance:badDistance}}},'speed').laps.length,0);
+assert.equal(profile({...watch,laps:[{duration:100,distance:100}]},'speed').laps.length,0);
+assert.equal(profile({...watch,mergedIds:['a','b']},'speed').laps.length,0);
+console.log('Watch pause mismatch aligns by complete distance; resets, incomplete laps and unaligned merges stay rejected.');
