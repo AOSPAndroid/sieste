@@ -17,11 +17,12 @@ export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 export function shareCardSvg(o:ShareDesign){
- const h=o.height,ink=!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
+ const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
  const compact=(s:ShareStat)=>s.value+(s.unit==='min:sec'||s.unit==='h:mm:ss'?'':s.unit==='/km'?'/km':' '+s.unit);
  function text(value:string,x:number,y:number,size=24,weight=400,color=ink,width=936,serif=false,anchor='start'){
  const estimate=[...value].length*size*(serif?.48:.58);
- return `<text x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
+ const isStat=o.stats.some(stat=>[compact(stat),compact(stat).toUpperCase(),stat.value].includes(value)||value.toUpperCase().includes(compact(stat).toUpperCase()));
+ return `<text${isStat?' data-share-stat="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
  }
  function route(x:number,y:number,w:number,hh:number,stroke=4){if(!o.route)return '';const {points,segments,center}=o.route,minX=points.reduce((n,p)=>Math.min(n,p.x),Infinity),maxX=points.reduce((n,p)=>Math.max(n,p.x),-Infinity),minY=points.reduce((n,p)=>Math.min(n,p.y),Infinity),maxY=points.reduce((n,p)=>Math.max(n,p.y),-Infinity),scale=Math.min((w-30)/Math.max(maxX-minX,1e-9),(hh-30)/Math.max(maxY-minY,1e-9));return segments.filter(s=>s.length>1).map(s=>{const stride=Math.max(1,Math.ceil(s.length/3000)),p=s.filter((_,i)=>i%stride===0||i===s.length-1).map((p,i)=>`${i?'L':'M'}${(x+w/2+(p.x-center.x)*scale).toFixed(2)},${(y+hh/2+(p.y-center.y)*scale).toFixed(2)}`).join(' ');return `<path d="${p}" fill="none" stroke="${ink}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`}).join('')}
  if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${o.ink==='white'?'#181818':'#fafafa'}"/>`);
@@ -33,7 +34,7 @@ export function shareCardSvg(o:ShareDesign){
  const palette=shareFinishes.find(f=>f.key===o.finish)??shareFinishes[0],c=palette.colors;
  if(isChrome){
   const gradient=(id:string,colors:readonly string[],offsets:readonly number[])=>`<linearGradient id="${id}" x1="0" y1="0" x2=".12" y2="1">${colors.map((color,i)=>`<stop offset="${offsets[i]}" stop-color="${color}"/>`).join('')}</linearGradient>`;
-  parts.push('<defs>'+gradient('metal',c,[0,.18,.39,.48,.5,.61,.76,.88,1])+gradient('rim',[c[0],c[3],c[7],c[4]],[0,.45,.7,1])+gradient('silverSurface',[c[0],c[1],c[2],c[6],c[7]],[0,.4,.5,.55,1])+'</defs>');
+  parts.push('<defs>'+gradient('metal',c,[0,.18,.39,.48,.5,.61,.76,.88,1])+gradient('metalSoft',[c[0],c[1],c[6],c[7]],[0,.35,.7,1])+gradient('rim',[c[0],c[3],c[7],c[4]],[0,.45,.7,1])+gradient('silverSurface',[c[0],c[1],c[2],c[6],c[7]],[0,.4,.5,.55,1])+'</defs>');
  }
  const metal=(v:string,x:number,y:number,size:number,width:number,outline=false)=>{
   const glyph=heavy(v,x,y,size,width,'url(#metal)');
@@ -240,8 +241,10 @@ export function shareCardSvg(o:ShareDesign){
   artwork=artwork.replace(/<(text|path|circle|rect)[^>]*>/g,tag=>{
    if(tag.startsWith('<text')){
     const size=Number(tag.match(/font-size="([^"]+)"/)?.[1]??0);
-    if(size<64||cardSurface)return tag;
-    return tag.replace(/fill="(?!none|url\()[^"]*"/,'fill="url(#metal)"')
+    if(cardSurface)return tag;
+    const stat=tag.includes('data-share-stat="true"');
+    if(size<64&&!stat)return tag;
+    return tag.replace(/fill="(?!none|url\()[^"]*"/,size<64?'fill="url(#metalSoft)"':'fill="url(#metal)"')
       .replace(/stroke="(?!none|url\()[^"]*"/,'stroke="url(#rim)"');
    }
    if(tag.includes('width="1080"'))return tag;

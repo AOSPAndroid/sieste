@@ -15,3 +15,14 @@ const evil=shareCardSvg({...options,template:'editorial',title:'<script>&"Bad"'}
 const opaque=await sharp(Buffer.from(shareCardSvg({...options,template:'split',transparent:false}))).ensureAlpha().raw().toBuffer();assert.equal(opaque[3],255);
 await sharp({create:{width:980,height:Math.ceil(tiles.length/2)*500-20,channels:3,background:'#dfe5ec'}}).composite(tiles).png().toFile(new URL('contact-sheet.png',dir).pathname.replace(/^\/(\w:)/,'$1'));
 console.log('Passed: forty-three designs at three sizes in solid and eight metallic finishes, transparent pixel alpha, opaque toggle, real rendered content, XML escaping. Rendered contact sheet for review.');
+
+for(const template of ['scorecard','strip','signature','receipt','caption','panorama']){
+ for(const finish of shareFinishes){
+  const svg=shareCardSvg({...options,template,finish:finish.key,accent:'#f472b6'});
+  assert.ok(!svg.includes('#f472b6'),template+' must not retain previous flat pink');
+  const stats=[...svg.matchAll(/<text[^>]*data-share-stat="true"[^>]*>/g)].map(m=>m[0]);
+  assert.ok(stats.length>0,template+' stat markers');
+  assert.ok(stats.every(t=>t.includes('fill="url(#metal')||t.includes('fill="none"')),template+' all stat values receive finish');
+ }
+}
+console.log('Legacy small-stat layouts use finishes and discard stale flat colours.');
