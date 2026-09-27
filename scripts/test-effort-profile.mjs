@@ -22,7 +22,19 @@ assert.ok(watchResult.laps[0].end<3791.21/60);
 assert.equal(watchResult.laps[0].end,watchResult.laps[1].start);
 assert.equal(watchResult.laps[1].end,4390/60);
 const badDistance=[...watch.seriesSampled.data.distance];badDistance[300]=0;
-assert.equal(profile({...watch,seriesSampled:{...watch.seriesSampled,data:{...watch.seriesSampled.data,distance:badDistance}}},'speed').laps.length,0);
+assert.match(profile({...watch,seriesSampled:{...watch.seriesSampled,data:{...watch.seriesSampled.data,distance:badDistance}}},'speed').reason,/approximate/);
 assert.equal(profile({...watch,laps:[{duration:100,distance:100}]},'speed').laps.length,0);
 assert.equal(profile({...watch,mergedIds:['a','b']},'speed').laps.length,0);
 console.log('Watch pause mismatch aligns by complete distance; resets, incomplete laps and unaligned merges stay rejected.');
+
+const noDistance={...watch,seriesSampled:{...watch.seriesSampled,data:{speed:watch.seriesSampled.data.speed,altitude:watch.seriesSampled.data.altitude}}};
+const fitted=profile(noDistance,'speed');assert.equal(fitted.laps.length,2);assert.equal(fitted.laps[0].end,fitted.laps[1].start);assert.ok(Math.abs(fitted.laps[1].end-4390/60)<1e-9);assert.match(fitted.reason,/approximate/);
+assert.equal(profile({...noDistance,laps:[{duration:3000},{duration:600}]},'speed').laps.length,0);
+const shortDistance={...watch,seriesSampled:{...watch.seriesSampled,data:{...watch.seriesSampled.data,distance:watch.seriesSampled.data.distance.slice(1)}}};
+assert.match(profile(shortDistance,'speed').reason,/recorded distance/);
+console.log('Small timer mismatch and unequal stream lengths remain selectable; large mismatch stays unaligned.');
+
+const leadingBlank={...watch,seriesSampled:{...watch.seriesSampled,data:{...watch.seriesSampled.data,distance:[null,...watch.seriesSampled.data.distance.slice(1)]}}};
+assert.match(profile(leadingBlank,'speed').reason,/recorded distance/);
+assert.equal(profile(leadingBlank,'speed').laps.length,2);
+console.log('Tredict leading blank distance sample preserves distance-based lap selection.');
