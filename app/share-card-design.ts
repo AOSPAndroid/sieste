@@ -22,7 +22,8 @@ export function shareCardSvg(o:ShareDesign){
  function text(value:string,x:number,y:number,size=24,weight=400,color=ink,width=936,serif=false,anchor='start'){
  const estimate=[...value].length*size*(serif?.48:.58);
  const isStat=o.stats.some(stat=>[compact(stat),compact(stat).toUpperCase(),stat.value].includes(value)||value.toUpperCase().includes(compact(stat).toUpperCase()));
- return `<text${isStat?' data-share-stat="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
+ const isActivity=[o.sport,o.title].some(label=>label.trim()&&value.toLocaleLowerCase().includes(label.toLocaleLowerCase()));
+ return `<text${isStat?' data-share-stat="true"':''}${isActivity?' data-share-activity="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
  }
  function route(x:number,y:number,w:number,hh:number,stroke=4){if(!o.route)return '';const {points,segments,center}=o.route,minX=points.reduce((n,p)=>Math.min(n,p.x),Infinity),maxX=points.reduce((n,p)=>Math.max(n,p.x),-Infinity),minY=points.reduce((n,p)=>Math.min(n,p.y),Infinity),maxY=points.reduce((n,p)=>Math.max(n,p.y),-Infinity),scale=Math.min((w-30)/Math.max(maxX-minX,1e-9),(hh-30)/Math.max(maxY-minY,1e-9));return segments.filter(s=>s.length>1).map(s=>{const stride=Math.max(1,Math.ceil(s.length/3000)),p=s.filter((_,i)=>i%stride===0||i===s.length-1).map((p,i)=>`${i?'L':'M'}${(x+w/2+(p.x-center.x)*scale).toFixed(2)},${(y+hh/2+(p.y-center.y)*scale).toFixed(2)}`).join(' ');return `<path d="${p}" fill="none" stroke="${ink}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`}).join('')}
  if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${o.ink==='white'?'#181818':'#fafafa'}"/>`);
@@ -234,7 +235,8 @@ export function shareCardSvg(o:ShareDesign){
  if(o.brand)parts.push(text('sieste',72,h-48,23,700));
  if(o.demo)parts.push(text('ILLUSTRATIVE DATA',730,h-48,18,600,ink,280));
  // Apply the finish after layout so hollow lettering stays hollow and every
- // existing template keeps its geometry. Small labels stay flat for readability.
+ // existing template keeps its geometry. Small metadata stays flat; activity
+ // names and sport labels receive the same soft finish as small stat values.
  let artwork=parts.join('');
  if(o.finish&&o.finish!=='solid'){
   const cardSurface=['ticket','metro','sweatreceipt','glass','daystack','bubble'].includes(o.template);
@@ -242,8 +244,8 @@ export function shareCardSvg(o:ShareDesign){
    if(tag.startsWith('<text')){
     const size=Number(tag.match(/font-size="([^"]+)"/)?.[1]??0);
     if(cardSurface)return tag;
-    const stat=tag.includes('data-share-stat="true"');
-    if(size<64&&!stat)return tag;
+    const finishedLabel=tag.includes('data-share-stat="true"')||tag.includes('data-share-activity="true"');
+    if(size<64&&!finishedLabel)return tag;
     return tag.replace(/fill="(?!none|url\()[^"]*"/,size<64?'fill="url(#metalSoft)"':'fill="url(#metal)"')
       .replace(/stroke="(?!none|url\()[^"]*"/,'stroke="url(#rim)"');
    }
