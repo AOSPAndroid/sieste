@@ -14,4 +14,4 @@ for(const [i,template] of ['editorial','route','split','signature','serif','laps
 const evil=shareCardSvg({...options,template:'editorial',title:'<script>&"Bad"'});assert.ok(!evil.includes('<script>'));assert.ok(evil.toLowerCase().includes('&lt;script&gt;'));
 const opaque=await sharp(Buffer.from(shareCardSvg({...options,template:'split',transparent:false}))).ensureAlpha().raw().toBuffer();assert.equal(opaque[3],255);
 await sharp({create:{width:980,height:Math.ceil(tiles.length/2)*500-20,channels:3,background:'#dfe5ec'}}).composite(tiles).png().toFile(new URL('contact-sheet.png',dir).pathname.replace(/^\/(\w:)/,'$1'));
-console.log('Passed: forty-three designs at three sizes in solid and seven metallic finishes, transparent pixel alpha, opaque toggle, real rendered content, XML escaping. Rendered contact sheet for review.');
+console.log('Passed: forty-three designs at three sizes in solid and eight metallic finishes, transparent pixel alpha, opaque toggle, real rendered content, XML escaping. Rendered contact sheet for review.');
