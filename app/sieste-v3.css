@@ -474,3 +474,43 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 .sieste-v3 .sleep-window-plot g[role=button]{cursor:pointer;outline:none}
 .sieste-v3 .sleep-window-plot g[role=button]:focus-visible>rect:first-child{stroke:#4f46e5;stroke-width:1.5}
 @media(max-width:600px){.sieste-v3 .sleep-regularity-widget>header{flex-wrap:wrap;gap:5px;margin-bottom:7px}.sieste-v3 .sleep-regularity-widget>header>span{font-size:10px}.sieste-v3 .sleep-window-plot svg{max-height:none}}
+
+/* Activity sheets share the homepage's compact white surfaces and indigo controls. */
+.sieste-v3 .workout-modal .activity-sheet-heading{padding:4px 2px 9px!important;gap:8px;background:var(--s-canvas)}
+.sieste-v3 .workout-modal .activity-sheet-heading h2{font-size:18px;line-height:1.2;letter-spacing:-.4px}
+.sieste-v3 .activity-sheet-heading p{font-size:11px;margin-top:3px}
+.sieste-v3 .activity-sheet-icon{width:30px;height:30px;border-radius:8px}
+.sieste-v3 .activity-sheet-icon svg{width:17px;height:17px}
+.sieste-v3 .workout-modal .detail-tabs{display:flex;gap:2px;padding:3px;margin-bottom:8px;background:#eeeef2;overflow-x:auto}
+.sieste-v3 .workout-modal .detail-tabs button{flex-shrink:0;min-height:34px;padding:6px 9px;font-size:11px;border-radius:7px}
+.sieste-v3 .workout-modal .activity-mini-map{padding:0;margin:0 0 8px;border-radius:12px}
+.sieste-v3 .workout-modal .activity-mini-map .route-panel{border:0;border-radius:0;margin:0}
+.sieste-v3 .workout-modal .activity-mini-map .route-heading{padding:5px 45px 5px 10px;min-height:38px}
+.sieste-v3 .activity-mini-map .route-heading h3{font-size:12px;font-weight:650}
+.sieste-v3 .activity-mini-map>.expand-widget{top:5px;right:7px}
+.sieste-v3 .workout-modal .activity-mini-map .route-canvas,.sieste-v3 .workout-modal .activity-mini-map .route-canvas>svg{height:155px;min-height:0;max-height:155px}
+.sieste-v3 .workout-modal .unified-profile{padding:10px;margin:0 0 8px;border-radius:12px;box-shadow:none}
+.sieste-v3 .workout-modal .unified-profile>header{padding:0;margin-bottom:6px;min-height:28px}
+.sieste-v3 .workout-modal .unified-profile>header h3{font-size:13px;font-weight:650;margin:0;letter-spacing:-.2px}
+.sieste-v3 .workout-modal .unified-profile>header small{display:none}
+.sieste-v3 .workout-modal .unified-toggles{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 4px}
+.sieste-v3 .workout-modal .unified-toggles button{min-height:32px;padding:5px 7px;border:1px solid transparent;border-radius:7px;font-size:10px;background:#f4f4f6;color:#71717a}
+.sieste-v3 .workout-modal .unified-toggles button[aria-pressed=true]{background:var(--s-accent-soft);border-color:#dfe2fa;color:var(--s-accent)}
+.sieste-v3 .workout-modal .unified-modes{gap:3px;padding:3px;border-radius:8px;background:#f1f2f6;margin:5px 0}
+.sieste-v3 .workout-modal .unified-modes button{min-height:34px;padding:5px 3px;border:0;border-radius:6px;background:transparent;font-size:11px}
+.sieste-v3 .workout-modal .unified-modes button[aria-pressed=true]{background:white;color:var(--s-accent);box-shadow:0 1px 3px #24243d0d}
+.sieste-v3 .workout-modal .unified-selection{padding:7px 8px;border-radius:8px;background:#f7f7fa}
+.sieste-v3 .workout-modal .unified-selection>strong{font-size:11px}
+.sieste-v3 .workout-modal .unified-selection b{font-size:14px}
+.sieste-v3 .workout-modal .activity-section-label{margin:9px 0 6px}
+.sieste-v3 .workout-modal .activity-section-label h3{font-size:12px}
+.sieste-v3 .workout-modal .activity-glance-grid{gap:6px}
+.sieste-v3 .workout-modal .activity-glance-card{padding:8px;border-radius:10px;box-shadow:none}
+.sieste-v3 .workout-modal .activity-glance-card h3{font-size:11px}
+.sieste-v3 .workout-modal .activity-extra-sensors{margin:6px 0;border-radius:9px}
+.sieste-v3 .workout-modal button:focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
+@media(max-width:600px){
+ .sieste-v3 .workout-modal{padding:8px!important}
+ .sieste-v3 .workout-modal .unified-profile{padding:8px}
+ .sieste-v3 .workout-modal .activity-mini-map .route-canvas,.sieste-v3 .workout-modal .activity-mini-map .route-canvas>svg{height:130px;max-height:130px}
+}
