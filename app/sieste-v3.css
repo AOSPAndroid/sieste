@@ -656,3 +656,14 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
  .history-numbers b{font-size:14px}
  .history-redesign>.history-plot{height:200px}
 }
+/* The summary stays in flow; its compact counterpart never shifts the page. */
+.health-scroll-strip{position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;transform:translate(-50%,-12px);width:min(560px,calc(100% - 24px));z-index:40;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));padding:4px;background:#fffffff5;border:1px solid #e5e5ef;border-radius:14px;box-shadow:0 5px 22px #24243314;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,transform .18s ease,visibility .18s}
+.health-scroll-strip.is-visible{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0)}
+.health-scroll-strip button{min-width:0;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;border:0;background:transparent;border-radius:8px;padding:5px 3px;color:#272733}
+.health-scroll-strip button:hover{background:#f0efff}
+.health-scroll-strip button+button{border-left:1px solid #eeeef4}
+.health-scroll-strip strong{font-size:14px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.3px}
+.health-scroll-strip svg{flex-shrink:0}
+@media(min-width:1050px){.health-scroll-strip{left:calc(50% + 44px)}}
+@media(max-width:600px){.health-scroll-strip{width:calc(100% - 16px);padding:3px;border-radius:12px}.health-scroll-strip button{flex-direction:column;gap:3px;min-height:44px}.health-scroll-strip strong{font-size:12px}.health-scroll-strip svg{width:13px;height:13px}}
+@media(prefers-reduced-motion:reduce){.health-scroll-strip{transition:none;transform:translate(-50%,0)}}
