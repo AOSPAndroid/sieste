@@ -432,7 +432,7 @@
 .dashboard-theme .sidebar,.dashboard-theme.today-shell .sidebar{padding:5px 12px;gap:18px;min-height:0}
 .dashboard-theme .brand-name,.dashboard-theme.today-shell .brand-name{font-size:21px;line-height:24px;letter-spacing:-1px}
 .dashboard-theme .nav{padding-top:6px;padding-bottom:6px}
-.dashboard-theme .floating-sync{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:calc(14px + env(safe-area-inset-bottom));width:42px;height:42px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #cad6e6;border-radius:50%;background:#fff;color:#2563eb;box-shadow:0 3px 14px #17203322;z-index:30;cursor:pointer}
+.dashboard-theme .floating-sync{position:fixed;left:max(12px,env(safe-area-inset-left));right:auto;bottom:calc(14px + env(safe-area-inset-bottom));width:42px;height:42px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #cad6e6;border-radius:50%;background:#fff;color:#2563eb;box-shadow:0 3px 14px #17203322;z-index:30;cursor:pointer}
 .dashboard-theme .floating-sync[hidden]{display:none}
 .dashboard-theme .floating-sync:disabled{cursor:wait;color:#64748b}
 .dashboard-theme .floating-sync:focus-visible{outline:3px solid #93b4f4;outline-offset:3px}

@@ -250,7 +250,7 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
  .sieste-v3 .mini-dock::before{content:'s';font-weight:800;font-size:32px;letter-spacing:-2px;color:var(--s-accent);position:absolute;top:18px;left:22px;line-height:1}
  .sieste-v3 .mini-dock small{font-size:10px}
  .chrome-is-scrolling .sieste-v3 .mini-dock{opacity:1;pointer-events:auto;transform:none}
- .sieste-v3 .floating-sync{bottom:24px;right:25px}
+ .sieste-v3 .floating-sync{bottom:24px;left:max(25px,env(safe-area-inset-left));right:auto}
  .sieste-v3 .sleep-page{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 }
 @media(max-width:1049px){
