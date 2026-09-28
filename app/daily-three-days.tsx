@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,useMemo} from 'react';
 import {Moon,Activity,Heart,Star,Footprints,Flame} from 'lucide-react';
 import type {AthleteData} from './analytics';
 import {weekOverview,localDate} from './week-overview';
@@ -16,9 +16,9 @@ export default function DailyThreeDays({data,now,count=3,offset=0}:{data:Athlete
  const panel=useRef<HTMLElement>(null),[collapsed,setCollapsed]=useState(false);
  useEffect(()=>{const node=panel.current;if(!node)return;const observer=new IntersectionObserver(([entry])=>setCollapsed(!entry.isIntersecting&&entry.boundingClientRect.bottom<=64),{rootMargin:'-64px 0px 0px 0px',threshold:0});observer.observe(node);return ()=>observer.disconnect()},[]);
  const expand=useExpand(),end=new Date(now);end.setDate(end.getDate()-offset*count);
- const days=weekOverview(data,end,sportFamily).rows.slice(-7),coros=data.extra?.coros;
+ const days=useMemo(()=>weekOverview(data,end,sportFamily).rows,[data,end.getTime()]),coros=data.extra?.coros;
  const value=(key:string,day:typeof days[number]):number|null=>{const stamp=day.iso.replaceAll('-',''),v=key==='score'?coros?.sleepWindows?.[stamp]?.score:key==='steps'||key==='calories'?coros?.daily?.[stamp]?.[key]:day[key as 'sleep'|'hrv'|'rhr'];return finite(v)?v:null};
- const today=weekOverview(data,now,sportFamily).rows.at(-1)!;
+ const today=useMemo(()=>offset===0?days.at(-1)!:weekOverview(data,now,sportFamily).rows.at(-1)!,[data,now.getTime(),offset,days]);
  return <><nav className={'health-scroll-strip'+(collapsed?' is-visible':'')} aria-label="Today’s health at a glance" aria-hidden={!collapsed}><small className="mini-data-caption">Today’s data</small>{metrics.map(metric=>{const v=value(metric.key,today),physiology=['sleep','hrv','rhr'].includes(metric.key),status=v!==null&&physiology?metricStatus(metric.key,data,now,sportFamily):null;return <button key={metric.key} tabIndex={collapsed?0:-1} onClick={()=>physiology?expand.metric(metric.title):expand.widget(metric.title,<CorosDaily data={data} now={now}/>)} aria-label={'Today · '+metric.label+': '+format(metric.key,v)+' '+metric.unit+'. Open analysis'} title={'Today · '+metric.label+': '+format(metric.key,v)+' '+metric.unit}><metric.Icon aria-hidden="true" size={15} style={{color:metric.color}}/><strong style={{color:status?palette[status.tone]:undefined}}>{format(metric.key,v,true)}</strong></button>})}</nav><section ref={panel} className="health-headlines" aria-label="Daily health and activity"><header><h2>{offset===0?'Today’s health':end.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' · health'}</h2><span>7-day trends</span></header><div className="health-headline-grid">
  {metrics.map(metric=>{const values=days.map(d=>value(metric.key,d)),last=values.at(-1)??null,prior=values.at(-2)??null,physiology=['sleep','hrv','rhr'].includes(metric.key),status=last!==null&&physiology?metricStatus(metric.key,data,end,sportFamily):null,partial=offset===0&&['steps','calories'].includes(metric.key),diff=last!==null&&prior!==null?last-prior:null,delta=partial?'Today · partial':diff===null?'No comparison':diff===0?'→ unchanged':(diff>0?'↑ ':'↓ ')+(metric.key==='sleep'?Math.round(Math.abs(diff)*60)+'m':Math.abs(diff).toLocaleString('en-GB',{maximumFractionDigits:1}))+' vs yesterday',insight=last===null?'Not available':status?.label??(partial?'Day in progress':'Recorded total');
  const open=()=>physiology?expand.metric(metric.title):expand.widget(metric.title,<CorosDaily data={data} now={end}/>);

@@ -14,8 +14,9 @@ import ActivityLaps from './activity-laps';
 import ActivityZones from './activity-zones';
 import {SportIcon} from './dashboard-calendar';
 const ActivityShare=lazy(()=>import('./activity-share'));
-import TrainingLog from './training-log';
-import CorosHub,{CorosBody} from './coros-hub';
+const TrainingLog=lazy(()=>import('./training-log'));
+const CorosHub=lazy(()=>import('./coros-hub'));
+const CorosBody=lazy(()=>import('./coros-hub').then(m=>({default:m.CorosBody})));
 import ManualBody from './manual-body';
 import SleepRegularity from "./sleep-regularity";
 import RouteMap from "./route-map";
@@ -23,7 +24,8 @@ import DeferredPanel from "./deferred-panel";
 const RouteTools=lazy(()=>import("./route-tools"));
 import InjuryCheck from "./injury-check";
 import DisciplinePanel from "./discipline-panel";
-import Studio,{SignalLab} from './studio';
+const Studio=lazy(()=>import('./studio'));
+const SignalLab=lazy(()=>import('./studio').then(m=>({default:m.SignalLab})));
 type Row=Record<string,any>;
 export type Workout={mergedIds?:string[];nativeVersion?:number;provider?:string;analysisSource?:string;coros?:{labelId:string;sportType:number};fallbackId?:string;id:string;date:string;sportType:string;subSportType?:string;title?:string;sessionLabel?:string|null;summary?:Row;evidence?:{version:number;best:Record<string,any[]>;sampleSeconds:number|null;insightVersion?:number;sensors?:ReturnType<typeof import("./tredict-opportunities-data").sensorEvidence>;insights?:ReturnType<typeof import("./session-intelligence-data").runningSignals>;classification?:ReturnType<typeof import("./session-intelligence-data").classifySession>};analyzed?:boolean;hrHistogram?:{secondsByBpm:Record<string,number>;validSeconds:number;missingSeconds:number;sampleSeconds:number}|null};
 export type AthleteData={provider?:string;sourceNote?:string;activities:Workout[];sleep:Record<string,number[]>;hrv:Record<string,number[]>;extra?:Row;sources?:Row;historyStart?:string;historyVersion?:number;historyComplete?:boolean;warnings?:string[];excludedWorkouts?:{id:string;date:string}[];syncedAt?:string};
@@ -106,7 +108,7 @@ export function WorkoutDetails({activity,cyclingContext,history=[],token,isDemo,
  {view==='Summary'&&<><ActivitySummary detail={{...activity,...detail,summary,cyclingContext:{...cyclingContext,manualReference}}} history={history} loading={busy} onClassify={label=>{setDetail(current=>current?{...current,sessionLabel:label}:current);onClassify?.(activity.id,label)}}/></>}
  {view==='Share'&&<Suspense fallback={<LoadingState compact label="Loading share designs…"/>}><ActivityShare key={activity.id} activity={{...activity,...detail,summary}} history={history} loading={busy}/></Suspense>}
  {view==='Map'&&<><RouteMap detail={detail??activity} loading={busy}/><DeferredPanel className="compact-tool" summary="Route tools · trim & clean"><RouteTools key={(detail??activity).id} detail={detail??activity}/></DeferredPanel></>}
- {view==='Signal lab'&&<SignalLab detail={detail??activity}/>}
+ {view==='Signal lab'&&<Suspense fallback={<LoadingState label="Loading signal analysis…"/>}><SignalLab detail={detail??activity}/></Suspense>}
  {view==='Telemetry'&&<><div className="lab-controls"><select aria-label="Telemetry sensor" value={selected??''} onChange={e=>setSensor(e.target.value)}>{keys.map(k=><option key={k} value={k}>{label(k)} {unit(k,sport(activity))}</option>)}</select><span>{points.length} samples · {detail?.seriesSampled?.sampleSize??'—'}s resolution</span></div><section className="activity-telemetry"><header><h3>{label(selected??'Sensor')}</h3><ExpandButton title={label(selected??'Sensor')}><Plot rows={points} fields={[{key:'value',name:`${label(selected??'Sensor')} ${unit(selected??'',sport(activity))}`}]} height={440}/></ExpandButton></header><Plot rows={points} fields={[{key:'value',name:`${label(selected??'Sensor')} ${unit(selected??'',sport(activity))}`}]} height={170}/></section><p className="lab-note">Recorded sensor data. Time starts at the first sample; gaps remain gaps. {isDemo?'Illustrative demo samples.':'No synthetic streams are added.'}</p></>}
  {view==='Laps'&&<><ActivityLaps detail={detail??activity}/>{sport(activity)==='running'&&<details className="activity-advanced-laps"><summary>Compare work intervals · HR, cadence & step length</summary><RunReview detail={detail??activity} initialMode="Track intervals"/></details>}</>}
  {view==='Zones'&&<><ActivityZones summary={summary} loading={busy}/><p className="lab-note">Recorded COROS zone times when supplied; otherwise measured bpm bands. Zone numbers follow this workout’s distribution; current zone thresholds may differ. Percentages use classified time, which may be shorter than the activity.</p></>}
