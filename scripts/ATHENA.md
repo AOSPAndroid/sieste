@@ -1,0 +1,11 @@
+# Athena bridge
+
+The floating chat reads the authenticated account's saved, merged snapshot. It sends up to 28 days of sleep/HRV/RHR and 80 workout summaries, with the selected activity. It never triggers provider syncs or sends GPS, tokens or arbitrary raw provider objects.
+
+The private R2 queue uses conditional writes, account-scoped history, idempotency keys, claim leases, a three-minute expiry and rate limits. Conversations expire after seven days; clearing history also cancels pending jobs. Full snapshots are discarded after completion. The dedicated bridge bearer secret is separate from provider credentials.
+
+`athena-worker.py --loop` polls outbound from the local PC. Store `base` and `token` in `%LOCALAPPDATA%/hermes/profiles/athena/sieste-bridge-private.json`; configure the same token as the Sites secret `ATHENA_BRIDGE_TOKEN`. Never commit this file. Windows task `sieste Athena Bridge` runs the worker while the user is logged in. Stopping that task takes Athena offline without affecting sieste.
+
+The bridge reads Athena's model/provider on every job and uses her existing Hermes authentication. Each request is an isolated oneshot with safe mode, rules/memory/plugins disabled and an explicit empty toolset. It does not alter Athena's other sessions. It can analyse and suggest; it cannot silently edit training or execute local commands. Chats and snapshots are sent to the configured model provider.
+
+To verify authentication/model after an upgrade: run the worker with `--self-test`. Do not enable local file/terminal tools for requests originating from the site. Recheck Hermes' empty toolset handling when upgrading.
