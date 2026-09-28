@@ -619,3 +619,40 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 .sieste-v3 .focus-calendar .home-week-day,.sieste-v3 .focus-calendar .home-week-day.current{background:transparent}
 .sieste-v3 .focus-calendar .home-day-sessions .calendar-session-preview{background:transparent;border:0;box-shadow:none}
 .sieste-v3 .focus-calendar .home-day-sessions .calendar-session-preview+.calendar-session-preview{border-top:1px solid var(--s-line)}
+/* Shared recorded-history charts, including metric sheets outside the app shell. */
+.widget-comparisons .history-redesign{display:block;background:#fff;border:1px solid #e9e9f0;border-radius:16px;padding:16px;margin:14px 0;color:#272733;min-width:0}
+.history-redesign>header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+.history-redesign>header h3{font-size:14px;font-weight:650;letter-spacing:-.2px;margin:0 0 4px;color:#272733}
+.history-redesign>header span{font-size:11px;color:#777786}
+.history-redesign .history-periods{display:flex;gap:2px;background:#f3f3f8;border-radius:9px;padding:3px;flex-shrink:0}
+.history-periods button{border:0;border-radius:7px;background:transparent;font-size:11px;color:#777786;padding:7px 9px;min-height:32px;cursor:pointer}
+.history-periods button[aria-pressed=true]{background:white;color:#5145cd;box-shadow:0 1px 4px #27273312;font-weight:650}
+.history-periods button:focus-visible{outline:2px solid #5145cd;outline-offset:2px}
+.history-redesign>.history-numbers{display:grid;grid-template-columns:1.1fr 1fr 1.2fr;gap:12px;height:auto;margin:0 0 14px;padding:0}
+.history-numbers>div{min-width:0}
+.history-numbers small{display:block;font-size:10px;color:#777786;margin-bottom:5px}
+.history-numbers strong{display:block;font-size:29px;font-weight:650;letter-spacing:-1px;color:#5145cd;line-height:1.15}
+.history-numbers b{display:block;font-size:15px;font-weight:550;color:#454554;line-height:1.5}
+.history-numbers em{font-style:normal;font-size:10px;font-weight:400;letter-spacing:0;color:#777786}
+.history-redesign>.history-plot{height:220px;min-width:0;margin:0}
+.history-redesign>footer{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#777786;margin-top:10px}
+.history-redesign>footer span{display:inline-flex;align-items:center;gap:5px}
+.history-redesign>footer i{width:15px;border-top:1px dashed #a1a1b1}
+.history-redesign .history-note{font-size:10px;line-height:1.5;color:#777786;margin:8px 0 0}
+.history-tooltip{padding:10px 12px;border:1px solid #e9e9f0;border-radius:11px;background:#fffffff5;box-shadow:0 6px 24px #27273314;min-width:110px}
+.history-tooltip small{display:block;font-size:10px;color:#777786;margin:0 0 4px}
+.history-tooltip strong{font-size:18px;color:#5145cd;font-weight:650;display:block}
+.history-tooltip strong span{font-size:11px;color:#777786;font-weight:400}
+.history-redesign .history-empty{padding:30px 10px;text-align:center;font-size:12px;color:#777786;background:#fafaff;border-radius:10px}
+@media(max-width:600px){
+ .widget-comparisons .history-redesign{padding:12px;border-radius:13px}
+ .history-redesign>header{flex-wrap:wrap;margin-bottom:14px;gap:10px}
+ .history-redesign>header h3{font-size:13px}
+ .history-redesign .history-periods{margin-left:auto}
+ .history-periods button{padding:7px 8px}
+ .history-redesign>.history-numbers{grid-template-columns:1fr 1fr;gap:10px}
+ .history-numbers>div:first-child{grid-column:1/-1}
+ .history-numbers strong{font-size:30px}
+ .history-numbers b{font-size:14px}
+ .history-redesign>.history-plot{height:200px}
+}
