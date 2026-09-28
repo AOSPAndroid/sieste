@@ -13,7 +13,7 @@ def settings():
     return cfg,model.get('default','grok-4.6'),model.get('provider','xai-oauth')
 
 def request(cfg,body):
-    req=urllib.request.Request(cfg['base']+'/api/athena/worker',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','Authorization':'Bearer '+cfg['token']})
+    req=urllib.request.Request(cfg['base']+'/api/athena/worker',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','Authorization':'Bearer '+cfg['token'],'Origin':cfg['base'],'User-Agent':'sieste Athena bridge'})
     with urllib.request.urlopen(req,timeout=25) as r:return json.load(r)
 
 def answer(job,model,provider):
