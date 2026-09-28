@@ -66,7 +66,7 @@ export function progressRecords(data:AthleteData,now:Date,family:'running'|'cycl
  const best=(list:Workout[],seconds:number)=>list.flatMap(a=>((a as any).evidence?.best?.[metric]??[]).filter((p:any)=>p?.seconds===seconds&&finite(p.value)&&p.value>0).map((p:any)=>({...p,activity:a}))).sort((a,b)=>b.value-a.value)[0]??null;
  const recent=acts.filter(a=>new Date(a.date)>=recentStart),prior=acts.filter(a=>new Date(a.date)<recentStart);
  const historyCovered=!!data.historyStart&&localDate(new Date(data.historyStart))<=localDate(priorStart)&&data.historyComplete!==false&&(!data.syncedAt||localDate(new Date(data.syncedAt))>=localDate(shift(end,-1)));
- return {metric,recent,prior,historyCovered,from:localDate(priorStart),to:localDate(shift(end,-1)),analyzed:acts.filter(a=>(a as any).evidence?.version===1).length,eligible:acts.length,rows:[60,300,1200,3600].map(seconds=>({seconds,recent:best(recent,seconds),prior:best(prior,seconds)}))};
+ return {metric,recent,prior,historyCovered,from:localDate(priorStart),to:localDate(shift(end,-1)),analyzed:acts.filter(a=>(a as any).evidence?.version===1).length,eligible:acts.length,rows:[5,15,30,60,300,1200,3600].map(seconds=>({seconds,recent:best(recent,seconds),prior:best(prior,seconds)}))};
 }
 
 export function intervalConsistency(laps:any[],selected:number[],family:string){
@@ -79,4 +79,17 @@ export function intervalConsistency(laps:any[],selected:number[],family:string){
  const changes=[metric,'heartrate','cadence',...(family==='running'?['stepLength']:[])].map(key=>({key,first:average(first,key),last:average(last,key)}));
  const baseline=average(first,metric),firstFade=valid&&comparable&&baseline?rows.slice(n).find(r=>metric==='pace'?r.pace>baseline*1.03:r.power<baseline*.97):null;
  return {rows,valid:valid&&comparable,n,changes,firstFade:firstFade?.index??null,reason:rows.length<3?'Select at least 3 work laps.':!valid?`Selected laps need ${metric==='pace'?'pace':'power'} readings.`:!comparable?'Choose repeats with similar duration or distance (within 20%).':null};
+}
+
+// Calendar-month bests use saved sample evidence, never summary averages.
+export function monthlyBests(data:AthleteData,now:Date,family:'running'|'cycling',seconds:number){
+ const metric=family==='running'?'speed':'power';
+ const activities=uniqueWorkouts(data.activities).filter(a=>sportFamily(a)===family&&new Date(a.date)<=now);
+ return Array.from({length:6},(_,i)=>{
+  const start=new Date(now.getFullYear(),now.getMonth()-5+i,1),end=new Date(start.getFullYear(),start.getMonth()+1,1);
+  const sessions=activities.filter(a=>new Date(a.date)>=start&&new Date(a.date)<end);
+  const candidates=sessions.flatMap(a=>(a.evidence?.best?.[metric]??[]).filter((p:any)=>p.seconds===seconds&&finite(p.value)&&p.value>0).map((p:any)=>({...p,activity:a})));
+  const best=candidates.sort((a,b)=>b.value-a.value)[0]??null;
+  return {month:localDate(start).slice(0,7),label:start.toLocaleDateString('en-GB',{month:'short',year:'2-digit'}),best,value:best?.value??null,processed:sessions.filter(a=>a.evidence?.version===1).length,total:sessions.length,partial:i===5};
+ });
 }

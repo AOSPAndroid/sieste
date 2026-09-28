@@ -11,7 +11,7 @@ assert.equal(sampledBest([100,0,200],20,40,60).value,100);
 assert.equal(sampledBest(Array(60).fill(500),1,60,59),null);
 assert.equal(sampledBest(Array(120).fill(1),0,60,120),null);
 const evidence=workoutEvidence({summary:{durationTotal:1200},seriesSampled:{sampleSize:1,data:{speed:Array(1200).fill(3),power:Array(1200).fill(250)}}});
-assert.equal(evidence.best.power.find(p=>p.seconds===1200).value,250);assert.equal(evidence.best.speed.length,3);
+assert.equal(evidence.best.power.find(p=>p.seconds===1200).value,250);assert.equal(evidence.best.speed.length,6);
 const now=new Date('2026-09-19T12:00:00Z');const empty={activities:[],sleep:{},hrv:{},historyStart:'2025-01-01',historyComplete:true,syncedAt:now.toISOString(),extra:{}};
 const workout=(id,date,sportType='running',duration=3600)=>({id,date:date+'T10:00:00Z',sportType,summary:{duration,distance:10000},evidence});
 let d={...empty,activities:[workout('a','2026-09-19')],sleep:{20260918:[5*3600],20260919:[5.5*3600]}};
@@ -24,7 +24,7 @@ assert.equal(planComparison({...d,syncedAt:'2026-09-15'},now).rows[0].actual,nul
 assert.equal(planComparison(empty,now).available,false);
 const missing=structuredClone(d);delete missing.activities[0].summary.duration;assert.equal(planComparison(missing,now).rows[0].actual,null);
 const a=workout('r','2026-09-18'),b=workout('p','2026-08-05');d={...empty,activities:[a,a,b,workout('future','2026-09-20')]};
-let records=progressRecords(d,now,'running');assert.equal(records.eligible,2);assert.equal(records.rows[2].recent.activity.id,'r');assert.equal(records.rows[2].prior.activity.id,'p');assert.equal(records.rows[3].recent,null);
+let records=progressRecords(d,now,'running');assert.equal(records.eligible,2);assert.equal(records.rows.find(r=>r.seconds===1200).recent.activity.id,'r');assert.equal(records.rows.find(r=>r.seconds===1200).prior.activity.id,'p');assert.equal(records.rows.find(r=>r.seconds===3600).recent,null);
 const laps=[300,301,311,312,318,320].map(pace=>({summary:{distance:1000,duration:pace,heartrate:140,cadence:180,stepLength:110}}));
 let r=intervalConsistency(laps,[0,1,2,3,4,5],'running');assert.equal(r.valid,true);assert.equal(r.firstFade,2);assert.equal(r.n,2);assert.equal(r.changes[0].first,300.5);assert.equal(r.changes[0].last,319);
 assert.equal(intervalConsistency(laps,[],'running').valid,false);
