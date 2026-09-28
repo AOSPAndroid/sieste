@@ -738,3 +738,24 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
  .activity-peek-metrics span{font-size:9px;gap:2px}.activity-peek-metrics svg{width:10px;height:10px}.activity-peek-metrics b{font-size:13px}
  .sieste-v3 .activity-card-stack>.workout-modal{border-radius:20px!important;padding-bottom:16px!important}
 }
+/* Expanded sheets use one clipped shell, with a flush header and inner scroller. */
+.metric-expansion .expanded-widget{display:flex;flex-direction:column;padding:0;border:1px solid #e7e7ef;border-radius:22px;overflow:hidden;max-height:calc(100dvh - 32px);background:var(--s-canvas,#f6f6f9);isolation:isolate}
+.metric-expansion .expanded-widget>header{position:relative;top:auto;flex:0 0 auto;margin:0;padding:14px 16px;min-height:62px;background:#fff;border:0;border-bottom:1px solid #ededf3;border-radius:21px 21px 0 0;gap:10px}
+.metric-expansion .expanded-widget>header h2{font-size:18px;line-height:1.25;letter-spacing:-.4px;margin:0;font-weight:650}
+.metric-expansion .expanded-widget>header>button{width:36px;height:36px;border-radius:50%;background:#f7f7fa;border:1px solid #e9e9f0;color:#686875}
+.expanded-widget-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px 16px 18px;scrollbar-width:thin}
+.expanded-widget-body>.widget-comparisons{margin-top:0}
+.expanded-widget-body>.widget-comparisons>h3{margin-top:0;font-size:13px;font-weight:650}
+.expanded-widget-body .widget-comparisons>div>article{border-radius:12px}
+.expanded-widget-body .table-wrap{border-radius:12px;border:1px solid #e9e9f0}
+.expanded-widget-body :is(.lab-panel,.compact-tool,.sleep-clock-card){border-radius:14px;border-color:#e9e9f0;box-shadow:none}
+.sieste-v3 .modal:not(.workout-modal){border-radius:20px}
+.sieste-v3 :is(.weather-now,.weather-outfit,.weather-hour-table,.sleep-clock-card,.sleep-insights>article,.coros-fitness,.weekly-zones){border-radius:var(--s-radius,16px);border-color:var(--s-line,#e9e9f0)}
+.sieste-v3 .workout-modal :is(.compact-laps,.activity-extra-sensors,.lab-panel,.compact-tool){border-radius:12px;border-color:var(--s-line,#e9e9f0)}
+@media(max-width:650px){
+ .metric-expansion{padding:8px;align-items:flex-end}
+ .metric-expansion .expanded-widget{width:100%;max-height:calc(100dvh - max(16px,env(safe-area-inset-top)));border-radius:20px}
+ .metric-expansion .expanded-widget>header{padding:12px;min-height:58px;border-radius:19px 19px 0 0}
+ .metric-expansion .expanded-widget>header h2{font-size:17px}
+ .expanded-widget-body{padding:12px 12px max(16px,env(safe-area-inset-bottom))}
+}
