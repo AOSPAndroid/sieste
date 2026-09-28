@@ -11,3 +11,5 @@ The bridge reads Athena's model/provider on every job and uses her existing Herm
 To verify authentication/model after an upgrade: run the worker with `--self-test`. Do not enable local file/terminal tools for requests originating from the site. Recheck Hermes' empty toolset handling when upgrading.
 
 The body-level floating launcher remains available over expanded widgets, activity details, account settings and loading/demo views. Authentication and connected data are still required to send. Screen awareness uses explicit page/subtab/widget labels only (180-character maximum); labels update locally and are attached at send time. No screenshot, form fields or DOM text are sent, and navigation never invokes the model.
+
+Compact training context also includes five completed seven-day summaries, today separately, and recovery means/counts for the last 3/7 and previous 28 nights. Volume-change percentages require covered history and complete durations. These are training-time summaries, not physiological load scores. Replies use takeaway/evidence/next-step sections; old chats remain readable.
