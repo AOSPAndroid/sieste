@@ -703,3 +703,5 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
  .athena-launcher,.athena-compose button,.sieste-v3 summary::before{transition:none!important;animation:none!important}
  .athena-launcher:active,.athena-launcher:hover,.athena-compose button:active{transform:none}
 }
+/* Activity selection hides the Home strip immediately, including lazy loading. */
+.sieste-v3[data-activity-open=true] .health-scroll-strip{display:none}
