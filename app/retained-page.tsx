@@ -9,5 +9,5 @@ export default function RetainedPage({active,children,updateHidden=false}:{activ
  // not recompute every chart and analysis on all previously visited pages.
  if(active||updateHidden)retained.current=children;
  useEffect(()=>{if(active)setVisited(true)},[active]);
- return <div hidden={!active} style={active?undefined:{display:'none'}}>{(active||visited)&&retained.current}</div>;
+ return <div className="retained-page" hidden={!active} style={active?undefined:{display:'none'}}>{(active||visited)&&retained.current}</div>;
 }

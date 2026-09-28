@@ -667,3 +667,39 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 @media(min-width:1050px){.health-scroll-strip{left:calc(50% + 44px)}}
 @media(max-width:600px){.health-scroll-strip{width:calc(100% - 16px);padding:3px;border-radius:12px}.health-scroll-strip button{flex-direction:column;gap:3px;min-height:44px}.health-scroll-strip strong{font-size:12px}.health-scroll-strip svg{width:13px;height:13px}}
 @media(prefers-reduced-motion:reduce){.health-scroll-strip{transition:none;transform:translate(-50%,0)}}
+/* Motion language: short entrances, tactile controls, no chart redraw animation. */
+@keyframes sieste-page-fade{from{opacity:.45}to{opacity:1}}
+@keyframes sieste-card-arrive{from{opacity:.5;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes sieste-dialog-arrive{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes sieste-icon-settle{0%{transform:scale(.88)}65%{transform:scale(1.08)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:no-preference){
+ /* Fade page ancestors only: transforms would trap the fixed health strip. */
+ .sieste-v3 main>.retained-page:not([hidden]),.sieste-v3 main>.retained-page:not([hidden])>section{animation:sieste-page-fade .2s ease-out}
+ .sieste-v3 :is(.home-board,.training-journal,.weather-recon,.workspace-tool-panel:not([hidden])){animation:sieste-page-fade .2s ease-out}
+ .sieste-v3 :is(.health-headline,.sleep-vital-cards>button,.weekly-volume-card){animation:sieste-card-arrive .28s cubic-bezier(.2,.75,.25,1)}
+ .sieste-v3 :is(.health-headline,.sleep-vital-cards>button,.weekly-volume-card):nth-child(2){animation-duration:.32s}
+ .sieste-v3 :is(.health-headline,.sleep-vital-cards>button,.weekly-volume-card):nth-child(3){animation-duration:.36s}
+ .sieste-v3 :is(.v2-explore,.sleep-zones,.sleep-night-log,.sleep-timing-lines,.home-method)[open]>:not(summary){animation:sieste-page-fade .2s ease-out}
+ .sieste-v3 :is(.v2-explore,.sleep-zones,.sleep-night-log,.home-method)>summary::before{transition:background .18s,color .18s,rotate .2s}
+ .sieste-v3 :is(.v2-explore,.sleep-zones,.sleep-night-log,.home-method)[open]>summary::before{rotate:180deg}
+ .overlay{animation:sieste-overlay .18s ease-out}
+ .overlay>.modal,.overlay>.expanded-widget,.athena-chat[open]{animation:sieste-dialog-arrive .24s cubic-bezier(.2,.75,.25,1)}
+ .athena-chat[open]::backdrop{animation:sieste-overlay .18s ease-out}
+ .athena-question,.athena-answer{animation:sieste-page-fade .2s ease-out}
+ .sieste-v3 :is(.health-headline,.journal-activity,.calendar-session-preview,.weekly-volume-card,.sleep-vital-cards>button,.unified-segments button),.athena-launcher,.athena-compose button{transition:transform .18s cubic-bezier(.2,.75,.25,1),background-color .18s,border-color .18s,box-shadow .18s}
+ .sieste-v3 :is(.health-headline,.journal-activity,.calendar-session-preview,.weekly-volume-card,.sleep-vital-cards>button,.unified-segments button):active:not(:disabled),.athena-launcher:active,.athena-compose button:active:not(:disabled){transform:scale(.98)}
+ .sieste-v3 .mini-dock button[aria-current=page] svg{animation:sieste-icon-settle .28s ease-out}
+ .sieste-v3 :is(.detail-tabs,.unified-modes,.weather-days,.history-periods) button{transition:background-color .18s,color .18s,box-shadow .18s}
+ .home-share-menu[open]>div{animation:sieste-card-arrive .16s ease-out}
+ @media(hover:hover) and (pointer:fine){
+  .sieste-v3 :is(.journal-activity,.calendar-session-preview,.weekly-volume-card):hover{transform:translateY(-2px);box-shadow:0 5px 14px #2424330a}
+  .athena-launcher:hover{transform:translateY(-2px);box-shadow:0 6px 20px #5145cd20}
+  .sieste-v3 .health-headline:hover svg,.sieste-v3 .sleep-vital-cards>button:hover svg{transform:translateY(-1px)}
+  .sieste-v3 :is(.health-headline,.sleep-vital-cards>button) svg{transition:transform .18s ease}
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .sieste-v3 .retained-page,.athena-chat[open],.athena-chat[open]::backdrop,.athena-question,.athena-answer,.overlay,.overlay>.modal,.overlay>.expanded-widget{animation:none!important}
+ .athena-launcher,.athena-compose button,.sieste-v3 summary::before{transition:none!important;animation:none!important}
+ .athena-launcher:active,.athena-launcher:hover,.athena-compose button:active{transform:none}
+}
