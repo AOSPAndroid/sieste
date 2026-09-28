@@ -108,3 +108,11 @@ assert.equal(trainingBrief({...complete,historyComplete:false},'2026-09-28','Eur
 assert.equal(trainingBrief({...complete,activities:[...complete.activities,{id:'missing',date:'2026-09-26',sportType:'running'}]},'2026-09-28','Europe/Paris').recentWeekVsPriorFourWeeksPercent,null);
 const recovery=recoveryBrief([{date:'a',sleepHours:8,hrvMs:null,restingHrBpm:50},{date:'b',sleepHours:6,hrvMs:90,restingHrBpm:52}]);assert.equal(recovery.lastThreeNights.sleepHours.mean,7);assert.equal(recovery.lastThreeNights.hrvMs.count,1);assert.equal(recovery.prior28Nights.sleepHours.mean,null);
 console.log('Athena briefs: prior history retained, today excluded, incomplete baseline withheld, missing readings counted');
+
+const run={id:'run',date:'2026-09-27T10:00:00Z',sportType:'running',analyzed:true,summary:{duration:3600,distance:11000,cadence:186,stepLength:103,groundContactTime:205,verticalOscillation:8.2}};
+const mechanicsData={...data,activities:[run,data.activities[0]]};
+const mechanics=athenaContext(mechanicsData,'2026-09-28','run','Europe/Paris','How are my run mechanics?');
+assert.equal(mechanics.mechanics.metrics.recorded.groundContactTime,205);assert.equal(mechanics.mechanics.metrics.recorded.verticalOscillation,8.2);assert.equal(mechanics.mechanics.units.stepLength,'cm');assert.equal(mechanics.questionIntent,'mechanics');assert.equal(mechanics.fitness,null);assert.equal(mechanics.trainingSummary,null);assert.equal(mechanics.daily.length,0);assert.ok(mechanics.activityComparison);
+const mismatch=athenaContext(mechanicsData,'2026-09-28','a','Europe/Paris','How are my run mechanics?');assert.equal(mismatch.activitySelection.needsClarification,true);assert.equal(mismatch.selectedWorkout,null);assert.equal(mismatch.mechanics,null);assert.equal(mismatch.workouts.length,0);
+const latest=athenaContext(mechanicsData,'2026-09-28','a','Europe/Paris','How are my latest run mechanics?');assert.equal(latest.activitySelection.target.sport,'running');assert.equal(latest.activitySelection.needsClarification,false);
+console.log('Athena mechanics: requested fields/units included, unrelated recovery omitted, sport conflicts clarified');

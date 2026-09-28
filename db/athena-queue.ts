@@ -1,6 +1,6 @@
-export type Job={id:string;owner:string;thread:string;message:string;created:number;status:'queued'|'working'|'done'|'failed';claim?:string;answer?:string;context?:unknown;model?:string};
+export type Job={id:string;owner:string;thread:string;message:string;created:number;status:'queued'|'working'|'done'|'failed';claim?:string;answer?:string;context?:unknown;model?:string;scope?:string};
 export type Queue={jobs:Job[];heartbeat:number;model?:string};
 export const lifetime=180000;
 export function prune(q:Queue,now:number){q.jobs=q.jobs.filter(j=>j.created>now-7*86400000);for(const j of q.jobs){if(['queued','working'].includes(j.status)&&now-j.created>lifetime){j.status='failed';j.answer='Athena did not respond in time. Please try again.';delete j.context;delete j.claim}}}
-export function visible(q:Queue,owner:string){return q.jobs.filter(j=>j.owner===owner).slice(-60).map(({id,thread,message,answer,status,created,model})=>({id,thread,message,answer,status,created,model}))}
+export function visible(q:Queue,owner:string){return q.jobs.filter(j=>j.owner===owner).slice(-60).map(({id,thread,message,answer,status,created,model,scope})=>({id,thread,message,answer,status,created,model,scope}))}
 export async function updateQueue(bucket:R2Bucket,fn:(q:Queue)=>{body:any;status?:number}){for(let i=0;i<5;i++){const obj=await bucket.get('athena/queue-v1'),q:Queue=obj?await obj.json():{jobs:[],heartbeat:0};prune(q,Date.now());const result=fn(q);const saved=await bucket.put('athena/queue-v1',JSON.stringify(q),{onlyIf:obj?{etagMatches:obj.etag}:{etagDoesNotMatch:'*'}});if(saved)return result}return {status:409,body:{error:'Athena is busy. Try again.'}}}

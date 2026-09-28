@@ -15,3 +15,5 @@
 @media(max-width:600px){.athena-chat{height:min(740px,var(--athena-height,calc(100dvh - 16px)));max-height:var(--athena-height,calc(100dvh - 16px));bottom:var(--athena-bottom,max(8px,env(safe-area-inset-bottom)));width:calc(100vw - 16px)}.athena-chat header small{max-width:calc(100vw - 180px)}.athena-messages{padding:14px}.athena-empty p{font-size:14px}}
 
 .athena-compose>button{display:grid;place-items:center;padding:0;line-height:0;box-sizing:border-box}.athena-compose>button>svg{display:block;margin:0;justify-self:center;align-self:center}
+
+.athena-chat .athena-turn-scope{font-size:11px;color:#9096a3;margin:-10px 0 14px;text-align:right}
