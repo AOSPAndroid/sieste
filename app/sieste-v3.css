@@ -718,3 +718,23 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
  /* The temporary Suspense shell must not perform a second sheet entrance. */
  .sieste-v3 .overlay>.workout-loading{animation:none}
 }
+/* Activity browsing: daily context above an independently scrolling card. */
+.sieste-v3 .overlay.activity-card-stack{z-index:60;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) 12px max(8px,env(safe-area-inset-bottom));background:#f6f6f9;backdrop-filter:none;overflow:hidden;animation:none}
+.activity-daily-peek{width:min(1000px,100%);flex:0 0 auto;color:#272733}
+.activity-daily-peek>header{display:flex;align-items:center;justify-content:space-between;height:36px;padding:0 6px}
+.activity-daily-peek>header>strong{font-size:26px;font-weight:800;letter-spacing:-1.7px}
+.activity-daily-peek>header>span{font-size:11px;color:#777786}
+.activity-peek-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));background:white;border:1px solid #e7e7ef;border-radius:13px;padding:8px 3px}
+.activity-peek-metrics>div{min-width:0;text-align:center;border-right:1px solid #efeff5}
+.activity-peek-metrics>div:last-child{border:0}
+.activity-peek-metrics span{display:flex;align-items:center;justify-content:center;gap:3px;font-size:10px;color:#777786;white-space:nowrap}
+.activity-peek-metrics b{display:block;font-size:15px;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+.sieste-v3 .activity-card-stack>.workout-modal{flex:1 1 0;min-height:0;height:auto;max-height:none;width:min(1000px,100%);margin:0;border:1px solid #e3e3ed;border-radius:22px!important;background:#fff;box-shadow:0 8px 32px #27273312;overflow-y:auto;overscroll-behavior:contain}
+.sieste-v3 .activity-card-stack .activity-sheet-heading{background:white;padding:8px 4px 12px!important}
+@keyframes sieste-card-stack-enter{from{transform:translateY(130px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:no-preference){.sieste-v3 .activity-card-stack>.workout-modal:not(.workout-loading){animation:sieste-card-stack-enter .4s cubic-bezier(.2,.7,.3,1)}}
+@media(max-width:650px){
+ .sieste-v3 .overlay.activity-card-stack{padding-left:8px;padding-right:8px;gap:10px}
+ .activity-peek-metrics span{font-size:9px;gap:2px}.activity-peek-metrics svg{width:10px;height:10px}.activity-peek-metrics b{font-size:13px}
+ .sieste-v3 .activity-card-stack>.workout-modal{border-radius:20px!important;padding-bottom:16px!important}
+}
