@@ -1,6 +1,6 @@
 # Athena bridge
 
-The floating chat reads the authenticated account's saved, merged snapshot. It sends up to 28 days of sleep/HRV/RHR and 80 workout summaries, with the selected activity. It never triggers provider syncs or sends GPS, tokens or arbitrary raw provider objects.
+The floating chat reads the authenticated account's saved, merged snapshot. Normal context contains seven days of sleep/HRV/RHR and up to six workout summaries (only the selected workout when inside an activity). Month/trend questions can include 28 days. Activity comparisons are attached only for a comparison/efficiency/cadence question or the explicit checkbox: up to five prior same-sport, same-provider, similar-duration sessions within 90 days. No extra LLM call classifies the question. The last two exchanges are truncated to a bounded context; answers are instructed to stay brief. Polling and opening chat do not call the model. One explicit send creates one bounded model invocation. It never triggers provider syncs or sends GPS, tokens or arbitrary raw provider objects.
 
 The private R2 queue uses conditional writes, account-scoped history, idempotency keys, claim leases, a three-minute expiry and rate limits. Conversations expire after seven days; clearing history also cancels pending jobs. Full snapshots are discarded after completion. The dedicated bridge bearer secret is separate from provider credentials.
 

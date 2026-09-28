@@ -6,7 +6,7 @@ function moduleUrl(name){if(cache.has(name))return cache.get(name);let s=ts.tran
 const {athenaContext}=await import(moduleUrl('app/athena-context'));
 const {prune,visible,updateQueue}=await import(moduleUrl('db/athena-queue'));
 const data={activities:[{id:'a',date:'2026-09-27T23:30:00Z',sportType:'cycling',title:'SECRET ROUTE',summary:{duration:3600,distance:25000,power:150,positionLat:[48],token:'SECRET'}},{id:'old',date:'2020-01-01',sportType:'running'}],sleep:{20260928:[28800]},hrv:{20260928:[99]},extra:{bodyvalues:{bodyvalues:[{timestamp:'2026-09-27T23:30:00Z',hrRestDynamic:50}]},coros:{fitness:{ftp:247,observedAt:'2026-09-28'},token:'SECRET'}},syncedAt:'2026-09-28T10:00:00Z'};
-const c=athenaContext(data,'2026-09-28','a','Europe/Paris');assert.equal(c.daily.length,28);assert.equal(c.daily.at(-1).sleepHours,8);assert.equal(c.daily.at(-1).restingHrBpm,50);assert.equal(c.daily[0].hrvMs,null);assert.equal(c.workouts.length,1);assert.equal(c.fitness.ftpWatts,247);assert.ok(!JSON.stringify(c).includes('SECRET'));assert.ok(!JSON.stringify(c).includes('positionLat'));assert.equal(c.selectedWorkout.summary.duration,3600);
+const c=athenaContext(data,'2026-09-28','a','Europe/Paris');assert.equal(c.daily.length,7);assert.equal(c.daily.at(-1).sleepHours,8);assert.equal(c.daily.at(-1).restingHrBpm,50);assert.equal(c.daily[0].hrvMs,null);assert.equal(c.workouts.length,0);assert.equal(c.fitness.ftpWatts,247);assert.ok(!JSON.stringify(c).includes('SECRET'));assert.ok(!JSON.stringify(c).includes('positionLat'));assert.equal(c.selectedWorkout.summary.duration,3600);
 const now=Date.now(),q={heartbeat:now,jobs:[{id:'old',created:now-8*86400000,owner:'a',status:'done'},{id:'pending',created:now-190000,owner:'a',status:'working',context:{private:1},claim:'secret'},{id:'other',owner:'b',created:now,status:'done',answer:'private'}]};prune(q,now);assert.equal(q.jobs.length,2);assert.equal(q.jobs[0].status,'failed');assert.equal(q.jobs[0].context,undefined);assert.equal(q.jobs[0].claim,undefined);assert.equal(visible(q,'a').length,1);assert.ok(!JSON.stringify(visible(q,'a')).includes('private'));
 let value=null,revision=0,conflict=true;
 const bucket={async get(){return value?{etag:String(revision),async json(){return structuredClone(value)}}:null},async put(key,body,options){if(conflict){conflict=false;return null}assert.ok(options.onlyIf);value=JSON.parse(body);revision++;return {etag:String(revision)}}};
@@ -37,3 +37,15 @@ assert.equal((await worker({op:'finish',id:job.id,claim:job.claim,answer:'Test a
 globalThis.athenaTest.user={userId:'b'};assert.equal((await (await userApi.GET()).json()).messages.length,0);
 globalThis.athenaTest.user={userId:'a'};assert.equal((await (await userApi.GET()).json()).messages[0].answer,'Test answer');
 console.log('Athena API: auth, origin, idempotency, worker claims and account isolation passed');
+
+assert.equal(c.activityComparison,null);
+const past=(id,date,sportType='cycling',duration=3600)=>({id,date,sportType,summary:{duration,distance:25000,heartrate:125,power:160,cadence:88}});
+const many={...data,activities:[data.activities[0],...Array.from({length:12},(_,i)=>past('prior'+i,'2026-09-'+String(26-i).padStart(2,'0')+'T10:00:00Z')),past('wrong-sport','2026-09-26','running'),past('too-short','2026-09-26','cycling',300),past('future','2026-09-29')]};
+const comparison=athenaContext(many,'2026-09-28','a','Europe/Paris','Compare cadence and efficiency');
+assert.equal(comparison.activityComparison.sessions.length,5);assert.equal(comparison.activityComparison.eligibleCount,12);assert.equal(comparison.activityComparison.sessions[0].recorded.cadence,88);assert.equal(comparison.activityComparison.sessions[0].derived.wattsPerBpm,1.28);
+assert.equal(athenaContext(many,'2026-09-28','a','Europe/Paris','hello').activityComparison,null);
+assert.ok(athenaContext(many,'2026-09-28','a','Europe/Paris','tell me more',true).activityComparison);
+assert.equal(athenaContext(many,'2026-09-28',undefined,'Europe/Paris','sleep over the last month').daily.length,28);
+assert.equal(athenaContext(many,'2026-09-28').workouts.length,6);
+assert.ok(JSON.stringify(comparison).length<9000);
+console.log('Athena cost controls: opt-in comparisons, matching exclusions, metric units and bounded context passed');
