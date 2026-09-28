@@ -6,3 +6,5 @@
 .athena-compare{display:flex;align-items:center;gap:7px;font-size:12px;line-height:1.4;margin-bottom:9px;color:#68738a}.athena-compare input{accent-color:#5549ce;width:16px;height:16px}
 
 @media(max-width:360px){.sieste-v3 .mini-dock{width:calc(100vw - 128px);gap:1px;padding:4px}.sieste-v3 .mini-dock>button{flex:1;min-width:0;padding:4px 1px}}
+
+.athena-screen-context{padding:8px 16px;font-size:12px;color:#655da3;background:#f8f8fe;border-bottom:1px solid #ededf5;overflow-wrap:anywhere}.athena-connect-note{font-size:14px;line-height:1.5;margin:12px 16px;color:#68738a}

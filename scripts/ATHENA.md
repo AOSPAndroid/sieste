@@ -9,3 +9,5 @@ The private R2 queue uses conditional writes, account-scoped history, idempotenc
 The bridge reads Athena's model/provider on every job and uses her existing Hermes authentication. Each request is an isolated oneshot with safe mode, rules/memory/plugins disabled and an explicit empty toolset. It does not alter Athena's other sessions. It can analyse and suggest; it cannot silently edit training or execute local commands. Chats and snapshots are sent to the configured model provider.
 
 To verify authentication/model after an upgrade: run the worker with `--self-test`. Do not enable local file/terminal tools for requests originating from the site. Recheck Hermes' empty toolset handling when upgrading.
+
+The body-level floating launcher remains available over expanded widgets, activity details, account settings and loading/demo views. Authentication and connected data are still required to send. Screen awareness uses explicit page/subtab/widget labels only (180-character maximum); labels update locally and are attached at send time. No screenshot, form fields or DOM text are sent, and navigation never invokes the model.
