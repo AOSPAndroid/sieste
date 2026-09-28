@@ -759,3 +759,8 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
  .metric-expansion .expanded-widget>header h2{font-size:17px}
  .expanded-widget-body{padding:12px 12px max(16px,env(safe-area-inset-bottom))}
 }
+/* The activity frame lives at viewport level, independent of Home scroll/animations. */
+.activity-layer .activity-card-stack{isolation:isolate}
+.activity-layer .activity-daily-peek{position:relative;z-index:1;visibility:visible;opacity:1}
+@keyframes sieste-daily-compact{from{opacity:.3;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:no-preference){.activity-layer .activity-daily-peek{animation:sieste-daily-compact .24s ease-out}}
