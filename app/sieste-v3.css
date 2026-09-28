@@ -705,14 +705,16 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 }
 /* Activity selection hides the Home strip immediately, including lazy loading. */
 .sieste-v3[data-activity-open=true] .health-scroll-strip{display:none}
-/* Activities enter as a visible sheet, rather than a barely perceptible fade. */
-@keyframes sieste-activity-rise{from{transform:translate3d(0,100dvh,0);opacity:1}to{transform:translate3d(0,0,0);opacity:1}}
-@keyframes sieste-activity-desktop{from{transform:translate3d(0,90px,0);opacity:0}to{transform:translate3d(0,0,0);opacity:1}}
+/* Stable sheet geometry prevents loading content from moving its landing point. */
+@keyframes sieste-activity-rise{from{transform:translateY(48px);opacity:0}to{transform:translateY(0);opacity:1}}
+.sieste-v3 .overlay:has(>.workout-modal){overflow:hidden}
+@media(max-width:650px){
+ .sieste-v3 .overlay:has(>.workout-modal){align-items:flex-end;padding:0}
+ .sieste-v3 .overlay>.workout-modal{width:100%;height:calc(100dvh - max(12px,env(safe-area-inset-top)));max-height:calc(100dvh - max(12px,env(safe-area-inset-top)));border-radius:20px 20px 0 0;padding-bottom:max(12px,env(safe-area-inset-bottom))!important;overflow-y:auto;overscroll-behavior:contain}
+}
 @media(prefers-reduced-motion:no-preference){
- .sieste-v3 .overlay:has(>.workout-modal){animation:sieste-overlay .3s ease-out;overflow:hidden}
- .sieste-v3 .overlay>.workout-modal{animation:sieste-activity-desktop .42s cubic-bezier(.16,1,.3,1)}
- @media(max-width:650px){
-  .sieste-v3 .overlay:has(>.workout-modal){align-items:flex-end;padding:0}
-  .sieste-v3 .overlay>.workout-modal{animation:sieste-activity-rise .48s cubic-bezier(.16,1,.3,1);width:100%;max-height:calc(100dvh - max(12px,env(safe-area-inset-top)));border-radius:20px 20px 0 0;padding-bottom:max(12px,env(safe-area-inset-bottom))!important}
- }
+ .sieste-v3 .overlay:has(>.workout-modal){animation:sieste-overlay .18s ease-out}
+ .sieste-v3 .overlay>.workout-modal{animation:sieste-activity-rise .3s cubic-bezier(.22,.75,.3,1)}
+ /* The temporary Suspense shell must not perform a second sheet entrance. */
+ .sieste-v3 .overlay>.workout-loading{animation:none}
 }
