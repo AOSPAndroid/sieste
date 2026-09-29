@@ -14,16 +14,36 @@ export const finishSwatch=(colors:readonly string[])=>'linear-gradient(165deg,'+
 export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;recoveryOnly?:boolean;dayCards?:{title:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
+// Small vector pictograms remain crisp in PNG exports and need no emoji fonts.
+const sportGlyphs:Record<string,string>={
+ running:'<circle cx="16" cy="4" r="2"/><path d="m5 9 4-2 4 3 4 2 3-2M13 10l-3 5 5 3-1 4M10 15l-4 5H2"/>',
+ cycling:'<circle cx="5" cy="17" r="4"/><circle cx="19" cy="17" r="4"/><circle cx="15" cy="3" r="2"/><path d="m12 7-4 5 6 2v7M12 7l4 4h4M5 17l3-5"/>',
+ strength_training:'<path d="m7 7 10 10M3 8l5-5M16 21l5-5M2 5l3-3M19 22l3-3M5 10l5-5M14 19l5-5"/>',
+ swimming:'<circle cx="17" cy="7" r="2"/><path d="m4 11 5-5 5 5-3 3M2 16q2-2 4 0t4 0t4 0t4 0t4 0M2 21q2-2 4 0t4 0t4 0t4 0t4 0"/>',
+ walking:'<circle cx="13" cy="3" r="2"/><path d="m7 11 3-4 4 1 2 5 4 1M12 8l-2 7-4 7M10 15l5 2 1 5"/>',
+ hiking:'<circle cx="13" cy="3" r="2"/><path d="m7 11 3-4 4 1 2 5h4M12 8l-2 7-4 7M10 15l5 2 1 5M20 10v12M6 7l-2 6"/>',
+ misc:'<path d="M3 12h4l3-8 4 16 3-8h4"/>'
+};
 export function shareCardSvg(o:ShareDesign){
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
  const compact=(s:ShareStat)=>s.value+(s.unit==='min:sec'||s.unit==='h:mm:ss'?'':s.unit==='/km'?'/km':' '+s.unit);
  function text(value:string,x:number,y:number,size=24,weight=400,color=ink,width=936,serif=false,anchor='start'){
+ const normalized=value.toLocaleLowerCase(),session=o.dayCards?.find(c=>c.sportFamily&&(normalized===c.title.toLocaleLowerCase()||normalized.replace(/^\d+\s*(?:\/\s*)?/,'')===c.title.toLocaleLowerCase()));
+ const single=!o.dayCards&&!o.recoveryOnly&&(normalized===o.sport.toLocaleLowerCase()||normalized===o.title.toLocaleLowerCase()||normalized.startsWith(o.sport.toLocaleLowerCase()+' /')||normalized.startsWith(o.sport.toLocaleLowerCase()+' ·'));
+ const family=session?.sportFamily??(single?o.sportFamily:undefined);
+ let pictogram='';
+ if(family){
+  const iconSize=Math.min(44,Math.max(22,size*1.15)),gap=10,reserved=iconSize+gap,textWidth=Math.min(Math.max(0,width-reserved),[...value].length*size*(serif?.48:.58)),left=anchor==='middle'?x-(textWidth+reserved)/2:anchor==='end'?x-textWidth-reserved:x;
+  const paint=(o.finish&&o.finish!=='solid'||o.template.startsWith('chrome'))&&!['ticket','metro','sweatreceipt','glass','daystack','bubble'].includes(o.template)?'url(#metalSoft)':color;
+  pictogram=`<g data-sport-icon="${xml(family)}" transform="translate(${left} ${y-size*.8}) scale(${iconSize/24})" fill="none" stroke="${paint}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sportGlyphs[family]??sportGlyphs.misc}</g>`;
+  x=left+reserved;width=Math.max(1,width-reserved);anchor='start';
+ }
  const estimate=[...value].length*size*(serif?.48:.58);
  const isStat=o.stats.some(stat=>[compact(stat),compact(stat).toUpperCase(),stat.value].includes(value)||value.toUpperCase().includes(compact(stat).toUpperCase()));
  const isActivity=[o.sport,o.title].some(label=>label.trim()&&value.toLocaleLowerCase().includes(label.toLocaleLowerCase()));
- return `<text${isStat?' data-share-stat="true"':''}${isActivity?' data-share-activity="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
+ return pictogram+`<text${isStat?' data-share-stat="true"':''}${isActivity?' data-share-activity="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
  }
  function route(x:number,y:number,w:number,hh:number,stroke=4){if(!o.route)return '';const {points,segments,center}=o.route,minX=points.reduce((n,p)=>Math.min(n,p.x),Infinity),maxX=points.reduce((n,p)=>Math.max(n,p.x),-Infinity),minY=points.reduce((n,p)=>Math.min(n,p.y),Infinity),maxY=points.reduce((n,p)=>Math.max(n,p.y),-Infinity),scale=Math.min((w-30)/Math.max(maxX-minX,1e-9),(hh-30)/Math.max(maxY-minY,1e-9));return segments.filter(s=>s.length>1).map(s=>{const stride=Math.max(1,Math.ceil(s.length/3000)),p=s.filter((_,i)=>i%stride===0||i===s.length-1).map((p,i)=>`${i?'L':'M'}${(x+w/2+(p.x-center.x)*scale).toFixed(2)},${(y+hh/2+(p.y-center.y)*scale).toFixed(2)}`).join(' ');return `<path d="${p}" fill="none" stroke="${ink}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`}).join('')}
  if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${o.ink==='white'?'#181818':'#fafafa'}"/>`);
