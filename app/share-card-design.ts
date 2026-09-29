@@ -11,7 +11,7 @@ export const shareFinishes=[
 ] as const;
 export type ShareFinish='solid'|typeof shareFinishes[number]['key'];
 export const finishSwatch=(colors:readonly string[])=>'linear-gradient(165deg,'+colors.map((c,i)=>c+' '+[0,18,39,48,50,61,76,88,100][i]+'%').join(',')+')';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'dayrings'|'dayorbit'|'dayposter'|'dayticket'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'dayline'|'daytype'|'daytiles'|'daycassette'|'daypennant'|'daynotes'|'dayrings'|'dayorbit'|'dayposter'|'dayticket'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
@@ -106,6 +106,35 @@ export function shareCardSvg(o:ShareDesign){
  }else if(o.template==='podium'){
   parts.push(text(o.title.toUpperCase(),85,cy-330,27,800,secondary,910));
   o.stats.slice(0,3).forEach((v,i)=>{const y=cy-155+i*215;parts.push(text('0'+(i+1),85,y-15,25,800,secondary,65),heavy(compact(v).toUpperCase(),190,y+18,104,800),text(v.label.toUpperCase(),195,y+66,19,700,secondary,775),`<path d="M85 ${y+100}H995" stroke="${ink}" stroke-width="${i===0?6:2}"/>`)});
+ }else if(['dayline','daytype','daytiles','daycassette','daypennant','daynotes'].includes(o.template)){
+  const top=cy-430,health=o.dayHealth??{},valid=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v)&&v>=0,minutes=valid(health.sleep)?Math.round(health.sleep/60):null,sessions=(o.dayCards??[]).slice(1);
+  const readings=[{label:'SLEEP',value:minutes===null?'Unavailable':`${Math.floor(minutes/60)}h ${String(minutes%60).padStart(2,'0')}m`},{label:'SLEEP SCORE',value:valid(health.score)&&health.score<=100?Math.round(health.score)+'/100':'Unavailable'},{label:'OVERNIGHT HRV',value:valid(health.hrv)&&health.hrv>0?Math.round(health.hrv)+' ms':'Unavailable'}];
+  const paint=isChrome?'url(#metalSoft)':ink,line=(x:number,y:number,x2:number,y2:number,opacity=.35)=>`<path d="M${x} ${y}L${x2} ${y2}" fill="none" stroke="${ink}" stroke-opacity="${opacity}"/>`;
+  function recovery(y:number){readings.forEach((r,i)=>{const x=80+i*320;parts.push(text(r.label,x,y,18,700,secondary,290),text(r.value,x,y+50,43,800,paint,290))})}
+  function workouts(y:number,height=220){const step=Math.min(72,height/Math.max(1,sessions.length));if(!sessions.length)parts.push(text('REST DAY',80,y+30,38,800),text('No activities synced today',80,y+65,21,400));sessions.forEach((session,i)=>{const yy=y+i*step;parts.push(text(String(i+1).padStart(2,'0')+'  '+session.title,80,yy,Math.min(24,step*.38),700,ink,900),text(session.stats.slice(0,3).map(compact).join('   /   '),80,yy+step*.44,Math.min(23,step*.36),600,paint,900))})}
+  parts.push(text(o.title.toUpperCase(),80,top+20,23,700,ink,920));
+  if(o.template==='dayline'){
+   parts.push(text('THE DAILY EDIT',80,top+115,42,500),line(80,top+155,1000,top+155));recovery(top+225);
+   parts.push(line(80,top+330,1000,top+330),text('TRAINING',80,top+400,20,700));workouts(top+460,290);
+  }else if(o.template==='daytype'){
+   readings.forEach((r,i)=>{const y=top+125+i*145;parts.push(heavy(r.value,80,y,96,650,paint),text(r.label,1000,y-10,20,700,secondary,255,false,'end'),line(80,y+36,1000,y+36))});workouts(top+605,200);
+  }else if(o.template==='daytiles'){
+   parts.push(heavy('TODAY / IN NUMBERS',80,top+95,62,920));
+   const tiles=[...readings,...['duration','calories'].map(key=>{const stat=o.stats.find(s=>s.key===key);return {label:key==='duration'?'TRAINING TIME':'WORKOUT KCAL',value:stat?compact(stat):'Unavailable'}}),{label:'SESSIONS',value:String(sessions.length)}];
+   tiles.forEach((r,i)=>{const x=80+i%3*320,y=top+150+Math.floor(i/3)*165;parts.push(`<rect x="${x}" y="${y}" width="300" height="145" rx="22" fill="none" stroke="${ink}" stroke-opacity=".45"/>`,text(r.label,x+18,y+36,16,700,secondary,265),text(r.value,x+18,y+100,44,800,paint,265))});workouts(top+555,245);
+  }else if(o.template==='daycassette'){
+   parts.push(heavy('RECOVERY MIX',80,top+105,78,920),`<rect x="80" y="${top+150}" width="920" height="320" rx="36" fill="none" stroke="${ink}" stroke-width="3"/>`,`<rect x="125" y="${top+185}" width="830" height="242" rx="25" fill="none" stroke="${ink}" stroke-opacity=".4"/>`,text('SIDE A / REST',145,top+225,19,700),text('SIDE B / MOVE',930,top+225,19,700,ink,350,false,'end'));
+   [265,815].forEach(x=>{parts.push(`<circle cx="${x}" cy="${top+320}" r="59" fill="none" stroke="${ink}" stroke-width="5"/><circle cx="${x}" cy="${top+320}" r="21" fill="none" stroke="${ink}" stroke-width="3"/>`);for(let i=0;i<6;i++){const a=i*Math.PI/3;parts.push(line(x+Math.cos(a)*29,top+320+Math.sin(a)*29,x+Math.cos(a)*49,top+320+Math.sin(a)*49,.7))}});
+   parts.push(text('SIESTE',540,top+322,37,800,ink,340,false,'middle'),text('DAILY RECORDING',540,top+356,15,600,ink,340,false,'middle'));recovery(top+525);workouts(top+655,155);
+  }else if(o.template==='daypennant'){
+   parts.push(`<path d="M150 ${top+65}H930V${top+450}L540 ${top+555}L150 ${top+450}Z" fill="none" stroke="${ink}" stroke-width="4"/>`,text('THE REST & REP CLUB',540,top+126,31,800,ink,690,false,'middle'));
+   readings.forEach((r,i)=>{const y=top+200+i*100;parts.push(text(r.label,205,y,18,600,ink,290),text(r.value,875,y+8,48,800,paint,370,false,'end'))});parts.push(text('SHOW UP. WIND DOWN.',540,top+472,18,700,ink,560,false,'middle'));workouts(top+625,180);
+  }else{
+   parts.push(heavy('FIELD NOTES',80,top+106,85,920),text('TRAINING / RECOVERY / REPEAT',80,top+148,18,600));
+   for(let y=top+190;y<top+800;y+=60)parts.push(line(65,y,1015,y,.16));parts.push(line(100,top+170,100,top+800,.6));
+   readings.forEach((r,i)=>{const y=top+236+i*120;parts.push(text('0'+(i+1),115,y,18,600),text(r.label,175,y,20,500),text(r.value,980,y+7,52,700,paint,460,true,'end'))});workouts(top+620,180);
+  }
+  parts.push(text('Today’s recorded recovery + synced workouts',80,top+850,17,400,secondary,920));
  }else if(o.template==='dayrings'){
   const top=cy-440,health=o.dayHealth??{},sessions=(o.dayCards??[]).slice(1),valid=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
   const minutes=valid(health.sleep)?Math.round(health.sleep/60):null,range=health.hrvRange,rangeValid=range&&valid(range[0])&&valid(range[1])&&range[1]>range[0];
