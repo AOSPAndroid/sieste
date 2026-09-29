@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useState} from 'react';
+import {dailyShareHistory} from './daily-share-history';
 import ActivityShare from './activity-share';
 import {cachedWorkout,loadWorkout} from './workout-detail-cache';
 import {localDate} from './week-overview';
@@ -7,7 +8,7 @@ import {metricStatus} from './metric-status';
 import {sportName,sportFamily} from './sports';
 import type {AthleteData} from './analytics';
 export default function TodayShare({data,now,token,isDemo}:{data:AthleteData;now:Date;token:string;isDemo:boolean}){
- const activities=data.activities,stamp=localDate(now).replaceAll('-',''),dayHealth={date:localDate(now),sleep:data.sleep[stamp]?.[0],hrv:data.hrv[stamp]?.[0],score:data.extra?.coros?.sleepWindows?.[stamp]?.score,hrvRange:metricStatus('hrv',data,now,sportFamily).range};
+ const activities=data.activities,stamp=localDate(now).replaceAll('-',''),dayHealth={history:dailyShareHistory(data,now),date:localDate(now),sleep:data.sleep[stamp]?.[0],hrv:data.hrv[stamp]?.[0],score:data.extra?.coros?.sleepWindows?.[stamp]?.score,hrvRange:metricStatus('hrv',data,now,sportFamily).range};
  const today=activities.filter(a=>localDate(new Date(a.date))===localDate(now)&&new Date(a.date)<=now),[id,setId]=useState('all'),[detail,setDetail]=useState<any>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const selected=today.find(a=>a.id===id);
  useEffect(()=>{let active=true;setDetail(null);setError('');setBusy(false);if(!selected||isDemo)return;setDetail(cachedWorkout(token,selected.id));setBusy(true);loadWorkout(token,selected.id).then(d=>{if(active)setDetail(d)}).catch(()=>{if(active)setError('Route and laps could not load. Summary designs are still available.')}).finally(()=>{if(active)setBusy(false)});return()=>{active=false}},[id,token,isDemo]);
