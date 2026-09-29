@@ -11,10 +11,10 @@ export const shareFinishes=[
 ] as const;
 export type ShareFinish='solid'|typeof shareFinishes[number]['key'];
 export const finishSwatch=(colors:readonly string[])=>'linear-gradient(165deg,'+colors.map((c,i)=>c+' '+[0,18,39,48,50,61,76,88,100][i]+'%').join(',')+')';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'dayorbit'|'dayposter'|'dayticket'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'dayrings'|'dayorbit'|'dayposter'|'dayticket'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 export function shareCardSvg(o:ShareDesign){
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
@@ -106,6 +106,25 @@ export function shareCardSvg(o:ShareDesign){
  }else if(o.template==='podium'){
   parts.push(text(o.title.toUpperCase(),85,cy-330,27,800,secondary,910));
   o.stats.slice(0,3).forEach((v,i)=>{const y=cy-155+i*215;parts.push(text('0'+(i+1),85,y-15,25,800,secondary,65),heavy(compact(v).toUpperCase(),190,y+18,104,800),text(v.label.toUpperCase(),195,y+66,19,700,secondary,775),`<path d="M85 ${y+100}H995" stroke="${ink}" stroke-width="${i===0?6:2}"/>`)});
+ }else if(o.template==='dayrings'){
+  const top=cy-440,health=o.dayHealth??{},sessions=(o.dayCards??[]).slice(1),valid=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
+  const minutes=valid(health.sleep)?Math.round(health.sleep/60):null,range=health.hrvRange,rangeValid=range&&valid(range[0])&&valid(range[1])&&range[1]>range[0];
+  parts.push(text(o.title.toUpperCase(),80,top+22,25,700),heavy('REST. THEN GO.',80,top+95,78,920));
+  const rings=[
+   {label:'SLEEP',value:minutes===null?'—':`${Math.floor(minutes/60)}h${String(minutes%60).padStart(2,'0')}`,unit:'hours / minutes',ratio:minutes===null?null:minutes/480,note:'8h reference',color:'#a5a0ff'},
+   {label:'SLEEP SCORE',value:valid(health.score)&&health.score<=100?String(Math.round(health.score)):'—',unit:'out of 100',ratio:valid(health.score)&&health.score<=100?health.score/100:null,note:'COROS · today',color:'#59d6c5'},
+   {label:'OVERNIGHT HRV',value:valid(health.hrv)&&health.hrv>0?String(Math.round(health.hrv)):'—',unit:'milliseconds',ratio:valid(health.hrv)&&health.hrv>0&&rangeValid?health.hrv/range[1]:null,note:rangeValid?`Usual ${Math.round(range[0])}–${Math.round(range[1])} ms`:'Usual range unavailable',color:'#72bbff'}
+  ];
+  rings.forEach((ring,i)=>{const x=230+i*310,y=top+262,r=112,circ=2*Math.PI*r,ratio=ring.ratio===null?null:Math.max(0,Math.min(1,ring.ratio)),paint=isChrome?'url(#metalSoft)':ring.color;
+   parts.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${ink}" stroke-opacity=".14" stroke-width="17"/>`);
+   if(ratio!==null)parts.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${paint}" stroke-width="17" stroke-linecap="round" stroke-dasharray="${Math.max(.001,ratio*circ)} ${circ}" transform="rotate(-90 ${x} ${y})"/>`);
+   if(i===2&&rangeValid){const angle=(range[0]/range[1]*360-90)*Math.PI/180;parts.push(`<circle cx="${x+Math.cos(angle)*r}" cy="${y+Math.sin(angle)*r}" r="5" fill="${ink}"/>`)}
+   parts.push(text(ring.label,x,y-40,18,700,secondary,195,false,'middle'),text(ring.value,x,y+20,57,800,isChrome?'url(#metal)':ink,190,false,'middle'),text(ring.value==='—'?'Not recorded':ring.unit,x,y+51,16,500,secondary,195,false,'middle'),text(ring.note,x,y+150,19,500,secondary,290,false,'middle'));
+  });
+  parts.push(`<path d="M80 ${top+458}H1000" stroke="${ink}" stroke-opacity=".3"/>`,text('TODAY’S TRAINING',80,top+503,24,800),text(sessions.length+' '+(sessions.length===1?'SESSION':'SESSIONS'),1000,top+503,20,600,secondary,300,false,'end'));
+  const step=Math.min(110,260/Math.max(1,sessions.length));sessions.forEach((session,i)=>{const y=top+552+i*step;parts.push(text(String(i+1).padStart(2,'0')+' / '+session.title,80,y,Math.min(27,step*.3),700,ink,910));session.stats.slice(0,3).forEach((stat,j)=>{const x=80+j*320;parts.push(text(compact(stat),x,y+step*.43,Math.min(34,step*.34),800,isChrome?'url(#metalSoft)':ink,290),text(stat.label,x,y+step*.68,Math.min(16,step*.18),500,secondary,290))});});
+  if(!sessions.length)parts.push(text('REST DAY',80,top+580,48,800),text('No activities synced for today',80,top+625,25,500));
+  parts.push(text('HRV ring: 0 to usual upper bound · dot: usual lower bound',80,top+848,16,400,secondary,920));
  }else if(['dayorbit','dayposter','dayticket'].includes(o.template)){
   const top=cy-440,mix=(o.dayMix??[]).filter(m=>Number.isFinite(m.seconds)&&m.seconds>0),total=mix.reduce((n,m)=>n+m.seconds,0),health=o.dayCards?.[0]?.stats??[],sessions=(o.dayCards??[]).slice(1),sleep=health.find(s=>s.key==='sleep'),hrv=health.find(s=>s.key==='hrv'),duration=o.stats.find(s=>s.key==='duration'),calories=o.stats.find(s=>s.key==='calories');
   const val=(s:ShareStat|undefined)=>s?compact(s):'Unavailable';
