@@ -20,3 +20,6 @@ const {dailyShareHistory}=await import(moduleUrl('daily-share-history'));
 const history=dailyShareHistory({sleep:{20260102:[28800],20260103:[99999]},hrv:{20260101:[90],20260102:[0]},extra:{coros:{sleepWindows:{20260102:{score:101}}}}},new Date(2026,0,2,12));
 assert.equal(history.length,7);assert.equal(history[0].date,'2025-12-27');assert.equal(history[6].date,'2026-01-02');assert.equal(history[6].sleep,8);assert.equal(history[6].hrv,null);assert.equal(history[6].score,null);assert.equal(history[5].hrv,90);assert.equal(history[0].sleep,null);
 console.log('Passed: local seven-day window, year boundary, missing values, invalid score/HRV and no future data.');
+
+for(const template of ['daytrends','daycolumns','daybars','daypanels']){const svg=shareCardSvg({...base,template,recoveryOnly:true});assert.ok(svg.includes('94 ms'));assert.ok(!/Morning run|Lunch ride|Strength|REST DAY/.test(svg));await sharp(Buffer.from(svg)).png().toFile('C:/Users/adell/Projects/sieste-design-review/recovery-only-'+template+'.png');}
+console.log('Passed: recovery-only exports exclude all activities and rest-day labels.');
