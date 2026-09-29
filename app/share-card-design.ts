@@ -11,7 +11,7 @@ export const shareFinishes=[
 ] as const;
 export type ShareFinish='solid'|typeof shareFinishes[number]['key'];
 export const finishSwatch=(colors:readonly string[])=>'linear-gradient(165deg,'+colors.map((c,i)=>c+' '+[0,18,39,48,50,61,76,88,100][i]+'%').join(',')+')';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
@@ -27,6 +27,9 @@ const sportGlyphs:Record<string,string>={
  misc:'<path d="M3 12h4l3-8 4 16 3-8h4"/>'
 };
 export function shareCardSvg(o:ShareDesign){
+ const englishVersions:Partial<Record<ShareTemplate,ShareTemplate>>={metroen:'metro',sweatreceipten:'sweatreceipt',excuseen:'excuse'},english=!!englishVersions[o.template];
+ if(english)o={...o,template:englishVersions[o.template]!};
+ const copy=(fr:string,en:string)=>english?en:fr;
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
  const compact=(s:ShareStat)=>s.value+(s.unit==='min:sec'||s.unit==='h:mm:ss'?'':s.unit==='/km'?'/km':' '+s.unit);
  function text(value:string,x:number,y:number,size=24,weight=400,color=ink,width=936,serif=false,anchor='start'){
@@ -77,20 +80,20 @@ export function shareCardSvg(o:ShareDesign){
  }else if(o.template==='metro'){
   const top=cy-250,paper='#f0e4c9',print='#263833';
   parts.push(`<g transform="rotate(-5 540 ${cy})"><rect x="85" y="${top}" width="910" height="500" rx="22" fill="${paper}"/><rect x="85" y="${top+366}" width="910" height="56" fill="#65523e"/><path d="M125 ${top+107}H955" stroke="${print}" stroke-width="2"/>`);
-  parts.push(text('SIESTE',130,top+72,47,900,print,360),text('PARIS · TICKET SPORT',950,top+68,23,800,print,480,false,'end'),text('ALLER SIMPLE / RETOUR EN SUEUR',130,top+151,22,700,print,805));
+  parts.push(text('SIESTE',130,top+72,47,900,print,360),text(copy('PARIS · TICKET SPORT','PARIS · SPORTS TICKET'),950,top+68,23,800,print,480,false,'end'),text(copy('ALLER SIMPLE / RETOUR EN SUEUR','ONE WAY / SWEAT ON THE RETURN'),130,top+151,22,700,print,805));
   if(first)parts.push(heavy(compact(first).toUpperCase(),124,top+253,117,825,print));
-  parts.push(text(o.sport.toUpperCase()+' · '+o.title,130,top+299,23,700,print,810),text(others.slice(0,3).map(compact).join('   /   '),130,top+339,25,700,print,810),text('VALIDÉ PAR VOS JAMBES',130,top+462,24,800,print,600),text('S / 01',950,top+462,20,600,print,170,false,'end'),'</g>');
+  parts.push(text(o.sport.toUpperCase()+' · '+o.title,130,top+299,23,700,print,810),text(others.slice(0,3).map(compact).join('   /   '),130,top+339,25,700,print,810),text(copy('VALIDÉ PAR VOS JAMBES','VALIDATED BY YOUR LEGS'),130,top+462,24,800,print,600),text('S / 01',950,top+462,20,600,print,170,false,'end'),'</g>');
  }else if(o.template==='sweatreceipt'){
   const top=cy-350,black='#242424',mono=(v:string,x:number,y:number,size:number,w=730)=>text(v,x,y,size,600,black,w).replace('Arial,Helvetica,sans-serif','Courier New,monospace');
   parts.push(`<path d="M145 ${top}H935V${top+700}l-25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15 -25 -15 -25 15H145Z" fill="#faf7ef"/>`);
-  parts.push(mono('REÇU DE TRANSPIRATION',185,top+68,33),mono('SIESTE / '+o.sport.toUpperCase(),185,top+116,23),`<path d="M185 ${top+151}H895" stroke="${black}" stroke-dasharray="7 7"/>`);
+  parts.push(mono(copy('REÇU DE TRANSPIRATION','SWEAT RECEIPT'),185,top+68,33),mono('SIESTE / '+o.sport.toUpperCase(),185,top+116,23),`<path d="M185 ${top+151}H895" stroke="${black}" stroke-dasharray="7 7"/>`);
   o.stats.slice(0,4).forEach((v,i)=>{const y=top+212+i*74;parts.push(mono(v.label.toUpperCase(),185,y,20,330),text(compact(v),895,y,32,700,black,350,false,'end').replace('Arial,Helvetica,sans-serif','Courier New,monospace'))});
-  parts.push(`<path d="M185 ${top+466}H895" stroke="${black}" stroke-dasharray="7 7"/>`,mono('PAIEMENT : EN SUEUR',185,top+528,31),mono('REMBOURSEMENT : UNE SIESTE',185,top+580,23),mono('Merci. Revenez transpirer.',185,top+635,21));
+  parts.push(`<path d="M185 ${top+466}H895" stroke="${black}" stroke-dasharray="7 7"/>`,mono(copy('PAIEMENT : EN SUEUR','PAYMENT: SWEAT'),185,top+528,31),mono(copy('REMBOURSEMENT : UNE SIESTE','REFUND: ONE NAP'),185,top+580,23),mono(copy('Merci. Revenez transpirer.','Thank you. Come sweat again.'),185,top+635,21));
  }else if(o.template==='excuse'){
   const top=cy-300;
-  parts.push(`<rect x="95" y="${top}" width="890" height="600" rx="20" fill="none" stroke="${ink}" stroke-width="3"/>`,text('ABSENCE JUSTIFIÉE',135,top+83,65,900,ink,805),text('J’ÉTAIS À L’ENTRAÎNEMENT.',135,top+143,29,800,ink,805));
+  parts.push(`<rect x="95" y="${top}" width="890" height="600" rx="20" fill="none" stroke="${ink}" stroke-width="3"/>`,text(copy('ABSENCE JUSTIFIÉE','EXCUSED ABSENCE'),135,top+83,65,900,ink,805),text(copy('J’ÉTAIS À L’ENTRAÎNEMENT.','I WAS TRAINING.'),135,top+143,29,800,ink,805));
   if(first)parts.push(heavy(compact(first),130,top+310,127,805));
-  parts.push(text(others.slice(0,3).map(compact).join('   /   '),135,top+382,31,700,ink,805),`<g transform="rotate(-9 740 ${top+495})"><rect x="565" y="${top+438}" width="355" height="91" rx="6" fill="none" stroke="${ink}" stroke-width="5"/>`,text('EXCUSÉ·E',743,top+498,48,900,ink,320,false,'middle'),'</g>',text(o.sport.toUpperCase(),135,top+534,24,700,ink,390));
+  parts.push(text(others.slice(0,3).map(compact).join('   /   '),135,top+382,31,700,ink,805),`<g transform="rotate(-9 740 ${top+495})"><rect x="565" y="${top+438}" width="355" height="91" rx="6" fill="none" stroke="${ink}" stroke-width="5"/>`,text(copy('EXCUSÉ·E','EXCUSED'),743,top+498,48,900,ink,320,false,'middle'),'</g>',text(o.sport.toUpperCase(),135,top+534,24,700,ink,390));
  }else if(o.template==='croissant'){
   parts.push(text('WILL TRAIN',540,cy-205,98,900,ink,910,false,'middle'),text('FOR CROISSANTS.',540,cy-90,99,900,ink,930,false,'middle'),`<path d="M140 ${cy-32}H940" stroke="${ink}" stroke-width="3"/>`);
   if(first)parts.push(heavy(compact(first),145,cy+112,115,810));
