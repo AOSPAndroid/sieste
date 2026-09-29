@@ -499,3 +499,5 @@ main:has(.training-journal)>.heading{display:none}.training-journal{max-width:82
 .share-export-toolbar>p{flex-basis:100%;margin:0;font-size:12px;line-height:1.35;color:#616779}.share-export-toolbar>.share-error{color:#b22b32}
 .share-studio>.share-preview-column{top:calc(var(--share-toolbar-top,0px) + var(--share-toolbar-height,60px) + 12px)}
 @media(max-width:650px){.share-studio>.share-preview-column{grid-row:2;position:static}.share-export-toolbar .share-actions button{font-size:13px;padding:9px!important}.share-export-label b{max-width:130px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}}
+
+.expanded-widget-body:has(.share-studio){padding-top:0}.share-studio{margin-top:0}.share-studio>.share-export-toolbar{border-top-left-radius:0;border-top-right-radius:0}

@@ -344,30 +344,21 @@ export function shareCardSvg(o:ShareDesign){
  if(o.route&&o.template!=='laps'&&!routeTemplates.includes(o.template))parts.push(route(840,100,165,165,3));
  if(o.brand)parts.push(text('sieste',72,h-48,23,700));
  if(o.demo)parts.push(text('ILLUSTRATIVE DATA',730,h-48,18,600,ink,280));
- // Apply the finish after layout so hollow lettering stays hollow and every
- // existing template keeps its geometry. Small metadata stays flat; activity
- // names and sport labels receive the same soft finish as small stat values.
+ // Finish every foreground element, including metadata, chart axes and icons.
+ // Stroke gradients use canvas coordinates so horizontal/vertical paths render.
  let artwork=parts.join('');
  if(o.finish&&o.finish!=='solid'){
   const cardSurface=['ticket','metro','sweatreceipt','glass','daystack','bubble'].includes(o.template);
-  artwork=artwork.replace(/<(text|path|circle|rect)[^>]*>/g,tag=>{
-   if(tag.startsWith('<text')){
-    const size=Number(tag.match(/font-size="([^"]+)"/)?.[1]??0);
-    if(cardSurface)return tag;
-    const finishedLabel=tag.includes('data-share-stat="true"')||tag.includes('data-share-activity="true"');
-    if(size<64&&!finishedLabel)return tag;
-    return tag.replace(/fill="(?!none|url\()[^"]*"/,size<64?'fill="url(#metalSoft)"':'fill="url(#metal)"')
-      .replace(/stroke="(?!none|url\()[^"]*"/,'stroke="url(#rim)"');
-   }
+  artwork='<defs><linearGradient id="finishStroke" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1080" y2="'+h+'">'+c.map((color,i)=>`<stop offset="${i/(c.length-1)}" stop-color="${color}"/>`).join('')+'</linearGradient></defs>'+artwork;
+  artwork=artwork.replace(/<(text|path|circle|rect|line|polyline|polygon|ellipse|g)[^>]*>/g,tag=>{
    if(tag.includes('width="1080"'))return tag;
-   return tag.replaceAll('fill="'+ink+'"','fill="url(#metal)"')
-    .replaceAll('stroke="'+ink+'"','stroke="url(#metal)"')
-    .replaceAll('fill="#087eff"','fill="url(#metal)"');
+   const isText=tag.startsWith('<text'),size=Number(tag.match(/font-size="([^"]+)"/)?.[1]??0);
+   // Filled ticket/card surfaces stay dark to contrast with finished lettering.
+   const surface=cardSurface&&/^<(?:path|rect)\b/.test(tag)&&/fill="(?!none|transparent)[^"]+"/.test(tag);
+   if(surface)tag=tag.replace(/fill="[^"]*"/,'fill="#151a22"');
+   else tag=tag.replace(/fill="(?!none|transparent)[^"]*"/,isText&&size>=64?'fill="url(#metal)"':'fill="url(#metalSoft)"');
+   return tag.replace(/stroke="(?!none|transparent)[^"]*"/,'stroke="url(#finishStroke)"');
   });
-  // Paper/card designs use a silver surface and contrasting flat print.
-  if(cardSurface)artwork=artwork.replace(/(<(?:path|rect)[^>]*fill=")url\(#metal\)"/g,'$1url(#silverSurface)"').replaceAll('fill="#f0e4c9"','fill="url(#silverSurface)"').replaceAll('fill="#faf7ef"','fill="url(#silverSurface)"')
-   .replaceAll('fill="#555555"','fill="url(#silverSurface)"').replaceAll('fill="#eeeeee"','fill="url(#silverSurface)"').replaceAll('fill="#333333"','fill="url(#silverSurface)"')
-   .replace(/(<text[^>]*fill=")[^"]*"/g,'$1#151a22"');
  }
  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}">${artwork}</svg>`;
 }
