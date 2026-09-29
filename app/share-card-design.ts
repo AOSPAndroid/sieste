@@ -11,10 +11,10 @@ export const shareFinishes=[
 ] as const;
 export type ShareFinish='solid'|typeof shareFinishes[number]['key'];
 export const finishSwatch=(colors:readonly string[])=>'linear-gradient(165deg,'+colors.map((c,i)=>c+' '+[0,18,39,48,50,61,76,88,100][i]+'%').join(',')+')';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'dayorbit'|'dayposter'|'dayticket'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'sweatreceipt'|'excuse'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];weekDays?:{label:string;value:number|null}[]};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;dayCards?:{title:string;stats:ShareStat[]}[];dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 export function shareCardSvg(o:ShareDesign){
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
@@ -106,6 +106,35 @@ export function shareCardSvg(o:ShareDesign){
  }else if(o.template==='podium'){
   parts.push(text(o.title.toUpperCase(),85,cy-330,27,800,secondary,910));
   o.stats.slice(0,3).forEach((v,i)=>{const y=cy-155+i*215;parts.push(text('0'+(i+1),85,y-15,25,800,secondary,65),heavy(compact(v).toUpperCase(),190,y+18,104,800),text(v.label.toUpperCase(),195,y+66,19,700,secondary,775),`<path d="M85 ${y+100}H995" stroke="${ink}" stroke-width="${i===0?6:2}"/>`)});
+ }else if(['dayorbit','dayposter','dayticket'].includes(o.template)){
+  const top=cy-440,mix=(o.dayMix??[]).filter(m=>Number.isFinite(m.seconds)&&m.seconds>0),total=mix.reduce((n,m)=>n+m.seconds,0),health=o.dayCards?.[0]?.stats??[],sessions=(o.dayCards??[]).slice(1),sleep=health.find(s=>s.key==='sleep'),hrv=health.find(s=>s.key==='hrv'),duration=o.stats.find(s=>s.key==='duration'),calories=o.stats.find(s=>s.key==='calories');
+  const val=(s:ShareStat|undefined)=>s?compact(s):'Unavailable';
+  const stat=(label:string,value:string,x:number,y:number,width=420)=>{parts.push(text(label.toUpperCase(),x,y,20,700,secondary,width),heavy(value,x,y+57,55,width));};
+  function donut(x:number,y:number,r:number){
+   if(!total){parts.push(text('NO RECORDED TIME',x,y,22,700,secondary,r*2,false,'middle'));return;}
+   const circumference=2*Math.PI*r;let offset=0;
+   mix.forEach(m=>{const length=m.seconds/total*circumference;parts.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${m.color}" stroke-width="36" stroke-dasharray="${length} ${circumference-length}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${x} ${y})"/>`);offset+=length});
+   parts.push(heavy(String(Math.round(total/60)),x-90,y+15,85,180),text('RECORDED MIN',x,y+52,18,700,secondary,220,false,'middle'));
+  }
+  const list=(y:number)=>{const step=Math.min(52,180/Math.max(1,sessions.length));if(!sessions.length)parts.push(text('REST DAY · NO SYNCED ACTIVITIES',80,y+30,22,700));sessions.forEach((session,i)=>{const summary=session.stats.slice(0,3).map(compact).join(' · ');parts.push(text(String(i+1).padStart(2,'0')+'  '+session.title,80,y+i*step,Math.min(22,step*.43),700,ink,440),text(summary,1000,y+i*step,Math.min(21,step*.42),500,ink,450,false,'end'))});};
+  if(o.template==='dayorbit'){
+   parts.push(text(o.title.toUpperCase(),80,top+25,26,700),heavy('DAILY ORBIT',80,top+100,82,920));donut(300,top+300,140);
+   mix.forEach((m,i)=>{const y=top+210+i*Math.min(55,200/Math.max(1,mix.length));parts.push(`<circle cx="570" cy="${y-7}" r="7" fill="${m.color}"/>`,text(m.label,595,y,25,700,ink,220),text(Math.round(m.seconds/60)+'m · '+Math.round(m.seconds/total*100)+'%',1000,y,23,600,ink,180,false,'end'))});
+   parts.push(text('TRAINING TIME BY SPORT',560,top+425,18,600,secondary,430));
+   stat('Sleep today',val(sleep),80,top+505);stat('Overnight HRV',val(hrv),565,top+505);
+  }else if(o.template==='dayposter'){
+   parts.push(text(o.title.toUpperCase(),80,top+25,26,700),heavy('TRAIN.',80,top+155,154,920),heavy('RECOVER.',80,top+300,154,920));
+   stat('Activity time',val(duration),80,top+365);stat('Workout calories',val(calories),565,top+365);
+   stat('Sleep today',val(sleep),80,top+500);stat('Overnight HRV',val(hrv),565,top+500);
+  }else{
+   parts.push(`<rect x="55" y="${top-5}" width="970" height="880" rx="36" fill="none" stroke="${ink}" stroke-width="3"/>`,text('SIESTE / DAILY PASS',85,top+48,23,800),text(o.title.toUpperCase(),990,top+48,21,600,ink,460,false,'end'),heavy('MOVE + REST',85,top+135,88,900),`<path d="M55 ${top+175}H1025" stroke="${ink}" stroke-width="2" stroke-dasharray="9 9"/>`);
+   stat('Activity time',val(duration),85,top+225);stat('Workout calories',val(calories),565,top+225);
+   stat('Sleep today',val(sleep),85,top+350);stat('Overnight HRV',val(hrv),565,top+350);
+   let x=85;mix.forEach(m=>{const width=m.seconds/total*900;parts.push(`<rect x="${x}" y="${top+490}" width="${width}" height="24" fill="${m.color}"/>`);x+=width});
+   parts.push(text(mix.map(m=>m.label+' '+Math.round(m.seconds/60)+'m').join(' / ')||'NO RECORDED TRAINING TIME',85,top+549,22,600,ink,900));
+  }
+  parts.push(`<path d="M80 ${top+620}H1000" stroke="${ink}" stroke-opacity=".35"/>`);list(top+663);
+  parts.push(text(o.dayCoverage&&o.dayCoverage.covered<o.dayCoverage.total?`Duration coverage ${o.dayCoverage.covered}/${o.dayCoverage.total} sessions · chart uses recorded time only`:'Today so far · synced activities + today’s overnight readings',80,top+848,17,400,secondary,920));
  }else if(o.template==='daystack'){
   const cards=o.dayCards??[],step=Math.min(190,(h-230)/Math.max(1,cards.length)),top=cy-cards.length*step/2;
   parts.push(text(o.title.toUpperCase(),100,top-30,32,800));
