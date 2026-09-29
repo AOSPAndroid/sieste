@@ -114,23 +114,23 @@ export function shareCardSvg(o:ShareDesign){
   function workouts(y:number,height=220){const step=Math.min(72,height/Math.max(1,sessions.length));if(!sessions.length)parts.push(text('REST DAY',80,y+30,38,800),text('No activities synced today',80,y+65,21,400));sessions.forEach((session,i)=>{const yy=y+i*step;parts.push(text(String(i+1).padStart(2,'0')+'  '+session.title,80,yy,Math.min(24,step*.38),700,ink,900),text(session.stats.slice(0,3).map(compact).join('   /   '),80,yy+step*.44,Math.min(23,step*.36),600,paint,900))})}
   parts.push(text(o.title.toUpperCase(),80,top+20,23,700,ink,920));
   if(o.template==='dayline'){
-   parts.push(text('THE DAILY EDIT',80,top+115,42,500),line(80,top+155,1000,top+155));recovery(top+225);
+   parts.push(text('RECOVERY',80,top+115,26,600),line(80,top+155,1000,top+155));recovery(top+225);
    parts.push(line(80,top+330,1000,top+330),text('TRAINING',80,top+400,20,700));workouts(top+460,290);
   }else if(o.template==='daytype'){
    readings.forEach((r,i)=>{const y=top+125+i*145;parts.push(heavy(r.value,80,y,96,650,paint),text(r.label,1000,y-10,20,700,secondary,255,false,'end'),line(80,y+36,1000,y+36))});workouts(top+605,200);
   }else if(o.template==='daytiles'){
-   parts.push(heavy('TODAY / IN NUMBERS',80,top+95,62,920));
+   parts.push(text('DAILY SUMMARY',80,top+95,28,600));
    const tiles=[...readings,...['duration','calories'].map(key=>{const stat=o.stats.find(s=>s.key===key);return {label:key==='duration'?'TRAINING TIME':'WORKOUT KCAL',value:stat?compact(stat):'Unavailable'}}),{label:'SESSIONS',value:String(sessions.length)}];
    tiles.forEach((r,i)=>{const x=80+i%3*320,y=top+150+Math.floor(i/3)*165;parts.push(`<rect x="${x}" y="${y}" width="300" height="145" rx="22" fill="none" stroke="${ink}" stroke-opacity=".45"/>`,text(r.label,x+18,y+36,16,700,secondary,265),text(r.value,x+18,y+100,44,800,paint,265))});workouts(top+555,245);
   }else if(o.template==='daycassette'){
-   parts.push(heavy('RECOVERY MIX',80,top+105,78,920),`<rect x="80" y="${top+150}" width="920" height="320" rx="36" fill="none" stroke="${ink}" stroke-width="3"/>`,`<rect x="125" y="${top+185}" width="830" height="242" rx="25" fill="none" stroke="${ink}" stroke-opacity=".4"/>`,text('SIDE A / REST',145,top+225,19,700),text('SIDE B / MOVE',930,top+225,19,700,ink,350,false,'end'));
+   parts.push(text('DAILY RECORD',80,top+105,28,600),`<rect x="80" y="${top+150}" width="920" height="320" rx="36" fill="none" stroke="${ink}" stroke-width="3"/>`,`<rect x="125" y="${top+185}" width="830" height="242" rx="25" fill="none" stroke="${ink}" stroke-opacity=".4"/>`,text('SIDE A / REST',145,top+225,19,700),text('SIDE B / MOVE',930,top+225,19,700,ink,350,false,'end'));
    [265,815].forEach(x=>{parts.push(`<circle cx="${x}" cy="${top+320}" r="59" fill="none" stroke="${ink}" stroke-width="5"/><circle cx="${x}" cy="${top+320}" r="21" fill="none" stroke="${ink}" stroke-width="3"/>`);for(let i=0;i<6;i++){const a=i*Math.PI/3;parts.push(line(x+Math.cos(a)*29,top+320+Math.sin(a)*29,x+Math.cos(a)*49,top+320+Math.sin(a)*49,.7))}});
    parts.push(text('SIESTE',540,top+322,37,800,ink,340,false,'middle'),text('DAILY RECORDING',540,top+356,15,600,ink,340,false,'middle'));recovery(top+525);workouts(top+655,155);
   }else if(o.template==='daypennant'){
-   parts.push(`<path d="M150 ${top+65}H930V${top+450}L540 ${top+555}L150 ${top+450}Z" fill="none" stroke="${ink}" stroke-width="4"/>`,text('THE REST & REP CLUB',540,top+126,31,800,ink,690,false,'middle'));
-   readings.forEach((r,i)=>{const y=top+200+i*100;parts.push(text(r.label,205,y,18,600,ink,290),text(r.value,875,y+8,48,800,paint,370,false,'end'))});parts.push(text('SHOW UP. WIND DOWN.',540,top+472,18,700,ink,560,false,'middle'));workouts(top+625,180);
+   parts.push(`<path d="M150 ${top+65}H930V${top+450}L540 ${top+555}L150 ${top+450}Z" fill="none" stroke="${ink}" stroke-width="4"/>`,text('RECOVERY',540,top+126,25,600,ink,690,false,'middle'));
+   readings.forEach((r,i)=>{const y=top+200+i*100;parts.push(text(r.label,205,y,18,600,ink,290),text(r.value,875,y+8,48,800,paint,370,false,'end'))});workouts(top+625,180);
   }else{
-   parts.push(heavy('FIELD NOTES',80,top+106,85,920),text('TRAINING / RECOVERY / REPEAT',80,top+148,18,600));
+   parts.push(heavy('FIELD NOTES',80,top+106,85,920),text('RECORDED TODAY',80,top+148,18,600));
    for(let y=top+190;y<top+800;y+=60)parts.push(line(65,y,1015,y,.16));parts.push(line(100,top+170,100,top+800,.6));
    readings.forEach((r,i)=>{const y=top+236+i*120;parts.push(text('0'+(i+1),115,y,18,600),text(r.label,175,y,20,500),text(r.value,980,y+7,52,700,paint,460,true,'end'))});workouts(top+620,180);
   }
@@ -138,13 +138,13 @@ export function shareCardSvg(o:ShareDesign){
  }else if(o.template==='dayrings'){
   const top=cy-440,health=o.dayHealth??{},sessions=(o.dayCards??[]).slice(1),valid=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
   const minutes=valid(health.sleep)?Math.round(health.sleep/60):null,range=health.hrvRange,rangeValid=range&&valid(range[0])&&valid(range[1])&&range[1]>range[0];
-  parts.push(text(o.title.toUpperCase(),80,top+22,25,700),heavy('REST. THEN GO.',80,top+95,78,920));
+  parts.push(text(o.title.toUpperCase(),80,top+22,28,600),`<path d="M80 ${top+56}H1000" stroke="${ink}" stroke-opacity=".2"/>`);
   const rings=[
    {label:'SLEEP',value:minutes===null?'—':`${Math.floor(minutes/60)}h${String(minutes%60).padStart(2,'0')}`,unit:'hours / minutes',ratio:minutes===null?null:minutes/480,note:'8h reference',color:'#a5a0ff'},
    {label:'SLEEP SCORE',value:valid(health.score)&&health.score<=100?String(Math.round(health.score)):'—',unit:'out of 100',ratio:valid(health.score)&&health.score<=100?health.score/100:null,note:'COROS · today',color:'#59d6c5'},
    {label:'OVERNIGHT HRV',value:valid(health.hrv)&&health.hrv>0?String(Math.round(health.hrv)):'—',unit:'milliseconds',ratio:valid(health.hrv)&&health.hrv>0&&rangeValid?health.hrv/range[1]:null,note:rangeValid?`Usual ${Math.round(range[0])}–${Math.round(range[1])} ms`:'Usual range unavailable',color:'#72bbff'}
   ];
-  rings.forEach((ring,i)=>{const x=230+i*310,y=top+262,r=112,circ=2*Math.PI*r,ratio=ring.ratio===null?null:Math.max(0,Math.min(1,ring.ratio)),paint=isChrome?'url(#metalSoft)':ring.color;
+  rings.forEach((ring,i)=>{const x=230+i*310,y=top+225,r=112,circ=2*Math.PI*r,ratio=ring.ratio===null?null:Math.max(0,Math.min(1,ring.ratio)),paint=isChrome?'url(#metalSoft)':ring.color;
    parts.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${ink}" stroke-opacity=".14" stroke-width="17"/>`);
    if(ratio!==null)parts.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${paint}" stroke-width="17" stroke-linecap="round" stroke-dasharray="${Math.max(.001,ratio*circ)} ${circ}" transform="rotate(-90 ${x} ${y})"/>`);
    if(i===2&&rangeValid){const angle=(range[0]/range[1]*360-90)*Math.PI/180;parts.push(`<circle cx="${x+Math.cos(angle)*r}" cy="${y+Math.sin(angle)*r}" r="5" fill="${ink}"/>`)}
@@ -166,16 +166,16 @@ export function shareCardSvg(o:ShareDesign){
   }
   const list=(y:number)=>{const step=Math.min(52,180/Math.max(1,sessions.length));if(!sessions.length)parts.push(text('REST DAY · NO SYNCED ACTIVITIES',80,y+30,22,700));sessions.forEach((session,i)=>{const summary=session.stats.slice(0,3).map(compact).join(' · ');parts.push(text(String(i+1).padStart(2,'0')+'  '+session.title,80,y+i*step,Math.min(22,step*.43),700,ink,440),text(summary,1000,y+i*step,Math.min(21,step*.42),500,ink,450,false,'end'))});};
   if(o.template==='dayorbit'){
-   parts.push(text(o.title.toUpperCase(),80,top+25,26,700),heavy('DAILY ORBIT',80,top+100,82,920));donut(300,top+300,140);
+   parts.push(text(o.title.toUpperCase(),80,top+25,26,700),text('TRAINING TIME',80,top+95,22,600));donut(300,top+300,140);
    mix.forEach((m,i)=>{const y=top+210+i*Math.min(55,200/Math.max(1,mix.length));parts.push(`<circle cx="570" cy="${y-7}" r="7" fill="${m.color}"/>`,text(m.label,595,y,25,700,ink,220),text(Math.round(m.seconds/60)+'m · '+Math.round(m.seconds/total*100)+'%',1000,y,23,600,ink,180,false,'end'))});
    parts.push(text('TRAINING TIME BY SPORT',560,top+425,18,600,secondary,430));
    stat('Sleep today',val(sleep),80,top+505);stat('Overnight HRV',val(hrv),565,top+505);
   }else if(o.template==='dayposter'){
-   parts.push(text(o.title.toUpperCase(),80,top+25,26,700),heavy('TRAIN.',80,top+155,154,920),heavy('RECOVER.',80,top+300,154,920));
-   stat('Activity time',val(duration),80,top+365);stat('Workout calories',val(calories),565,top+365);
+   parts.push(text(o.title.toUpperCase(),80,top+25,26,700),heavy(val(duration),80,top+220,156,920),text('TRAINING TIME',85,top+270,24,600));
+   stat('Workout calories',val(calories),80,top+365);stat('Sessions',String(sessions.length),565,top+365);
    stat('Sleep today',val(sleep),80,top+500);stat('Overnight HRV',val(hrv),565,top+500);
   }else{
-   parts.push(`<rect x="55" y="${top-5}" width="970" height="880" rx="36" fill="none" stroke="${ink}" stroke-width="3"/>`,text('SIESTE / DAILY PASS',85,top+48,23,800),text(o.title.toUpperCase(),990,top+48,21,600,ink,460,false,'end'),heavy('MOVE + REST',85,top+135,88,900),`<path d="M55 ${top+175}H1025" stroke="${ink}" stroke-width="2" stroke-dasharray="9 9"/>`);
+   parts.push(`<rect x="55" y="${top-5}" width="970" height="880" rx="36" fill="none" stroke="${ink}" stroke-width="3"/>`,text('SIESTE / DAILY PASS',85,top+48,23,800),text(o.title.toUpperCase(),990,top+48,21,600,ink,460,false,'end'),text('TRAINING & RECOVERY',85,top+125,38,600),`<path d="M55 ${top+175}H1025" stroke="${ink}" stroke-width="2" stroke-dasharray="9 9"/>`);
    stat('Activity time',val(duration),85,top+225);stat('Workout calories',val(calories),565,top+225);
    stat('Sleep today',val(sleep),85,top+350);stat('Overnight HRV',val(hrv),565,top+350);
    let x=85;mix.forEach(m=>{const width=m.seconds/total*900;parts.push(`<rect x="${x}" y="${top+490}" width="${width}" height="24" fill="${m.color}"/>`);x+=width});
