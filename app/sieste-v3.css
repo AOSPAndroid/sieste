@@ -813,3 +813,5 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 .home-snapshot img{display:block;width:100%;height:auto;border:1px solid #e7e7ef;border-radius:14px}
 .home-snapshot p,.home-snapshot>small{font-size:12px;color:#777786;line-height:1.5}
 .home-snapshot>small{display:block;margin-top:8px}
+.sieste-v3 .home-range-control .home-snapshot-button{display:flex;align-items:center;gap:5px;background:#f0effa;color:#5746b7;border:1px solid #e4e1f2;border-radius:10px;white-space:nowrap}
+@media(max-width:420px){.sieste-v3 .home-range-control{gap:3px}.sieste-v3 .home-range-control button{padding:5px 6px;font-size:11px}.sieste-v3 .home-range-control .home-snapshot-button{gap:3px}.sieste-v3 .home-range-control .home-snapshot-button svg{width:13px;height:13px}}
