@@ -29,3 +29,10 @@ for(const family of ['running','cycling','strength_training','swimming','walking
  assert.ok(svg.includes('data-sport-icon="'+family+'"'));assert.ok(!/NaN|Infinity/.test(svg));await sharp(Buffer.from(svg)).png().toBuffer();
 }
 console.log('Passed: individual activity sport icons, fallback, solid and chrome PNG rendering.');
+
+for(const template of ['daytrends','daycolumns','daybars','daypanels','dayledger','daybalance','dayribbon','daymatrix','daypulse']){
+ const svg=shareCardSvg({...base,template,recoveryOnly:true,showLabels:false});
+ assert.ok(!/Morning run|Lunch ride|Strength|REST DAY|>SLEEP<|>SLEEP SCORE<|>OVERNIGHT HRV<|7d range|gaps = missing/.test(svg));assert.ok(svg.includes('8h 12m')&&svg.includes('86/100')&&svg.includes('94 ms'));
+ if(template==='daycolumns')await sharp(Buffer.from(svg)).flatten({background:'#202631'}).png().toFile('C:/Users/adell/Projects/sieste-design-review/minimal-health.png');
+}
+console.log('Passed: minimal health-only exports retain readings and units without workouts or metric captions.');
