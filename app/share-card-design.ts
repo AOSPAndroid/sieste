@@ -26,6 +26,11 @@ const sportGlyphs:Record<string,string>={
  hiking:'<circle cx="13" cy="3" r="2"/><path d="m7 11 3-4 4 1 2 5h4M12 8l-2 7-4 7M10 15l5 2 1 5M20 10v12M6 7l-2 6"/>',
  misc:'<path d="M3 12h4l3-8 4 16 3-8h4"/>'
 };
+const healthGlyphs:Record<string,string>={
+ sleep:'<path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z"/>',
+ score:'<path d="m12 3 2.8 5.7 6.3.9-4.5 4.4 1.1 6.2-5.7-3-5.7 3 1.1-6.2-4.5-4.4 6.3-.9Z"/>',
+ hrv:'<path d="M2 12h4l3-8 4 16 3-8h6"/>'
+};
 export function shareCardSvg(o:ShareDesign){
  const englishVersions:Partial<Record<ShareTemplate,ShareTemplate>>={metroen:'metro',sweatreceipten:'sweatreceipt',excuseen:'excuse'},english=!!englishVersions[o.template];
  if(english)o={...o,template:englishVersions[o.template]!};
@@ -33,6 +38,14 @@ export function shareCardSvg(o:ShareDesign){
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
  const compact=(s:ShareStat)=>s.value+(s.unit==='min:sec'||s.unit==='h:mm:ss'?'':s.unit==='/km'?'/km':' '+s.unit);
  function text(value:string,x:number,y:number,size=24,weight=400,color=ink,width=936,serif=false,anchor='start'){
+ const healthKey=o.template.startsWith('day')?({'sleep':'sleep','sleep today':'sleep','sleep score':'score','overnight hrv':'hrv','hrv':'hrv'} as Record<string,string>)[value.toLowerCase()]:undefined;
+ if(healthKey){
+  const iconSize=Math.min(30,Math.max(24,size*1.2)),labelWidth=Math.min(Math.max(1,width-iconSize-8),value.length*size*.58),groupWidth=o.showLabels===false?iconSize:iconSize+8+labelWidth,left=anchor==='middle'?x-groupWidth/2:anchor==='end'?x-groupWidth:x;
+  const glyph=`<g data-health-icon="${healthKey}" transform="translate(${left} ${y-iconSize*.85}) scale(${iconSize/24})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${healthGlyphs[healthKey]}</g>`;
+  if(o.showLabels===false)return glyph;
+  // Labels remain optional; when enabled reserve room for the same small icon.
+  return glyph+`<text x="${left+iconSize+8}" y="${y}" fill="${color}" font-family="Arial,Helvetica,sans-serif" font-size="${size}" font-weight="${weight}" textLength="${Math.min(Math.max(1,width-iconSize-8),value.length*size*.58)}" lengthAdjust="spacingAndGlyphs">${xml(value)}</text>`;
+ }
  const metricLabels=['sleep','sleep today','sleep score','overnight hrv','hrv','hours / minutes','milliseconds','out of 100',...o.stats.map(s=>s.label.toLowerCase()),...(o.dayCards??[]).flatMap(c=>c.stats.map(s=>s.label.toLowerCase()))];
  if(o.showLabels===false&&(metricLabels.includes(value.toLowerCase())||value.startsWith('7d range ')||value==='RECOVERY / LAST 7 DAYS'||value.includes('gaps = missing readings')||value.startsWith('HRV ring:')))return '';
  const normalized=value.toLocaleLowerCase(),session=o.dayCards?.find(c=>c.sportFamily&&(normalized===c.title.toLocaleLowerCase()||normalized.replace(/^\d+\s*(?:\/\s*)?/,'')===c.title.toLocaleLowerCase()));
@@ -364,3 +377,4 @@ export function shareCardSvg(o:ShareDesign){
  }
  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}">${artwork}</svg>`;
 }
+
