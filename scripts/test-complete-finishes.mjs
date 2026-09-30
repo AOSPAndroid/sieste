@@ -7,9 +7,18 @@ const templates=['daytrends','daybars','daymatrix','dayrings','scorecard','weekc
 for(const [i,template] of templates.entries()){
  const svg=shareCardSvg({...base,template,finish:'iridescent'});
  for(const tag of svg.match(/<text[^>]*>/g)??[])assert.match(tag,/fill="url\(#metal(?:Soft)?\)"/);
- for(const tag of svg.match(/<(?:path|circle|rect|g)[^>]*stroke="[^>]*>/g)??[])assert.match(tag,/stroke="(?:none|url\(#finishStroke\))"/);
+ for(const tag of svg.match(/<(?:path|circle|rect|g)[^>]*stroke="[^>]*>/g)??[])assert.match(tag,/stroke="(?:none|url\(#(?:finishStroke|iconFinish)\))"/);
  assert.ok(svg.includes('gradientUnits="userSpaceOnUse"'));assert.ok(!svg.includes('#f472b6'));
  const png=await sharp(Buffer.from(svg)).resize(480,480).flatten({background:'#202631'}).png().toBuffer();tiles.push({input:png,left:i%2*490,top:Math.floor(i/2)*490});
 }
 await sharp({create:{width:970,height:1950,channels:3,background:'#eee'}}).composite(tiles).png().toFile('C:/Users/adell/Projects/sieste-design-review/complete-finishes.png');
 console.log('Passed: all text, chart strokes and icons finished; stroke gradients support zero-height paths.');
+
+for(const finish of ['solid','chrome','gold','rose','copper','titanium','midnight','iridescent','rainbow']){
+ const svg=shareCardSvg({...base,template:'daytrends',showLabels:false,finish});
+ for(const key of ['sleep','score','hrv'])assert.ok(svg.includes('data-health-icon="'+key+'"'));
+ assert.ok(svg.includes('data-sport-icon="running"'));assert.ok(!/>Running<|>SLEEP<|>OVERNIGHT HRV</.test(svg));
+ if(finish!=='solid')for(const tag of svg.match(/<g data-(?:health|sport)-icon[^>]*>/g)??[])assert.ok(tag.includes('stroke="url(#iconFinish)"'));
+ await sharp(Buffer.from(svg)).png().toBuffer();
+}
+console.log('Passed: icon-only sport and health labels in all nine finishes.');

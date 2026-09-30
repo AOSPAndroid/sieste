@@ -29,7 +29,10 @@ const sportGlyphs:Record<string,string>={
 const healthGlyphs:Record<string,string>={
  sleep:'<path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z"/>',
  score:'<path d="m12 3 2.8 5.7 6.3.9-4.5 4.4 1.1 6.2-5.7-3-5.7 3 1.1-6.2-4.5-4.4 6.3-.9Z"/>',
- hrv:'<path d="M2 12h4l3-8 4 16 3-8h6"/>'
+ hrv:'<path d="M2 12h4l3-8 4 16 3-8h6"/>',
+ heartrate:'<path d="M20 4a5 5 0 0 0-8 2 5 5 0 0 0-8-2c-4 4 0 9 8 16 8-7 12-12 8-16Z"/>',
+ calories:'<path d="M12 2c4 6-1 8 3 11l3-5c6 8 2 14-6 14S2 15 7 8c0 5 4 5 5-6Z"/>',
+ steps:'<ellipse cx="8" cy="8" rx="3" ry="6"/><circle cx="7" cy="18" r="2"/><ellipse cx="17" cy="12" rx="3" ry="6"/><circle cx="16" cy="22" r="1"/>'
 };
 export function shareCardSvg(o:ShareDesign){
  const englishVersions:Partial<Record<ShareTemplate,ShareTemplate>>={metroen:'metro',sweatreceipten:'sweatreceipt',excuseen:'excuse'},english=!!englishVersions[o.template];
@@ -38,7 +41,8 @@ export function shareCardSvg(o:ShareDesign){
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
  const compact=(s:ShareStat)=>s.value+(s.unit==='min:sec'||s.unit==='h:mm:ss'?'':s.unit==='/km'?'/km':' '+s.unit);
  function text(value:string,x:number,y:number,size=24,weight=400,color=ink,width=936,serif=false,anchor='start'){
- const healthKey=o.template.startsWith('day')?({'sleep':'sleep','sleep today':'sleep','sleep score':'score','overnight hrv':'hrv','hrv':'hrv'} as Record<string,string>)[value.toLowerCase()]:undefined;
+ const statLabel=o.stats.find(s=>s.label.toLowerCase()===value.toLowerCase());
+ const healthKey=({'sleep':'sleep','sleep today':'sleep','sleep score':'score','overnight hrv':'hrv','hrv':'hrv','resting hr':'heartrate','heart rate':'heartrate','average heart rate':'heartrate','avg hr':'heartrate','steps':'steps','calories':'calories','workout calories':'calories','workout kcal':'calories'} as Record<string,string>)[value.toLowerCase()]??(statLabel&&healthGlyphs[statLabel.key]?statLabel.key:undefined);
  if(healthKey){
   const iconSize=Math.min(30,Math.max(24,size*1.2)),labelWidth=Math.min(Math.max(1,width-iconSize-8),value.length*size*.58),groupWidth=o.showLabels===false?iconSize:iconSize+8+labelWidth,left=anchor==='middle'?x-groupWidth/2:anchor==='end'?x-groupWidth:x;
   const glyph=`<g data-health-icon="${healthKey}" transform="translate(${left} ${y-iconSize*.85}) scale(${iconSize/24})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${healthGlyphs[healthKey]}</g>`;
@@ -53,6 +57,10 @@ export function shareCardSvg(o:ShareDesign){
  const family=session?.sportFamily??(single?o.sportFamily:undefined);
  let pictogram='';
  if(family){
+  if(o.showLabels===false){
+   const iconSize=Math.min(44,Math.max(26,size)),left=anchor==='middle'?x-iconSize/2:anchor==='end'?x-iconSize:x;
+   return `<g data-sport-icon="${xml(family)}" transform="translate(${left} ${y-iconSize*.85}) scale(${iconSize/24})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sportGlyphs[family]??sportGlyphs.misc}</g>`;
+  }
   const iconSize=Math.min(44,Math.max(22,size*1.15)),gap=10,reserved=iconSize+gap,textWidth=Math.min(Math.max(0,width-reserved),[...value].length*size*(serif?.48:.58)),left=anchor==='middle'?x-(textWidth+reserved)/2:anchor==='end'?x-textWidth-reserved:x;
   const paint=(o.finish&&o.finish!=='solid'||o.template.startsWith('chrome'))&&!['ticket','metro','sweatreceipt','glass','daystack','bubble'].includes(o.template)?'url(#metalSoft)':color;
   pictogram=`<g data-sport-icon="${xml(family)}" transform="translate(${left} ${y-size*.8}) scale(${iconSize/24})" fill="none" stroke="${paint}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sportGlyphs[family]??sportGlyphs.misc}</g>`;
@@ -364,7 +372,8 @@ export function shareCardSvg(o:ShareDesign){
  let artwork=parts.join('');
  if(o.finish&&o.finish!=='solid'){
   const cardSurface=['ticket','metro','sweatreceipt','glass','daystack','bubble'].includes(o.template);
-  artwork='<defs><linearGradient id="finishStroke" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1080" y2="'+h+'">'+c.map((color,i)=>`<stop offset="${i/(c.length-1)}" stop-color="${color}"/>`).join('')+'</linearGradient></defs>'+artwork;
+  const stops=c.map((color,i)=>`<stop offset="${i/(c.length-1)}" stop-color="${color}"/>`).join('');
+  artwork='<defs><linearGradient id="finishStroke" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1080" y2="'+h+'">'+stops+'</linearGradient><linearGradient id="iconFinish" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="5" y2="24">'+stops+'</linearGradient></defs>'+artwork;
   artwork=artwork.replace(/<(text|path|circle|rect|line|polyline|polygon|ellipse|g)[^>]*>/g,tag=>{
    if(tag.includes('width="1080"'))return tag;
    const isText=tag.startsWith('<text'),size=Number(tag.match(/font-size="([^"]+)"/)?.[1]??0);
@@ -372,7 +381,7 @@ export function shareCardSvg(o:ShareDesign){
    const surface=cardSurface&&/^<(?:path|rect)\b/.test(tag)&&/fill="(?!none|transparent)[^"]+"/.test(tag);
    if(surface)tag=tag.replace(/fill="[^"]*"/,'fill="#151a22"');
    else tag=tag.replace(/fill="(?!none|transparent)[^"]*"/,isText&&size>=64?'fill="url(#metal)"':'fill="url(#metalSoft)"');
-   return tag.replace(/stroke="(?!none|transparent)[^"]*"/,'stroke="url(#finishStroke)"');
+   return tag.replace(/stroke="(?!none|transparent)[^"]*"/,/data-(?:health|sport)-icon=/.test(tag)?'stroke="url(#iconFinish)"':'stroke="url(#finishStroke)"');
   });
  }
  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}">${artwork}</svg>`;
