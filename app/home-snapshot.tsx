@@ -55,7 +55,7 @@ export default function HomeSnapshot({data,dates,now,token,isDemo}:{data:Athlete
   });
   text(`Training · ${dates.length} days`,32,392,18,'#232333',true);let top=410;
   rows.forEach((row,ri)=>{row.forEach((g,ci)=>{const x=32+ci*col;box(x-4,top,col-8,heights[ri]-12);text(g.day.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}),x+8,top+25,15,'#6151bf',true);
-   if(!g.items.length)text('No sessions synced',x+8,top+62,13,'#90909b',false,col-25);
+   if(!g.items.length)text(localDate(g.day)>localDate(now)?'Upcoming':'Rest day',x+8,top+62,13,'#90909b',false,col-25);
    g.items.forEach((a,j)=>{const y=top+52+j*132,s={...a.summary,...detail[a.id]?.summary},family=sportFamily(a),speed=workoutSpeed({summary:s}),pace=s.pace>0?s.pace:s.distance>0&&s.duration>0?s.duration/s.distance*1000:null;
     icon(family==='walking'||family==='hiking'?'steps':family,x+8,y-14,'#6151bf');text(a.title||sportName(family),x+31,y,16,'#6151bf',true,col-48);text(new Date(a.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),x+8,y+20,12,'#90909b');
     const lines=[valid(s.duration)?duration(s.duration/60):'—',valid(s.distance)?`${(s.distance/1000).toFixed(2)} km`:'',family==='cycling'?(speed!==null?speed.toFixed(1)+' km/h':''):family==='running'?runningPace(pace):'',valid(s.heartrate)?Math.round(s.heartrate)+' bpm':'',valid(s.calories)?Math.round(s.calories)+' kcal':''].filter(Boolean);
