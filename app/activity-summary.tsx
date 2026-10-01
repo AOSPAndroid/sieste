@@ -8,6 +8,7 @@ import ActivityProfile from './activity-profile';
 import RecordedFields from './recorded-fields';
 import WidgetSpark from './widget-spark';
 import SessionIntelligence from './session-intelligence';
+import RunningTechnique from './running-technique';
 import {ResponsiveContainer,ComposedChart,Line,Area,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
 import RouteMap from './route-map';
 import {ExpandButton} from './expansion';
@@ -40,6 +41,7 @@ export default function ActivitySummary({detail,loading,history=[],onClassify}:{
  <DeferredPanel className="activity-extra-sensors" summary="Execution · repeat consistency & fading"><IntervalConsistency key={detail.id} detail={detail}/><ActivityLaps detail={detail}/></DeferredPanel>
  {!loading&&!detail.mergedIds&&<SessionIntelligence key={`intelligence-${detail.id}`} detail={detail} onClassify={onClassify}/>}
  {(['Session','Technique','Conditions'] as const).map(group=>{const metrics=cards.filter(m=>m.group===group);return metrics.length>0&&<section className="activity-glance-group" key={group}><div className="activity-section-label"><h3>{group==='Session'?'Workout at a glance':group==='Technique'?'Movement & technique':'Terrain & conditions'}</h3><span>{group==='Session'?'↗ Details & charts':''}</span></div><div className="activity-glance-grid">{metrics.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>})}
+ {family==='running'&&<RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading}/>}
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}
  {other.length>0&&<details className="activity-extra-sensors"><summary>{other.length} additional recorded sensors</summary><p>Available under Telemetry and Raw data. No assumed units or generic averages.</p><div>{other.map(key=><span key={key}>{key.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase())}</span>)}</div></details>}
  <RecordedFields detail={detail}/>

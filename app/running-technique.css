@@ -1,0 +1,233 @@
+.running-technique {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #e3dfef;
+  border-radius: 10px;
+  background: #fff;
+  min-width: 0;
+  color: #344055;
+  font-size: 14px;
+}
+.running-technique > header,
+.technique-history > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.running-technique h3,
+.running-technique h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  color: #5d4f98;
+}
+.running-technique p {
+  margin: 4px 0;
+  color: #748094;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.technique-scope {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: #f3f1f9;
+  border-radius: 7px;
+}
+.running-technique .technique-scope button {
+  padding: 5px 8px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #667086;
+  font-size: 14px;
+}
+.running-technique .technique-scope button[aria-pressed="true"] {
+  background: #fff;
+  color: #5d4f98;
+  box-shadow: 0 1px 3px #34215712;
+}
+.running-technique .technique-scope button:disabled {
+  opacity: 0.45;
+}
+.technique-table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid #eeebf4;
+  border-radius: 7px;
+}
+.running-technique table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.technique-table-scroll table {
+  min-width: 590px;
+}
+.running-technique th,
+.running-technique td {
+  padding: 7px 8px;
+  text-align: right;
+  border-bottom: 1px solid #f0edf5;
+  vertical-align: top;
+  line-height: 1.4;
+}
+.running-technique tr:last-child th,
+.running-technique tr:last-child td {
+  border-bottom: 0;
+}
+.running-technique th:first-child {
+  text-align: left;
+}
+.running-technique thead th {
+  font-weight: 600;
+  background: #faf9fd;
+  color: #5c5874;
+  white-space: nowrap;
+}
+.running-technique tbody th {
+  font-weight: 500;
+}
+.running-technique th small,
+.running-technique td small {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: #8a899d;
+}
+.running-technique .technique-current {
+  background: #f6f3fd;
+  color: #6350a5;
+}
+.running-technique td strong {
+  font-weight: 600;
+}
+.technique-change {
+  display: block;
+  font-size: 12px;
+  color: #596579;
+  white-space: nowrap;
+}
+.technique-change > span {
+  color: #9697a7;
+  font-size: 12px;
+}
+.running-technique .technique-pace th,
+.running-technique .technique-pace td {
+  font-size: 13px;
+  color: #818096;
+}
+.technique-history {
+  margin-top: 10px;
+  border-top: 1px solid #eeeaf5;
+  padding-top: 9px;
+}
+.running-technique select {
+  font-size: 14px;
+  border: 1px solid #e2deed;
+  border-radius: 6px;
+  padding: 5px;
+  background: #fff;
+  color: #5d4f98;
+  max-width: 100%;
+  min-height: 32px;
+}
+.technique-chart {
+  width: 100%;
+  height: 175px;
+  min-width: 0;
+}
+.technique-tooltip {
+  padding: 7px 9px;
+  border: 1px solid #e2deed;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 3px 12px #30224915;
+  font-size: 13px;
+}
+.technique-tooltip span,
+.technique-tooltip small {
+  display: block;
+}
+.technique-tooltip small {
+  font-size: 12px;
+  color: #878298;
+}
+.running-technique .technique-chart-key {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  margin: 2px 0 7px;
+}
+.technique-chart-key i {
+  width: 16px;
+  height: 2px;
+  background: #7060bd;
+  display: inline-block;
+}
+.technique-chart-key i.technique-run-line {
+  background: transparent;
+  border-top: 2px dashed #298a83;
+  margin-left: 8px;
+  height: 0;
+}
+.running-technique details {
+  margin-top: 7px;
+}
+.running-technique summary {
+  cursor: pointer;
+  color: #6b6382;
+  font-size: 13px;
+  padding: 3px 0;
+}
+.technique-month-values {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.technique-method p {
+  font-size: 13px;
+}
+.technique-table-scroll:focus-visible,
+.running-technique button:focus-visible,
+.running-technique select:focus-visible,
+.running-technique summary:focus-visible {
+  outline: 2px solid #7060bd;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .running-technique {
+    padding: 8px;
+  }
+  .technique-table-scroll table {
+    min-width: 560px;
+  }
+  .running-technique th,
+  .running-technique td {
+    padding: 6px;
+  }
+  .running-technique > header {
+    align-items: flex-start;
+  }
+  .technique-table-scroll th:first-child {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 1;
+  }
+  .technique-table-scroll thead th:first-child {
+    background: #faf9fd;
+  }
+  .technique-chart {
+    height: 160px;
+  }
+  .technique-history > header {
+    align-items: flex-start;
+  }
+}
