@@ -1,9 +1,8 @@
+import {loadShareDesignModule} from './share-design-test-module.mjs';
 import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
-import ts from 'typescript';
 import assert from 'node:assert/strict';
 import sharp from 'sharp';
-const src=ts.transpileModule(readFileSync(new URL('../app/share-card-design.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
-const {shareCardSvg,shareFinishes}=await import('data:text/javascript;base64,'+Buffer.from(src).toString('base64'));
+const {shareCardSvg,shareFinishes}=await loadShareDesignModule();
 const points=[{x:0,y:0},{x:1,y:.2},{x:.7,y:1},{x:.2,y:.8},{x:0,y:0}];
 const options={height:1080,transparent:true,ink:'white',accent:'#ffffff',title:'Paris after hours',sport:'Running',date:'18 September 2026',stats:[{key:'distance',label:'Distance',value:'5.06',unit:'km'},{key:'duration',label:'Activity time',value:'26:54',unit:'min:sec'},{key:'pace',label:'Average pace',value:'5:19',unit:'/km'},{key:'hr',label:'Average heart rate',value:'137',unit:'bpm'},{key:'ascent',label:'Elevation gain',value:'27',unit:'m'},{key:'calories',label:'Workout calories',value:'316',unit:'kcal'}],route:{points,segments:[points],center:{x:.5,y:.5},zoom:1},laps:Array.from({length:12},(_,i)=>({index:i+1,value:3+i/20,pace:1000/(3+i/20)})),dayCards:[{title:'Morning ride',stats:[{key:'distance',label:'Distance',value:'32.58',unit:'km'}]},{title:'Strength',stats:[{key:'duration',label:'Activity time',value:'38:35',unit:'min:sec'}]}],weekday:'Friday',time:'16:13',weekDays:[{label:'Mon',value:10},{label:'Tue',value:0},{label:'Wed',value:5},{label:'Thu',value:0},{label:'Fri',value:10},{label:'Sat',value:null},{label:'Sun',value:null}],brand:true,demo:true};
 const dir=new URL('../../sieste-design-review/',import.meta.url);mkdirSync(dir,{recursive:true});

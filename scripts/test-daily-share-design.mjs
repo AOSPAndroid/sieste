@@ -1,3 +1,4 @@
+import {loadShareDesignModule} from './share-design-test-module.mjs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {mkdirSync as ensureDirectory} from 'node:fs';
@@ -5,8 +6,7 @@ const artifactDirectory=process.env.SIESTE_TEST_ARTIFACTS??join(tmpdir(),'sieste
 ensureDirectory(artifactDirectory,{recursive:true});
 import {readFileSync,writeFileSync} from 'node:fs';
 import ts from 'typescript';import sharp from 'sharp';import assert from 'node:assert/strict';
-const src=ts.transpileModule(readFileSync('app/share-card-design.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
-const {shareCardSvg}=await import('data:text/javascript;base64,'+Buffer.from(src).toString('base64'));
+const {shareCardSvg}=await loadShareDesignModule();
 const stats=[{key:'duration',label:'Activity time',value:'1:45:00',unit:'h:mm:ss'},{key:'calories',label:'Workout calories',value:'860',unit:'kcal'},{key:'sleep',label:'Sleep today',value:'8h 12m',unit:''},{key:'hrv',label:'Overnight HRV',value:'94',unit:'ms'}];
 const base={height:1080,transparent:true,ink:'white',accent:'#ffffff',title:'Today · 29 Sept',sport:'Other',date:'',stats,route:null,brand:false,demo:false,dayCards:[{title:'Sleep & recovery',stats:stats.slice(2)},{title:'Morning run',sportFamily:'running',stats:[{key:'distance',label:'Distance',value:'10.2',unit:'km'},{key:'duration',label:'Time',value:'55:00',unit:'min:sec'}]},{title:'Lunch ride',sportFamily:'cycling',stats:[{key:'distance',label:'Distance',value:'22.6',unit:'km'}]},{title:'Strength',sportFamily:'strength_training',stats:[{key:'duration',label:'Time',value:'20:00',unit:'min:sec'}]}],dayMix:[{label:'Running',seconds:3300,color:'#818cf8'},{label:'Cycling',seconds:1800,color:'#38bdf8'},{label:'Strength',seconds:1200,color:'#fb923c'}],dayHealth:{sleep:29520,score:86,hrv:94,hrvRange:[72,113],history:Array.from({length:7},(_,i)=>({date:'2026-09-'+(23+i),sleep:i===3?null:[7.2,8.1,7.8,0,6.9,7.4,8.2][i],score:i===3?null:[80,91,88,0,74,82,86][i],hrv:i===3?null:[87,95,91,0,80,88,94][i]}))},dayCoverage:{covered:3,total:3}};
 const tiles=[];

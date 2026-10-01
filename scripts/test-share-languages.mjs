@@ -1,12 +1,12 @@
+import {loadShareDesignModule} from './share-design-test-module.mjs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {mkdirSync as ensureDirectory} from 'node:fs';
 const artifactDirectory=process.env.SIESTE_TEST_ARTIFACTS??join(tmpdir(),'sieste-design-review');
 ensureDirectory(artifactDirectory,{recursive:true});
 import {readFileSync} from 'node:fs';
-import ts from 'typescript';import sharp from 'sharp';import assert from 'node:assert/strict';
-const source=ts.transpileModule(readFileSync('app/share-card-design.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
-const {shareCardSvg}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+import sharp from 'sharp';import assert from 'node:assert/strict';
+const {shareCardSvg}=await loadShareDesignModule();
 const base={height:1080,transparent:true,ink:'white',accent:'#ffffff',title:'Morning ride',sport:'Cycling',sportFamily:'cycling',date:'',stats:[{key:'distance',label:'Distance',value:'32.58',unit:'km'},{key:'duration',label:'Time',value:'1h 20m',unit:''}],route:null,brand:false,demo:false};
 const tiles=[];
 for(const [i,[key,fr,en]] of [['metro','VALIDÉ PAR VOS JAMBES','VALIDATED BY YOUR LEGS'],['sweatreceipt','REMBOURSEMENT : UNE SIESTE','REFUND: ONE NAP'],['excuse','ABSENCE JUSTIFIÉE','EXCUSED ABSENCE']].entries()){

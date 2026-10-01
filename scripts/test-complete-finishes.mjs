@@ -1,11 +1,11 @@
+import {loadShareDesignModule} from './share-design-test-module.mjs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {mkdirSync as ensureDirectory} from 'node:fs';
 const artifactDirectory=process.env.SIESTE_TEST_ARTIFACTS??join(tmpdir(),'sieste-design-review');
 ensureDirectory(artifactDirectory,{recursive:true});
-import {readFileSync} from 'node:fs';import ts from 'typescript';import sharp from 'sharp';import assert from 'node:assert/strict';
-const source=ts.transpileModule(readFileSync('app/share-card-design.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
-const {shareCardSvg}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+import {readFileSync} from 'node:fs';import sharp from 'sharp';import assert from 'node:assert/strict';
+const {shareCardSvg}=await loadShareDesignModule();
 const stats=[{key:'distance',label:'Distance',value:'10.01',unit:'km'},{key:'duration',label:'Time',value:'51:00',unit:'min:sec'}];
 const base={height:1080,transparent:true,ink:'white',accent:'#f472b6',title:'Today',sport:'Running',sportFamily:'running',date:'29 September',stats,route:null,brand:true,demo:false,dayCards:[{title:'Recovery',stats:[]},{title:'Running',sportFamily:'running',stats}],dayHealth:{sleep:28000,score:83,hrv:106,history:Array.from({length:7},(_,i)=>({date:'2026-09-'+(23+i),sleep:7+i/10,score:80+i,hrv:90+i*2}))}};
 const templates=['daytrends','daybars','daymatrix','dayrings','scorecard','weekchart','metroen','sweatreceipten'];const tiles=[];

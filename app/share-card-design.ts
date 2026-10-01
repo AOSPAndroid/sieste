@@ -1,3 +1,4 @@
+import {cinematicText,cinematicTitleLines} from './cinematic-type';
 import type {routeGeometry} from './route-geometry';
 export const shareFinishes=[
  {key:'chrome',name:'Silver chrome',colors:['#ffffff','#c8d0dc','#faffff','#9099a8','#252b37','#535e70','#e6edf6','#ffffff','#8993a3']},
@@ -11,8 +12,8 @@ export const shareFinishes=[
 ] as const;
 export type ShareFinish='solid'|typeof shareFinishes[number]['key'];
 export const finishSwatch=(colors:readonly string[])=>'linear-gradient(165deg,'+colors.map((c,i)=>c+' '+[0,18,39,48,50,61,76,88,100][i]+'%').join(',')+')';
-export type ShareTemplate='editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
-export const routeTemplates:ShareTemplate[]=['route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
+export type ShareTemplate='cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export const routeTemplates:ShareTemplate[]=['cinematrace','route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;showLabels?:boolean;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
@@ -88,7 +89,33 @@ export function shareCardSvg(o:ShareDesign){
   return (outline?'':`<g transform="translate(0 5)">${glyph.replace('fill="url(#metal)"','fill="#252b37" stroke="#252b37" stroke-width="3"')}</g>`)+
    glyph.replace('fill="url(#metal)"',`fill="${outline?'none':'url(#metal)'}" stroke="url(#rim)" stroke-width="${outline?3:1.8}" paint-order="stroke fill"`);
  };
- if(o.template==='chrome'||o.template==='chromeoutline'){
+ if(o.template.startsWith('cinema')){
+  const paint=isChrome?'url(#metal)':ink,primary=first?compact(first):'NO RECORDED STATS',headline=primary.toUpperCase();
+  const display=(value:string,x:number,y:number,width:number,height:number,face:'bold'|'tall'|'serif'='bold',center=false)=>cinematicText(value,{x,y,width,height,face,color:paint,align:center?'middle':'start'});
+  const supporting=(y:number)=>others.slice(0,3).map((stat,i)=>{const x=72+i*322;return display(compact(stat).toUpperCase(),x,y,292,56,'tall')+(o.showLabels?text(stat.label.toUpperCase(),x,y+87,18,600,secondary,292):'')}).join('');
+  const title=o.title||o.sport,weekday=(o.weekday||o.sport).toUpperCase();
+  if(o.template==='cinemabig'){
+   parts.push(display(title.toUpperCase(),72,cy-312,936,56,'tall'),display(headline,60,cy-206,960,365),supporting(cy+222));
+  }else if(o.template==='cinemaday'){
+   parts.push(display(weekday,72,cy-325,936,108,'tall',true),display(headline,60,cy-161,960,335,'tall',true),supporting(cy+244));
+  }else if(o.template==='cinematitle'){
+   const lines=cinematicTitleLines(title),top=cy-315;
+   lines.forEach((line,i)=>parts.push(display(line,72,top+i*108,936,92,'bold')));
+   parts.push(display(headline,60,cy-315+lines.length*108+50,960,240,'tall'),supporting(cy-315+lines.length*108+350));
+  }else if(o.template==='cinematrace'){
+   parts.push(display(weekday,72,cy-382,936,75,'bold',true),route(175,cy-263,730,395,7),display(headline,72,cy+206,936,125,'bold',true),supporting(cy+389));
+  }else if(o.template==='cinemaserif'){
+   parts.push(display(title.toUpperCase(),72,cy-214,936,42,'tall',true),display(primary,60,cy-106,960,175,'serif',true));
+   const pace=others.find(stat=>stat.key==='pace'||stat.key==='speed')??others[0];
+   if(pace)parts.push(display(compact(pace),72,cy+109,936,48,'tall',true));
+   parts.push(text(others.filter(stat=>stat!==pace).slice(0,2).map(compact).join('   /   '),540,cy+237,28,600,secondary,936,false,'middle'));
+  }else{
+   const rows=o.stats.slice(0,6),rowHeight=rows.length>4?76:100,gap=28,totalHeight=rows.length*(rowHeight+gap)-gap,top=cy-totalHeight/2;
+   parts.push(display(title.toUpperCase(),72,top-105,936,56,'tall',true));
+   rows.forEach((stat,i)=>parts.push(display(compact(stat).toUpperCase(),72,top+i*(rowHeight+gap),936,rowHeight,'bold',true)));
+  }
+  if(o.date)parts.push(text(o.date,540,Math.min(h-84,cy+478),22,500,secondary,936,false,'middle'));
+ }else if(o.template==='chrome'||o.template==='chromeoutline'){
   parts.push(text(o.title.toUpperCase(),82,cy-150,25,700,secondary,910));
   if(first)parts.push(metal(compact(first).toUpperCase(),70,cy+55,176,935,o.template==='chromeoutline'));
   others.slice(0,3).forEach((v,i)=>{const x=85+i*320;parts.push(text(compact(v),x,cy+140,37,800,secondary,290),text(v.label.toUpperCase(),x,cy+179,17,600,secondary,290))});
