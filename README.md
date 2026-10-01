@@ -6,6 +6,10 @@ Private account data, FIT files, credentials and local caches are excluded from 
 
 Built on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
 
+Returning visits restore a dashboard snapshot from IndexedDB on the current device, after a lightweight sign-in and connection check. Snapshots expire after 14 days and keep the complete synced training history. Fresh saved data loads in the background, with automatic provider sync when it is older than five minutes; Sync now remains available. Sign-out, disconnect and account replacement clear the device cache. Credentials and raw workout telemetry are not stored in this snapshot cache. If browser storage is unavailable, the dashboard continues to load from the server.
+
+Run `npm run test:cache` to verify device storage, account isolation, expiry and background restore behavior.
+
 ## Prerequisites
 
 - Node.js `>=22.13.0`
