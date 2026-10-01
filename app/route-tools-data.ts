@@ -10,6 +10,6 @@ export function editRoute(detail:any,start:number,end:number,cuts:Cut[]=[]){
 }
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 export function routeGpx(detail:any,geometry:NonNullable<ReturnType<typeof routeGeometry>>){
- const series=detail.seriesSampled?.data??{},step=detail.seriesSampled?.sampleSize;
+ const series=detail.seriesSampled?.data??{};
  return `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="sieste" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${xml(detail.title||'Edited route')}</name>${geometry.segments.filter(s=>s.length>1).map(segment=>'<trkseg>'+segment.map(p=>{const altitude=series.altitude?.[p.index];return `<trkpt lat="${p.lat}" lon="${p.lon}">${Number.isFinite(altitude)?`<ele>${altitude}</ele>`:''}</trkpt>`}).join('')+'</trkseg>').join('')}</trk></gpx>`;
 }

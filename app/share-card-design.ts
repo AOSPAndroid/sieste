@@ -231,7 +231,7 @@ export function shareCardSvg(o:ShareDesign){
   if(!sessions.length)parts.push(text('REST DAY',80,top+580,48,800),text('No activities synced for today',80,top+625,25,500));
   parts.push(text('HRV ring: 0 to usual upper bound · dot: usual lower bound',80,top+848,16,400,secondary,920));
  }else if(o.template==='dayposter'){
-  const top=cy-440,mix=(o.dayMix??[]).filter(m=>Number.isFinite(m.seconds)&&m.seconds>0),total=mix.reduce((n,m)=>n+m.seconds,0),health=o.dayCards?.[0]?.stats??[],sessions=(o.dayCards??[]).slice(1),sleep=health.find(s=>s.key==='sleep'),hrv=health.find(s=>s.key==='hrv'),duration=o.stats.find(s=>s.key==='duration'),calories=o.stats.find(s=>s.key==='calories');
+  const top=cy-440,health=o.dayCards?.[0]?.stats??[],sessions=(o.dayCards??[]).slice(1),sleep=health.find(s=>s.key==='sleep'),hrv=health.find(s=>s.key==='hrv'),duration=o.stats.find(s=>s.key==='duration'),calories=o.stats.find(s=>s.key==='calories');
   const val=(s:ShareStat|undefined)=>s?compact(s):'Unavailable';
   const stat=(label:string,value:string,x:number,y:number,width=420)=>{parts.push(text(label.toUpperCase(),x,y,20,700,secondary,width),heavy(value,x,y+57,55,width));};
   const list=(y:number)=>{const step=Math.min(52,180/Math.max(1,sessions.length));if(!sessions.length)parts.push(text('REST DAY · NO SYNCED ACTIVITIES',80,y+30,22,700));sessions.forEach((session,i)=>{const summary=session.stats.slice(0,3).map(compact).join(' · ');parts.push(text(String(i+1).padStart(2,'0')+'  '+session.title,80,y+i*step,Math.min(22,step*.43),700,ink,440),text(summary,1000,y+i*step,Math.min(21,step*.42),500,ink,450,false,'end'))});};

@@ -1,4 +1,4 @@
-import {corosRecords,corosSleep,corosHrv,corosResting} from '../../coros-data';
+import {corosRecords,corosSleep,corosHrv} from '../../coros-data';
 import {day,captureCoros} from './library';
 const args=(from:string,to:string)=>({startDate:from.replaceAll('-',''),endDate:to.replaceAll('-',''),sportTypeCodes:[65535],minDistanceKm:0,maxDistanceKm:100000,minDurationMinutes:0,maxDurationMinutes:100000,maxAveragePace:'',locationKeyword:'',limit:1500});
 export async function importCorosHistory(client:any,previous:any,now:Date){const recent=new Date(now.getTime()-30*86400000).toISOString().slice(0,10),today=now.toISOString().slice(0,10),migration=previous?.extra?.coros?.importVersion!==2;const state=previous?.extra?.coros?.history;

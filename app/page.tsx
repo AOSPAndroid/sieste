@@ -9,7 +9,6 @@ import {clearWorkoutCache} from './workout-detail-cache';
 import {loadWorkoutView} from './activity-loader';
 import {useScrollChrome} from './use-scroll-chrome';
 const CorosHub=lazy(()=>import('./coros-hub'));
-import DeferredPanel from './deferred-panel';
 import CorosFitness from './coros-fitness';
 import {applyWorkoutExclusions} from './workout-exclusions';
 import {useEffect,useState,useRef,lazy,Suspense,useDeferredValue,startTransition} from 'react';
@@ -92,7 +91,6 @@ useEffect(()=>{
  const timer=window.setInterval(check,30000);document.addEventListener('visibilitychange',check);window.addEventListener('online',check);check();
  return()=>{window.clearInterval(timer);document.removeEventListener('visibilitychange',check);window.removeEventListener('online',check)};
 },[accountLoading,account.signedIn,isDemo,token,busy,modal,selected,data.syncedAt]);
-async function disconnect(){clearWorkoutCache();setBusy(true);setError('');try{const response=await fetch('/api/sync',{method:'DELETE'});const result=await response.json() as any;if(!response.ok)throw new Error(result.error||'Could not disconnect.');await discardDeviceData();setTokenDraft('');setRemovedWorkout(null);setSelected(null);if(corosConnected)await restoreAccount();else{setToken('');setData(demo);setIsDemo(true)}setModal(false)}catch(e){setError(e instanceof Error?e.message:'Could not disconnect.')}finally{setBusy(false)}}
 useEffect(()=>{if(!modal)return;const previous=document.activeElement as HTMLElement;const dialog=document.querySelector<HTMLElement>('[role="dialog"]');const focusables=()=>Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled),input,a[href],select')??[]);const handle=(e:KeyboardEvent)=>{if(document.querySelector('.athena-chat[open]'))return;if(e.key!=='Tab')return;const items=focusables(),first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}};document.addEventListener('keydown',handle);return()=>{document.removeEventListener('keydown',handle);previous?.focus()}},[modal,selected]);
 const analyzing=useBackgroundAnalysis({data,setData,token,isDemo,fullHistory:historyAnalysis,onError:setAnalysisError,enabled:!accountLoading&&!busy&&!modal&&!selected&&tab==='Overview'});
 if(accountLoading)return <><DashboardLoading/><AthenaChat screen="Loading dashboard" canChat={false}/></>;

@@ -10,13 +10,13 @@ import {filteredSnapshot,workoutExclusions} from '../../../db/workout-exclusions
 import {sessionLabels} from '../../session-intelligence-data';
 import {createCorosClient} from './mcp';
 import {fitDetail} from './fit';
-import {corosRecords,corosSleep,corosHrv,corosResting,corosDaily,corosFitness,corosRecovery,corosLoad,corosSummary,corosLaps} from '../../coros-data';
+import {corosSleep,corosHrv,corosResting,corosDaily,corosFitness,corosRecovery,corosLoad,corosSummary,corosLaps} from '../../coros-data';
 const date=(d:Date)=>d.toISOString().slice(0,10).replaceAll('-','');
 const identity=(row:CorosConnection)=>'coros:'+row.revision;
 export async function corosSnapshot(row:CorosConnection){const object=row.snapshot_key?await storage().bucket.get(row.snapshot_key):null;if(!object)return null;const data=corosNativeSnapshot(await object.json());const cached=data.extra?.coros?.fitness?.predictionVersion!==2?await storage().bucket.get((await ownerPrefix(row.owner))+'coros-library/queryFitnessAssessmentOverview.json'):null;return filteredSnapshot(row.owner,await restoreAnalyses(row.owner,identity(row),repairRacePredictions(data,cached?await cached.json():null)))}
 const inFlight=new Map<string,Promise<any>>();
 export async function syncCoros(row:CorosConnection,wellnessOnly=false,options:{manual?:boolean;timeZone?:string;primary?:any}={}){const existing=inFlight.get(row.owner);if(existing)return existing;const task=performSync(row,wellnessOnly,options);inFlight.set(row.owner,task);try{return await task}finally{inFlight.delete(row.owner)}}
-async function performSync(row:CorosConnection,wellnessOnly:boolean,options:{manual?:boolean;timeZone?:string;primary?:any}){const previous=await corosSnapshot(row);if(!options.manual&&previous?.syncedAt&&Date.now()-Date.parse(previous.syncedAt)<60000)return previous;const client=await createCorosClient(row),now=new Date(),oldest=new Date(Date.UTC(now.getUTCFullYear()-1,0,1)-31*86400000),recent=new Date(now.getTime()-30*86400000),from=previous?recent:oldest;const warnings:string[]=[],prefix=(await corosPrefix(row.owner))+row.revision+'/';
+async function performSync(row:CorosConnection,wellnessOnly:boolean,options:{manual?:boolean;timeZone?:string;primary?:any}){const previous=await corosSnapshot(row);if(!options.manual&&previous?.syncedAt&&Date.now()-Date.parse(previous.syncedAt)<60000)return previous;const client=await createCorosClient(row),now=new Date();const warnings:string[]=[],prefix=(await corosPrefix(row.owner))+row.revision+'/';
  const imported=wellnessOnly?{activities:previous?.activities??[],history:previous?.extra?.coros?.history??{from:date(now),complete:false}}:await importCorosHistory(client,previous,now);const fresh=imported.activities;
  const activities=fresh.map(corosNativeActivity);const sources:any={...previous?.sources},extra:any={...previous?.extra};
  // Load scores from COROS only. Tredict effort and COROS load use different scales.

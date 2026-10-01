@@ -132,3 +132,7 @@ The portable build runs Vinext directly without a host `timeout` command. The ma
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)
 - [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+
+## Code and performance audit
+
+See [the audit report](docs/code-performance-audit.md) for cleanup findings, before/after bundle measurements, remaining optimization opportunities and repeatable checks. `npm run typecheck` rejects unused locals and parameters; `npm run audit:bundle` checks the initial JavaScript budget after a production build.

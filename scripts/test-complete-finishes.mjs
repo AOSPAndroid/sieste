@@ -1,3 +1,8 @@
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {mkdirSync as ensureDirectory} from 'node:fs';
+const artifactDirectory=process.env.SIESTE_TEST_ARTIFACTS??join(tmpdir(),'sieste-design-review');
+ensureDirectory(artifactDirectory,{recursive:true});
 import {readFileSync} from 'node:fs';import ts from 'typescript';import sharp from 'sharp';import assert from 'node:assert/strict';
 const source=ts.transpileModule(readFileSync('app/share-card-design.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
 const {shareCardSvg}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
@@ -11,7 +16,7 @@ for(const [i,template] of templates.entries()){
  assert.ok(svg.includes('gradientUnits="userSpaceOnUse"'));assert.ok(!svg.includes('#f472b6'));
  const png=await sharp(Buffer.from(svg)).resize(480,480).flatten({background:'#202631'}).png().toBuffer();tiles.push({input:png,left:i%2*490,top:Math.floor(i/2)*490});
 }
-await sharp({create:{width:970,height:1950,channels:3,background:'#eee'}}).composite(tiles).png().toFile('C:/Users/adell/Projects/sieste-design-review/complete-finishes.png');
+await sharp({create:{width:970,height:1950,channels:3,background:'#eee'}}).composite(tiles).png().toFile(artifactDirectory+'/complete-finishes.png');
 console.log('Passed: all text, chart strokes and icons finished; stroke gradients support zero-height paths.');
 
 for(const finish of ['solid','chrome','gold','rose','copper','titanium','midnight','iridescent','rainbow']){

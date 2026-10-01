@@ -1,3 +1,8 @@
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {mkdirSync as ensureDirectory} from 'node:fs';
+const artifactDirectory=process.env.SIESTE_TEST_ARTIFACTS??join(tmpdir(),'sieste-design-review');
+ensureDirectory(artifactDirectory,{recursive:true});
 import {readFileSync,writeFileSync} from 'node:fs';
 import ts from 'typescript';import sharp from 'sharp';import assert from 'node:assert/strict';
 const src=ts.transpileModule(readFileSync('app/share-card-design.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
@@ -12,7 +17,7 @@ for(const [i,template] of ['daytrends','daycolumns','daybars','daypanels','dayli
  }
  const empty=shareCardSvg({...base,template,dayHealth:{},dayMix:[],dayCards:[{title:'Recovery',stats:[]}],stats:[]});assert.ok(!/NaN|Infinity/.test(empty));assert.ok(empty.includes(template==='dayrings'?'Not recorded':'Unavailable'));assert.ok(empty.includes('REST DAY'));
 }
-await sharp({create:{width:1460,height:2440,channels:3,background:'#edf0f4'}}).composite(tiles).png().toFile('C:/Users/adell/Projects/sieste-design-review/daily-templates.png');
+await sharp({create:{width:1460,height:2440,channels:3,background:'#edf0f4'}}).composite(tiles).png().toFile(artifactDirectory+'/daily-templates.png');
 console.log('Passed: fourteen daily templates, three sizes, four finishes, transparency, complete activity lists and missing-data/rest-day states.');
 
 function moduleUrl(name){let source=ts.transpileModule(readFileSync('app/'+name+'.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;source=source.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,dep)=>`from "${moduleUrl(dep)}"`);return 'data:text/javascript;base64,'+Buffer.from(source).toString('base64')}
@@ -21,7 +26,7 @@ const history=dailyShareHistory({sleep:{20260102:[28800],20260103:[99999]},hrv:{
 assert.equal(history.length,7);assert.equal(history[0].date,'2025-12-27');assert.equal(history[6].date,'2026-01-02');assert.equal(history[6].sleep,8);assert.equal(history[6].hrv,null);assert.equal(history[6].score,null);assert.equal(history[5].hrv,90);assert.equal(history[0].sleep,null);
 console.log('Passed: local seven-day window, year boundary, missing values, invalid score/HRV and no future data.');
 
-for(const template of ['daytrends','daycolumns','daybars','daypanels','dayledger','daybalance','dayribbon','daymatrix','daypulse']){const svg=shareCardSvg({...base,template,recoveryOnly:true});assert.ok(svg.includes('94 ms'));assert.ok(!/Morning run|Lunch ride|Strength|REST DAY|data-sport-icon/.test(svg));await sharp(Buffer.from(svg)).png().toFile('C:/Users/adell/Projects/sieste-design-review/recovery-only-'+template+'.png');}
+for(const template of ['daytrends','daycolumns','daybars','daypanels','dayledger','daybalance','dayribbon','daymatrix','daypulse']){const svg=shareCardSvg({...base,template,recoveryOnly:true});assert.ok(svg.includes('94 ms'));assert.ok(!/Morning run|Lunch ride|Strength|REST DAY|data-sport-icon/.test(svg));await sharp(Buffer.from(svg)).png().toFile(artifactDirectory+'/recovery-only-'+template+'.png');}
 console.log('Passed: recovery-only exports exclude all activities and rest-day labels.');
 
 for(const family of ['running','cycling','strength_training','swimming','walking','hiking','other'])for(const finish of ['solid','chrome']){
@@ -33,6 +38,6 @@ console.log('Passed: individual activity sport icons, fallback, solid and chrome
 for(const template of ['daytrends','daycolumns','daybars','daypanels','dayledger','daybalance','dayribbon','daymatrix','daypulse']){
  const svg=shareCardSvg({...base,template,recoveryOnly:true,showLabels:false});
  assert.ok(!/Morning run|Lunch ride|Strength|REST DAY|>SLEEP<|>SLEEP SCORE<|>OVERNIGHT HRV<|7d range|gaps = missing/.test(svg));assert.ok(svg.includes('8h 12m')&&svg.includes('86/100')&&svg.includes('94 ms'));
- if(template==='daycolumns')await sharp(Buffer.from(svg)).flatten({background:'#202631'}).png().toFile('C:/Users/adell/Projects/sieste-design-review/minimal-health.png');
+ if(template==='daycolumns')await sharp(Buffer.from(svg)).flatten({background:'#202631'}).png().toFile(artifactDirectory+'/minimal-health.png');
 }
 console.log('Passed: minimal health-only exports retain readings and units without workouts or metric captions.');

@@ -1,3 +1,8 @@
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {mkdirSync as ensureDirectory} from 'node:fs';
+const artifactDirectory=process.env.SIESTE_TEST_ARTIFACTS??join(tmpdir(),'sieste-design-review');
+ensureDirectory(artifactDirectory,{recursive:true});
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';import sharp from 'sharp';import assert from 'node:assert/strict';
 const source=ts.transpileModule(readFileSync('app/share-card-design.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
@@ -11,5 +16,5 @@ for(const [i,[key,fr,en]] of [['metro','VALIDÉ PAR VOS JAMBES','VALIDATED BY YO
   if(finish==='solid'&&height===1080)tiles.push({input:await sharp(png).resize(480,480).flatten({background:'#202631'}).png().toBuffer(),left:english?490:0,top:i*490});
  }
 }
-await sharp({create:{width:970,height:1460,channels:3,background:'#edf0f4'}}).composite(tiles).png().toFile('C:/Users/adell/Projects/sieste-design-review/language-pairs.png');
+await sharp({create:{width:970,height:1460,channels:3,background:'#edf0f4'}}).composite(tiles).png().toFile(artifactDirectory+'/language-pairs.png');
 console.log('Passed: three French/English pairs, three sizes, three finishes, transparency and unchanged stats.');

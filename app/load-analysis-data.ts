@@ -1,9 +1,11 @@
 import {fatigueRecovery} from './fatigue-recovery-data';
 import {localDate} from './week-overview';
 import type {AthleteData} from './analytics';
+import {activitiesByDay} from './activity-day-index';
 export function loadAnalysis(data:AthleteData,now:Date,days:number,mode:'load'|'time'='load'){
+ const sessionsByDay=activitiesByDay(data.activities,now);
  const history=fatigueRecovery(data,now,days+35).map(r=>{
-  const sessions=data.activities.filter(a=>localDate(new Date(a.date))===r.iso&&new Date(a.date)<=now),values=sessions.map(a=>a.summary?.duration),known=!!data.historyStart&&data.historyStart.slice(0,10)<=r.iso&&data.historyComplete!==false&&(!data.syncedAt||r.iso<=localDate(new Date(data.syncedAt)));
+  const sessions=sessionsByDay.get(r.iso)??[],values=sessions.map(a=>a.summary?.duration),known=!!data.historyStart&&data.historyStart.slice(0,10)<=r.iso&&data.historyComplete!==false&&(!data.syncedAt||r.iso<=localDate(new Date(data.syncedAt)));
   const minutes=sessions.length?values.every(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0)?values.reduce((a,b)=>a+b,0)/60:null:known?0:null;
   return {...r,value:mode==='load'?r.effort:minutes,sessions:sessions.length};
  });
