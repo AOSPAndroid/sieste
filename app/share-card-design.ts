@@ -1,5 +1,16 @@
-import {cinematicText,cinematicTitleLines} from './cinematic-type';
+import {cinematicText,cinematicTitleLines,type DisplayFace} from './cinematic-type';
 import type {routeGeometry} from './route-geometry';
+export const shareSolidColours=[
+ {color:'#ef3340',name:'Route red'}, {color:'#990F16',name:'Blood red'},
+ {color:'#0B1F5E',name:'Deep blue'}, {color:'#4169E1',name:'Royal blue'},
+ {color:'#064E3B',name:'Dark green'}, {color:'#4f46e5',name:'Indigo'},
+ {color:'#60a5fa',name:'Electric blue'}, {color:'#b99aff',name:'Lavender'},
+ {color:'#fb923c',name:'Tangerine'}, {color:'#f472b6',name:'Pink'}
+] as const;
+export function shareColourContrast(colour:string){
+ const rgb=[1,3,5].map(i=>parseInt(colour.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+ return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.179?'#111111':'#ffffff';
+}
 export const shareFinishes=[
  {key:'chrome',name:'Silver chrome',colors:['#ffffff','#c8d0dc','#faffff','#9099a8','#252b37','#535e70','#e6edf6','#ffffff','#8993a3']},
  {key:'gold',name:'Champagne gold',colors:['#fff9dd','#d8b96e','#fff5c7','#bd8d36','#644317','#9b712a','#f5d995','#fff5d6','#bf9647']},
@@ -12,7 +23,7 @@ export const shareFinishes=[
 ] as const;
 export type ShareFinish='solid'|typeof shareFinishes[number]['key'];
 export const finishSwatch=(colors:readonly string[])=>'linear-gradient(165deg,'+colors.map((c,i)=>c+' '+[0,18,39,48,50,61,76,88,100][i]+'%').join(',')+')';
-export type ShareTemplate='routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export type ShareTemplate='cinemamonolith'|'cinemaepic'|'cinemawide'|'cinemamission'|'cinemalens'|'cinemawave'|'routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeTemplates:ShareTemplate[]=['routegiant','cinematrace','route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;showLabels?:boolean;routeStroke?:number;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
@@ -73,11 +84,12 @@ export function shareCardSvg(o:ShareDesign){
  return pictogram+`<text${isStat?' data-share-stat="true"':''}${isActivity?' data-share-activity="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
  }
  function route(x:number,y:number,w:number,hh:number,stroke=4){if(!o.route)return '';const {points,segments,center}=o.route,minX=points.reduce((n,p)=>Math.min(n,p.x),Infinity),maxX=points.reduce((n,p)=>Math.max(n,p.x),-Infinity),minY=points.reduce((n,p)=>Math.min(n,p.y),Infinity),maxY=points.reduce((n,p)=>Math.max(n,p.y),-Infinity),scale=Math.min((w-30)/Math.max(maxX-minX,1e-9),(hh-30)/Math.max(maxY-minY,1e-9));return segments.filter(s=>s.length>1).map(s=>{const stride=Math.max(1,Math.ceil(s.length/3000)),p=s.filter((_,i)=>i%stride===0||i===s.length-1).map((p,i)=>`${i?'L':'M'}${(x+w/2+(p.x-center.x)*scale).toFixed(2)},${(y+hh/2+(p.y-center.y)*scale).toFixed(2)}`).join(' ');return `<path d="${p}" fill="none" stroke="${ink}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`}).join('')}
- if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${o.ink==='white'?'#181818':'#fafafa'}"/>`);
+ const backdrop=o.finish&&o.finish!=='solid'?true:!o.template.startsWith('chrome')?shareColourContrast(ink)==='#111111':o.ink==='white';
+ if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${backdrop?'#181818':'#fafafa'}"/>`);
  const first=o.stats[0],others=o.stats.slice(1),cy=h/2;
  // Each design is a standalone overlay; canvas padding stays transparent.
  const heavy=(value:string,x:number,y:number,size:number,width:number,color=ink)=>text(value,x,y,size,900,color,width).replace('Arial,Helvetica,sans-serif','Arial Black,Arial,Helvetica,sans-serif');
- const secondary=o.ink==='white'?'#ffffff':'#111111',rgb=[1,3,5].map(i=>parseInt(ink.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4),contrast=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.179?'#111111':'#ffffff';
+ const secondary=(!o.finish||o.finish==='solid')?ink:o.ink==='white'?'#ffffff':'#111111',contrast=shareColourContrast(ink);
  const isChrome=o.template.startsWith('chrome')||!!o.finish&&o.finish!=='solid';
  const palette=shareFinishes.find(f=>f.key===o.finish)??shareFinishes[0],c=palette.colors;
  if(isChrome){
@@ -92,6 +104,27 @@ export function shareCardSvg(o:ShareDesign){
  if(o.template==='routegiant'){
   const stroke=typeof o.routeStroke==='number'&&Number.isFinite(o.routeStroke)?Math.max(4,Math.min(28,o.routeStroke)):16;
   parts.push(route(24,24,1032,h-(o.brand||o.demo?108:48),stroke));
+ }else if(['cinemamonolith','cinemaepic','cinemawide','cinemamission','cinemalens','cinemawave'].includes(o.template)){
+  const paint=isChrome?'url(#metal)':ink,face:DisplayFace=o.template==='cinemaepic'?'serif':o.template==='cinemawide'?'wide':o.template==='cinemamission'?'slab':'bold';
+  const shown=others.slice(0,5),columns=Math.min(3,shown.length),rows=Math.ceil(shown.length/3),rowHeight=o.showLabels?90:70,supportHeight=rows?rows*rowHeight+(rows-1)*16:0;
+  const bottom=h-(o.brand||o.demo?90:60)-(o.date?36:0),heroHeight=Math.min(1160,bottom-140-56-supportHeight),top=140+Math.max(0,bottom-140-56-supportHeight-heroHeight)/2;
+  const box={x:64,y:top,width:952,height:heroHeight},unit=first?.unit.toUpperCase()??'',value=first?.value.toUpperCase()??'NO STATS';
+  const titleLines=cinematicTitleLines((o.title||o.sport).normalize('NFC'));
+  titleLines.forEach((line,i)=>parts.push(cinematicText(line,{x:72,y:top-94+i*36,width:936,height:30,face:o.template==='cinemawide'?'wide':'tall',color:paint,align:'middle'})));
+  if(o.template==='cinemawave')parts.push(cinematicText(first?compact(first).toUpperCase():value,{...box,face,color:paint,stretch:true,warp:'wave'}));
+  else{
+   const wide=o.template==='cinemawide',valueHeight=unit?heroHeight*(wide?.40:.61):heroHeight,unitHeight=heroHeight*(wide?.30:.34),unitTop=top+heroHeight-unitHeight;
+   const warp=o.template==='cinemalens'?'lens' as const:undefined;
+   parts.push(cinematicText(value,{x:64,y:top+(wide?heroHeight*.04:0),width:952,height:valueHeight,face,color:paint,stretch:true,warp,warpBox:box}));
+   if(unit)parts.push(cinematicText(unit,{x:64,y:unitTop-(wide?heroHeight*.08:0),width:952,height:unitHeight,face,color:paint,stretch:true,warp,warpBox:box}));
+  }
+  const supportTop=top+heroHeight+56,columnWidth=columns?(952-(columns-1)*24)/columns:952;
+  shown.forEach((stat,i)=>{
+   const x=64+(i%3)*(columnWidth+24),y=supportTop+Math.floor(i/3)*(rowHeight+16);
+   parts.push(cinematicText(compact(stat).toUpperCase(),{x,y,width:columnWidth,height:columns<3?54:46,face:o.template==='cinemamission'?'slab':o.template==='cinemawide'?'wide':'tall',color:paint,align:'middle'}));
+   if(o.showLabels)parts.push(text(stat.label.toUpperCase(),x+columnWidth/2,y+78,18,600,ink,columnWidth,false,'middle'));
+  });
+  if(o.date)parts.push(text(o.date,540,supportTop+supportHeight+24,22,500,ink,936,false,'middle'));
  }else if(o.template.startsWith('cinema')){
   const paint=isChrome?'url(#metal)':ink,primary=first?compact(first):'NO RECORDED STATS',headline=primary.toUpperCase();
   const display=(value:string,x:number,y:number,width:number,height:number,face:'bold'|'tall'|'serif'='bold',center=false)=>cinematicText(value,{x,y,width,height,face,color:paint,align:center?'middle':'start'});
@@ -416,4 +449,3 @@ export function shareCardSvg(o:ShareDesign){
  }
  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}">${artwork}</svg>`;
 }
-

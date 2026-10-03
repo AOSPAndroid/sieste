@@ -1,6 +1,6 @@
 """Regenerate SVG display glyphs: python scripts/generate-share-display-fonts.py.
 
-Requires fontTools. Source fonts and SIL Open Font Licenses are in assets/share-fonts.
+Requires fontTools. Source fonts and licenses are in assets/share-fonts.
 Glyph paths make browser PNG rendering independent of installed/exported fonts.
 """
 import json
@@ -12,7 +12,7 @@ from fontTools.pens.boundsPen import BoundsPen
 root = Path(__file__).resolve().parent.parent
 characters = sorted(set(chr(i) for i in range(32, 256)) | set("ŒœŸẞ–—’‘×−"))
 faces = {}
-for key, filename in [("bold", "Anton-Regular.ttf"), ("tall", "BebasNeue-Regular.ttf"), ("serif", "DMSerifDisplay-Regular.ttf")]:
+for key, filename in [("bold", "Anton-Regular.ttf"), ("tall", "BebasNeue-Regular.ttf"), ("serif", "DMSerifDisplay-Regular.ttf"), ("wide", "RussoOne-Regular.ttf"), ("slab", "RobotoSlab-Black.ttf")]:
     font = TTFont(root / "assets/share-fonts" / filename)
     glyphs = font.getGlyphSet()
     cmap = font.getBestCmap()
