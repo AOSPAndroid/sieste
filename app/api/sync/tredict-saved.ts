@@ -67,7 +67,7 @@ export async function POST(request:Request){
   const labels=await db.prepare('SELECT activity_id,label FROM athlete_session_labels WHERE owner = ? AND identity = ?').bind(user.userId,identity).all<{activity_id:string;label:string}>();
   const labelMap=new Map(labels.results.map(r=>[r.activity_id,r.label]));
   const details:any[]=[];
-  for(const id of ids){const cacheKey=prefix+'workout-cache-v1/'+identity+'/'+action+'/'+id+'.json',signature=analysisSignature(activities.get(id));const cached=await bucket.get(cacheKey);if(cached){const entry:any=await cached.json();if(entry.signature===signature&&Date.now()-entry.savedAt<86400000&&entry.detail){details.push(entry.detail);continue}}
+  for(const id of ids){const cacheKey=prefix+'workout-cache-v1/'+identity+'/'+(action==='preview'?'preview-elevation-v1':action)+'/'+id+'.json',signature=analysisSignature(activities.get(id));const cached=await bucket.get(cacheKey);if(cached){const entry:any=await cached.json();if(entry.signature===signature&&Date.now()-entry.savedAt<86400000&&entry.detail){details.push(entry.detail);continue}}
 
    const result=await upstream(action!=='enrich'?{action,id}:{action,ids:[id]});if(!result.ok)return result;const body:any=await result.json();const detail=body.details?.[0];if(!detail)return privateJson({error:'Tredict returned incomplete workout data.'},502);
    const current=await connection(user.userId);if(current?.revision!==previous!.revision)return privateJson({error:'Your connection changed. Reload the page.'},409);

@@ -1,3 +1,4 @@
+import {lapElevation} from '../../lap-elevation';
 // Personal Tredict integration. Tokens and athlete records are never persisted.
 import {workoutEvidence} from '../../training-coach-data';
 const API='https://www.tredict.com/api/oauth/v2/';
@@ -26,7 +27,7 @@ export async function POST(request:Request){
   const ids=payload.action!=='enrich'?[payload.id]:payload.ids;
   if(!Array.isArray(ids)||!ids.length||ids.length>4||ids.some(id=>typeof id!=='string'||!/^[a-zA-Z0-9_-]{1,120}$/.test(id)))return reply({error:'Invalid activity selection.'},400);
   const details=[];
-  for(const id of ids){const detail=await get(`${API}activity/${encodeURIComponent(id!)}?extraValues=1&withLaps=1${payload.action!=='preview'?'&allSeries=1':''}`) as unknown as Record<string,unknown>;const hrHistogram=heartRateHistogram(detail),evidence=workoutEvidence(detail);details.push(payload.action==='preview'?{id,summary:detail.summary,laps:detail.laps}:payload.action==='detail'?{...detail,hrHistogram,evidence}:{id,summary:detail.summary,hrHistogram,evidence});}
+  for(const id of ids){const detail=await get(`${API}activity/${encodeURIComponent(id!)}?extraValues=1&withLaps=1&allSeries=1`) as unknown as Record<string,unknown>;const hrHistogram=heartRateHistogram(detail),evidence=workoutEvidence(detail);details.push(payload.action==='preview'?{id,summary:detail.summary,laps:detail.laps,elevationPreview:lapElevation(detail),previewVersion:1}:payload.action==='detail'?{...detail,hrHistogram,evidence,elevationPreview:lapElevation(detail)}:{id,summary:detail.summary,hrHistogram,evidence});}
   return reply({details});
  }
  const results=await Promise.allSettled([get(`${API}activityList?${query}&pageSize=500&extendedSummary=1`),payload.skipSleep?Promise.resolve({sleep:{}}):get(`${API}sleep?${query}`),payload.skipHrv?Promise.resolve({hrv:{}}):get(`${API}hrv?${query}`)]);

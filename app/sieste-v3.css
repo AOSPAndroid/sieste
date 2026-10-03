@@ -457,8 +457,13 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 .load-guidance{border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin:8px 0;background:#f8fafc;font-size:12px;line-height:1.45}.load-guidance header{display:flex;justify-content:space-between;align-items:center;gap:8px}.load-guidance header strong{font-size:14px}.load-guidance header span{font-size:10px;color:#64748b;white-space:nowrap}.load-guidance p{margin:5px 0}.load-guidance label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:11px}.load-guidance select{padding:4px 6px;border:1px solid #d1d5db;background:white;border-radius:6px;font-size:11px;max-width:55%}.load-guidance details{margin-top:7px;font-size:11px;color:#526071}.load-guidance summary{cursor:pointer}.load-guidance ul{padding-left:16px;margin:8px 0}.load-guidance li{margin:4px 0}.load-guidance a{color:#4338ca;text-decoration:underline}.guidance-steady{background:#effaf4;border-color:#c6e5d4}.guidance-steady header strong{color:#226548}.guidance-easy{background:#fff9e9;border-color:#f0d59e}.guidance-easy header strong{color:#8a590d}.guidance-rest{background:#fff1f0;border-color:#f0c7c3}.guidance-rest header strong{color:#a33630}
 
 /* Lap time occupies the horizontal axis; speed uses a shared zero baseline. */
-.sieste-v3 .calendar-lap-timeline{display:block;width:100%;height:28px;margin:5px 0 3px;overflow:hidden}
+.sieste-v3 .calendar-lap-timeline{display:block;width:100%;height:44px;margin:5px 0 3px;overflow:hidden}
 .sieste-v3 .calendar-lap-timeline rect{fill:var(--sport-color,#6366f1)}
+.sieste-v3 .calendar-lap-heading{display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap}
+.sieste-v3 .calendar-elevation-key{display:inline-flex;align-items:center;gap:3px;color:#176441;font-size:9px;white-space:nowrap}
+.sieste-v3 .calendar-elevation-key i{width:9px;height:2px;background:currentColor}
+.sieste-v3 .calendar-lap-elevation path{fill:none;stroke:#176441;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.sieste-v3 .calendar-lap-elevation .elevation-halo{stroke:#fff;stroke-width:3.5}
 .sieste-v3 .calendar-lap-values{display:flex;flex-wrap:wrap;gap:2px 7px;font-size:9px;line-height:1.35;color:#64748b}
 .sieste-v3 .calendar-lap-values span{white-space:nowrap}
 .sieste-v3 .sleep-window-plot{min-width:0}
@@ -801,7 +806,7 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
  .sieste-v3 .health-headline-change{font-size:9px}
  .sieste-v3 .focus-calendar .calendar-session-preview{padding:5px 4px}
  .sieste-v3 .focus-calendar .calendar-session-stats{gap:3px 2px;margin:4px 0}
- .sieste-v3 .calendar-lap-timeline{height:18px;margin:3px 0 2px}
+ .sieste-v3 .calendar-lap-timeline{height:28px;margin:3px 0 2px}
   .sieste-v3 .calendar-lap-values{font-size:8px;gap:1px 4px}
  .sieste-v3 .calendar-lap-preview{padding-top:3px;margin-top:3px}
 }
