@@ -38,18 +38,19 @@ assert.equal(hovered,null,'Leaving the chart restores the default readout');
 console.log('Expanded chart: Recharts 3 hover index and readout reset passed.');
 
 const {loadOverlays,formatLoadOverlay}=await import(moduleUrl('load-chart-series'));
-const recoveryRows=rows.map((row,i)=>({...row,short:null,long:null,minutes:[300,null,0][i],sleep:[6.5,null,11][i],hrv:[180,170,null][i]}));
+const recoveryRows=rows.map((row,i)=>({...row,short:null,long:null,fatigue:[50,null,45][i],minutes:[300,null,0][i],sleep:[6.5,null,11][i],hrv:[180,170,null][i]}));
 const model={rows:recoveryRows,baseline:30,today:recoveryRows.at(-1),recent:[recoveryRows[0]],unit:'points'};
-const scales=loadOverlays(model);assert.deepEqual(scales.map(series=>[series.key,series.ceiling]),[['minutes',300],['sleep',12],['hrv',180]],'Independent scales expand to cover long rides and higher sleep/HRV readings');
+const scales=loadOverlays(model);assert.deepEqual(scales.map(series=>[series.key,series.ceiling]),[['fatigue',52],['minutes',300],['sleep',12],['hrv',180]],'Fatigue shares the load scale; independent scales cover long rides and higher sleep/HRV');
 const recoverySvg=renderToStaticMarkup(createElement(Chart,{model,onHover:()=>{}}));
-assert.equal((recoverySvg.match(/data-series=/g)??[]).length,3,'All recovery and time lines are visible by default');
+assert.equal((recoverySvg.match(/data-series=/g)??[]).length,4,'Fatigue, recovery and time lines are visible by default');
 assert.match(recoverySvg,/Time 5h 0m/);assert.match(recoverySvg,/Sleep 6h30/);assert.match(recoverySvg,/HRV 180 ms/);
 assert.match(recoverySvg,/data-series="sleep"><path d="M[^"L]+M/,'Missing sleep splits the line instead of connecting the gap');
-assert.equal((recoverySvg.match(/<circle/g)??[]).length,6,'Isolated valid readings remain visible as dots');
+assert.equal((recoverySvg.match(/<circle/g)??[]).length,8,'Isolated valid readings remain visible as dots');
 const noSleep=renderToStaticMarkup(createElement(Chart,{model,layers:['value','hrv','minutes'],onHover:()=>{}}));assert.doesNotMatch(noSleep,/data-series="sleep"/);assert.match(noSleep,/data-series="hrv"/);
-assert.deepEqual(loadOverlays({...model,unit:'min'}).map(series=>series.key),['sleep','hrv'],'Training time mode avoids a duplicate time overlay');
+assert.deepEqual(loadOverlays({...model,unit:'min'}).map(series=>series.key),['fatigue','sleep','hrv'],'Training time mode avoids duplicate time but retains load-based fatigue');
 assert.equal(formatLoadOverlay('sleep',401/60),'6h41');assert.equal(formatLoadOverlay('hrv',null),'—');
 const enriched=ExpandedChart({model,large:true,layers:['value','minutes','sleep','hrv'],onHover:()=>{}});
 const children=enriched.props.children.props.children.flat(Infinity).filter(Boolean),overlayLines=children.filter(child=>['minutes','sleep','hrv'].includes(child.props?.dataKey));
 assert.equal(overlayLines.length,3);for(const line of overlayLines){assert.equal(line.props.yAxisId,line.props.dataKey);assert.equal(line.props.connectNulls,false);const axis=children.find(child=>child.props?.yAxisId===line.props.dataKey&&Array.isArray(child.props.domain));assert.deepEqual(axis.props.domain,[0,scales.find(series=>series.key===line.props.dataKey).ceiling]);}
+for(const unit of ['points','min']){const chart=ExpandedChart({model:{...model,unit},large:true,layers:['value','fatigue'],onHover:()=>{}}),nodes=chart.props.children.props.children.flat(Infinity).filter(Boolean),line=nodes.find(node=>node.props?.dataKey==='fatigue');assert.equal(line.props.yAxisId,unit==='points'?'training':'fatigue');assert.equal(line.props.connectNulls,false);if(unit==='min')assert.ok(nodes.some(node=>node.props?.yAxisId==='fatigue'&&Array.isArray(node.props.domain)));}
 console.log('Overlay charts passed: separate expanding scales, real same-day values, independent gaps, isolated dots, toggles, time-mode deduplication and expanded axis assignment.');

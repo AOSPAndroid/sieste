@@ -4,6 +4,7 @@ import type {AthleteData} from './analytics';
 import {activitiesByDay} from './activity-day-index';
 const valid=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
 export function fatigueRecovery(data:AthleteData,now:Date,days=28){
+ const dateLabel=new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short'});
  const source=data.extra?.efforts?.trainingEfforts;
  const sessionsByDay=activitiesByDay(data.activities,now),restingByDay=new Map<string,{time:number;value:number}>();
  for(const reading of data.extra?.bodyvalues?.bodyvalues??[]){
@@ -23,7 +24,7 @@ export function fatigueRecovery(data:AthleteData,now:Date,days=28){
   const recorded=sessions.map(a=>data.provider==='coros'?a.provider==='coros'?a.summary?.trainingLoad:null:a.provider==='coros'?null:a.summary?.effort?.[channel]);
   const completeSessions=recorded.length>0&&recorded.every(valid);
   const effort=effortExcluded(data,iso)?null:completeSessions?recorded.reduce((sum:number,v:number)=>sum+v,0):values.length&&values.every(valid)?values.reduce((a:number,b:number)=>a+b,0):source&&covered&&(raw===undefined||Array.isArray(raw)&&raw.length===0)&&sessions.length===0?0:null;
-  return {iso,label:date.toLocaleDateString('en-GB',{day:'numeric',month:'short'}),effort:effort as number|null,sleep:valid(data.sleep[key]?.[0])?data.sleep[key][0]/3600:null,hrv:valid(data.hrv[key]?.[0])?data.hrv[key][0]:null,rhr:restingByDay.get(iso)?.value??null};
+  return {iso,label:dateLabel.format(date),effort:effort as number|null,sleep:valid(data.sleep[key]?.[0])?data.sleep[key][0]/3600:null,hrv:valid(data.hrv[key]?.[0])?data.hrv[key][0]:null,rhr:restingByDay.get(iso)?.value??null};
  });
  return rows.map((r,i)=>{const average=(n:number)=>{const window=rows.slice(Math.max(0,i-n+1),i+1);return window.length===n&&window.every(d=>d.effort!==null)?window.reduce((s,d)=>s+d.effort!,0)/n:null};return {...r,load7:average(7),load28:average(28)}}).slice(-days);
 }
