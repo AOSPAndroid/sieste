@@ -459,10 +459,10 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 /* Lap time occupies the horizontal axis; speed uses a shared zero baseline. */
 .sieste-v3 .calendar-lap-timeline{display:block;width:100%;height:44px;margin:5px 0 3px;overflow:hidden}
 .sieste-v3 .calendar-lap-timeline rect{fill:var(--sport-color,#6366f1)}
-.sieste-v3 .calendar-lap-heading{display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap}
-.sieste-v3 .calendar-elevation-key{display:inline-flex;align-items:center;gap:3px;color:#111;font-size:9px;white-space:nowrap}
+.sieste-v3 .calendar-lap-heading{display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap;font-size:6px;font-weight:400;line-height:1.25;color:#64748b}
+.sieste-v3 .calendar-elevation-key{display:inline-flex;align-items:center;gap:3px;color:#64748b;font-size:6px;white-space:nowrap}
 .sieste-v3 .calendar-elevation-key i{width:9px;height:2px;background:currentColor}
-.sieste-v3 .calendar-lap-elevation path{fill:none;stroke:#111;stroke-width:1;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.sieste-v3 .calendar-lap-elevation path{fill:none;stroke:#fff;stroke-width:1;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .sieste-v3 .calendar-lap-values{display:flex;flex-wrap:wrap;gap:2px 7px;font-size:9px;line-height:1.35;color:#64748b}
 .sieste-v3 .calendar-lap-values span{white-space:nowrap}
 .sieste-v3 .sleep-window-plot{min-width:0}
