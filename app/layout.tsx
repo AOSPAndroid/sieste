@@ -12,6 +12,7 @@ import "./compact-tabs.css";
 import "./sieste-v2.css";
 import "./sieste-v3.css";
 import "./weekly-volume.css";
+import "./recovery-alert.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sieste.daaalil.chatgpt.site"),
