@@ -1,19 +1,19 @@
-.sieste-v3 .recovery-alert{display:flex;align-items:center;justify-content:space-between;gap:20px;min-width:0;margin:0 0 12px;padding:14px 16px;border:1px solid #ebd9b7;border-radius:16px;background:#fffaf2;color:#795627}
-.sieste-v3 .recovery-alert--red{border-color:#edd0cf;background:#fff6f5;color:#ad4647}
-.recovery-alert-message{display:flex;align-items:flex-start;gap:10px;min-width:0;flex:1}
-.recovery-alert-message>svg{flex-shrink:0;margin-top:1px}
-.sieste-v3 .recovery-alert h2{margin:0 0 4px;font-size:13px;font-weight:650;letter-spacing:-.2px;color:inherit}
-.recovery-alert-message p{margin:0;font-size:11px;line-height:1.5;color:#6e6558;max-width:420px}
-.recovery-alert-signals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:0 1 440px;min-width:0}
-.recovery-alert-signals button{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;min-height:60px;padding:8px 22px 8px 10px;border:1px solid #ebd9b7;border-radius:10px;background:#ffffffb3;color:inherit;text-align:left;cursor:pointer}
-.recovery-alert--red .recovery-alert-signals button{border-color:#edd0cf}
-.recovery-alert-signals button[data-tone=orange]{color:#795627}
-.recovery-alert-signals button[data-tone=red]{color:#ad4647}
-.recovery-alert-signals button:hover{background:#fff}
-.recovery-alert-signals button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
-.recovery-alert-signals button>span{font-size:9px;color:#766c5f}
-.recovery-alert-signals strong{font-size:13px;font-weight:650;line-height:1.25;font-variant-numeric:tabular-nums}
-.recovery-alert-signals small{font-size:8px;line-height:1.3}
+.sieste-v3 .recovery-alert{min-width:0;margin:0 0 9px;border:1px solid #ebd9b7;border-left:3px solid #b87c24;border-radius:8px;background:#fffaf2;color:#795627}
+.sieste-v3 .recovery-alert--red{border-color:#edd0cf;border-left-color:#ca485f;background:#fff6f5;color:#ad4647}
+.recovery-alert-ribbon{display:flex;align-items:center;gap:8px;width:100%;min-width:0;min-height:36px;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.recovery-alert-ribbon strong{flex:1;min-width:0;font-size:11px;font-weight:650;line-height:1.4}
+.recovery-alert-ribbon>span{font-size:10px;font-weight:500}
+.recovery-alert-ribbon>svg{flex-shrink:0}
+.recovery-alert-ribbon:hover{background:#ffffff80}
+.recovery-alert-ribbon:focus-visible,.recovery-alert-signals button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.recovery-alert-details>p{margin:0 0 14px;font-size:14px;line-height:1.5;color:#6e6558}
+.recovery-alert-signals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}
+.recovery-alert-signals button{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;min-height:76px;padding:10px 24px 10px 12px;border:1px solid #ebd9b7;border-radius:10px;background:#fffaf2;color:#795627;text-align:left;cursor:pointer}
+.recovery-alert-signals button[data-tone=red]{border-color:#edd0cf;background:#fff6f5;color:#ad4647}
+.recovery-alert-signals button:hover{filter:brightness(.98)}
+.recovery-alert-signals button>span{font-size:11px;color:#766c5f}
+.recovery-alert-signals strong{font-size:16px;font-weight:650;line-height:1.25;font-variant-numeric:tabular-nums}
+.recovery-alert-signals small{font-size:10px;line-height:1.3}
 .recovery-alert-signals button>svg{position:absolute;right:7px;top:50%;transform:translateY(-50%)}
-@media(max-width:800px){.sieste-v3 .recovery-alert{align-items:stretch;flex-direction:column;gap:10px;padding:12px}.recovery-alert-signals{flex:auto;width:100%}.recovery-alert-message p{max-width:none}}
-@media(max-width:400px){.recovery-alert-signals{gap:4px}.recovery-alert-signals button{padding:7px 16px 7px 7px}.recovery-alert-signals button>svg{right:3px}.recovery-alert-signals strong{font-size:12px}}
+@media(pointer:coarse){.recovery-alert-ribbon{min-height:40px}}
+@media(max-width:400px){.recovery-alert-ribbon>span{display:none}.recovery-alert-signals{gap:5px}.recovery-alert-signals button{padding:9px 18px 9px 8px}.recovery-alert-signals button>svg{right:3px}.recovery-alert-signals strong{font-size:14px}}
