@@ -9,5 +9,17 @@ const data={activities,historyStart:'2026-01-01',historyComplete:true,syncedAt:n
 let r=loadAnalysis(data,now,28);assert.equal(r.total,140);assert.equal(r.previous,70);assert.equal(r.change,100);assert.equal(r.today.value,999);assert.equal(r.baseline,12.5);assert.equal(r.rows.length,28);
 const bad=structuredClone(data);delete bad.activities[2].summary.effort;r=loadAnalysis(bad,now,28);assert.equal(r.coverage,6);assert.equal(r.change,null);assert.equal(r.baseline,null);assert.equal(r.today.short,null);assert.equal(r.missing.length,1);
 r=loadAnalysis(bad,now,28,'time');assert.equal(r.total,420);assert.equal(r.change,0);
+assert.equal(loadAnalysis(data,now,28).today.minutes,60,'Training minutes remain available alongside load points');
+assert.equal(loadAnalysis(bad,now,28).rows.find(row=>row.iso==='2026-09-24').minutes,60,'Missing load does not erase recorded training time');
+const durationGap=structuredClone(data);delete durationGap.activities[0].summary.duration;
+assert.equal(loadAnalysis(durationGap,now,28).today.minutes,null,'A missing duration stays unknown');
+const physiology=structuredClone(data);physiology.sleep={'20260926':[0],'20260925':[6*3600+41*60]};physiology.hrv={'20260926':[0],'20260925':[68]};
+r=loadAnalysis(physiology,now,28);assert.equal(r.today.sleep,null);assert.equal(r.today.hrv,null);assert.equal(r.rows.at(-2).sleep,401/60);assert.equal(r.rows.at(-2).hrv,68);
+const rest={...data,activities:data.activities.filter(activity=>activity.date.slice(0,10)!=='2026-09-25')};
+assert.equal(loadAnalysis(rest,now,28).rows.at(-2).minutes,0,'Complete synced rest days retain zero training time');
+assert.equal(loadAnalysis({...rest,historyComplete:false},now,28).rows.at(-2).minutes,null,'Unknown history cannot invent a rest day');
 const foreign=structuredClone(data);foreign.activities[1].provider='coros';assert.equal(loadAnalysis(foreign,now,28).coverage,6);
+process.env.TZ='Europe/Paris';
+const midnight=new Date('2026-10-02T22:30:00Z'),local={activities:[{id:'early',date:'2026-10-02T22:10:00Z',summary:{duration:1800,effort:{heartrate:25}}},{id:'future',date:'2026-10-03T08:00:00Z',summary:{duration:3600,effort:{heartrate:50}}}],historyStart:'2026-01-01',historyComplete:true,syncedAt:midnight.toISOString(),sleep:{'20261003':[28800]},hrv:{'20261003':[88]}};
+r=loadAnalysis(local,midnight,14);assert.equal(r.today.iso,'2026-10-03');assert.equal(r.today.minutes,30);assert.equal(r.today.value,25);assert.equal(r.today.sleep,8);assert.equal(r.today.hrv,88);process.env.TZ='UTC';
 console.log('Passed: excludes partial today from comparisons, daily values preserved, 28d baseline, missing-day gaps, time fallback, and provider separation.');

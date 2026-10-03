@@ -7,7 +7,7 @@ export function loadAnalysis(data:AthleteData,now:Date,days:number,mode:'load'|'
  const history=fatigueRecovery(data,now,days+35).map(r=>{
   const sessions=sessionsByDay.get(r.iso)??[],values=sessions.map(a=>a.summary?.duration),known=!!data.historyStart&&data.historyStart.slice(0,10)<=r.iso&&data.historyComplete!==false&&(!data.syncedAt||r.iso<=localDate(new Date(data.syncedAt)));
   const minutes=sessions.length?values.every(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0)?values.reduce((a,b)=>a+b,0)/60:null:known?0:null;
-  return {...r,value:mode==='load'?r.effort:minutes,sessions:sessions.length};
+  return {...r,sleep:r.sleep!==null&&r.sleep>0?r.sleep:null,hrv:r.hrv!==null&&r.hrv>0?r.hrv:null,minutes,value:mode==='load'?r.effort:minutes,sessions:sessions.length};
  });
  const avg=(list:typeof history)=>list.length&&list.every(r=>r.value!==null)?list.reduce((s,r)=>s+r.value!,0)/list.length:null;
  const rows=history.map((r,i)=>({...r,short:i>=6?avg(history.slice(i-6,i+1)):null,long:i>=27?avg(history.slice(i-27,i+1)):null})).slice(-days);
