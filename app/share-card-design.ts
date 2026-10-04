@@ -5,7 +5,11 @@ export const shareSolidColours=[
  {color:'#0B1F5E',name:'Deep blue'}, {color:'#4169E1',name:'Royal blue'},
  {color:'#064E3B',name:'Dark green'}, {color:'#4f46e5',name:'Indigo'},
  {color:'#60a5fa',name:'Electric blue'}, {color:'#b99aff',name:'Lavender'},
- {color:'#fb923c',name:'Tangerine'}, {color:'#f472b6',name:'Pink'}
+ {color:'#fb923c',name:'Tangerine'}, {color:'#f472b6',name:'Pink'},
+ {color:'#4A0612',name:'Oxblood'}, {color:'#B64624',name:'Burnt orange'},
+ {color:'#241139',name:'Midnight violet'}, {color:'#123E45',name:'Petrol teal'},
+ {color:'#C8A45D',name:'Antique gold'}, {color:'#F3E8D0',name:'Warm ivory'},
+ {color:'#F4D35E',name:'Film yellow'}, {color:'#B7DDF2',name:'Ice blue'}
 ] as const;
 export function shareColourContrast(colour:string){
  const rgb=[1,3,5].map(i=>parseInt(colour.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
