@@ -1,0 +1,27 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+import {Decoder,Stream,Encoder,Profile} from '@garmin/fitsdk';
+const source=p=>ts.transpileModule(readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
+const sports=new Function(source('app/sports.ts')+';return {sportFamily,sportName}')();
+const fit=new Function('Decoder','Stream','workoutEvidence','sportFamily',source('app/coros-native.ts')+source('app/api/coros/fit.ts')+';return {decodedFit}')(Decoder,Stream,()=>({}),sports.sportFamily);
+const imported=new Function('Decoder','Stream','decodedFit','sportFamily','sportName','lapElevation',source('app/import-fit.ts')+';return {importFitFile,importedFitMessages,maxImportBytes}')(Decoder,Stream,fit.decodedFit,sports.sportFamily,sports.sportName,()=>null);
+const start=new Date('2026-10-04T07:00:00Z'),at=n=>new Date(+start+n*1000);
+function fixture(sport='running',sessions=1){const encoder=new Encoder();encoder.onMesg(Profile.MesgNum.FILE_ID,{manufacturer:'garmin',type:'activity',product:1,timeCreated:start});
+ for(let i=0;i<1800;i++)encoder.onMesg(Profile.MesgNum.RECORD,{timestamp:at(i),distance:i*3.4,enhancedSpeed:3.4,heartRate:140+i%10,cadence:sport==='running'?90:85,power:230,enhancedAltitude:50+20*Math.sin(i/300),positionLat:Math.round((48.8+i*.00001)*2147483648/180),positionLong:Math.round((2.3+i*.000015)*2147483648/180)});
+ for(let i=0;i<2;i++)encoder.onMesg(Profile.MesgNum.LAP,{messageIndex:i,startTime:at(i*900),timestamp:at((i+1)*900),totalTimerTime:900,totalElapsedTime:900,totalDistance:3060,avgHeartRate:145,avgCadence:sport==='running'?90:85,totalAscent:20,totalDescent:20});
+ for(let i=0;i<sessions;i++)encoder.onMesg(Profile.MesgNum.SESSION,{messageIndex:i,sport,subSport:'generic',startTime:start,timestamp:at(1800),totalTimerTime:1800,totalElapsedTime:1800,totalDistance:6120,avgHeartRate:145,avgCadence:sport==='running'?90:85,totalAscent:40,totalDescent:40});return encoder.close()}
+const bytes=fixture(),file=new File([bytes],'Garmin run.FIT'),detail=await imported.importFitFile(file);
+assert.equal(detail.provider,'import');assert.equal(detail.imported,true);assert.equal(detail.recordedSource,'Imported FIT');assert.equal(detail.coros,undefined);assert.equal(detail.nativeVersion,undefined);assert.equal(detail.demo,undefined);
+assert.equal(detail.date,start.toISOString());assert.equal(detail.sportType,'running');assert.equal(detail.title,'Garmin run');assert.equal(detail.summary.distance,6120);assert.equal(detail.summary.duration,1800);assert.equal(detail.summary.cadence,180);assert.equal(detail.laps.length,2);assert.equal(detail.seriesSampled.data.positionLat.length,1800);assert.ok(Math.abs(detail.seriesSampled.data.positionLat[0]-48.8)<1e-6);assert.equal(detail.seriesSampled.data.heartrate[10],140);assert.ok(!detail.notes);
+assert.equal((await imported.importFitFile(file)).id,detail.id,'Same bytes produce stable identity');
+const cycling=await imported.importFitFile(new File([fixture('cycling')],'Ride.fit'));assert.equal(cycling.summary.cadence,85);assert.equal(cycling.sportType,'cycling');
+const messages={sessionMesgs:[{sport:'running',startTime:start,timestamp:at(12),totalTimerTime:12}],recordMesgs:[{timestamp:start,heartRate:120},{timestamp:at(5),heartRate:140},{timestamp:at(10),heartRate:145}]};
+const sparse=imported.importedFitMessages(messages,'Smart recording.fit','sparse');assert.equal(sparse.seriesSampled.data.heartrate[1],null);assert.equal(sparse.seriesSampled.data.heartrate[5],140);assert.ok(sparse.notes.includes('gaps'));assert.equal(sparse.summary.distance,undefined,'Missing sensors stay absent');
+await assert.rejects(()=>imported.importFitFile(new File([bytes],'activity.zip')),/Unzip/);await assert.rejects(()=>imported.importFitFile(new File([bytes],'activity.gpx')),/\.fit/);await assert.rejects(()=>imported.importFitFile(new File([new Uint8Array(10)],'empty.fit')),/16 MB/);
+await assert.rejects(()=>imported.importFitFile({name:'large.fit',size:imported.maxImportBytes+1,arrayBuffer(){throw Error('Must reject before reading')}}),/16 MB/);
+const broken=bytes.slice();broken[broken.length-1]^=1;await assert.rejects(()=>imported.importFitFile(new File([broken],'broken.fit')),/damaged|incomplete/);
+await assert.rejects(()=>imported.importFitFile(new File([fixture('running',2)],'triathlon.fit')),/multiple sessions/);
+assert.throws(()=>imported.importedFitMessages({sessionMesgs:[]},'x.fit','bad'),/no activity/);assert.throws(()=>imported.importedFitMessages({...messages,fileIdMesgs:[{type:'course'}]},'x.fit','bad'),/course/);assert.throws(()=>imported.importedFitMessages({...messages,sessionMesgs:[{startTime:'invalid',timestamp:at(12)}]},'x.fit','bad'),/timestamps/);assert.throws(()=>imported.importedFitMessages({...messages,sessionMesgs:[{startTime:start,timestamp:at(49*3600)}]},'x.fit','bad'),/48 hours/);
+if(process.argv.includes('--fixtures')){writeFileSync('/workspace/scratch/sieste-import-running.fit',bytes);writeFileSync('/workspace/scratch/sieste-import-cycling.fit',fixture('cycling'));writeFileSync('/workspace/scratch/sieste-import-broken.fit',broken);writeFileSync('/workspace/scratch/sieste-import-multisession.fit',fixture('running',2))}
+console.log('FIT import passed: real encoded Garmin fixtures, timestamps, lap/sensor/GPS units, stable IDs, cycling cadence, sparse/missing data and invalid/oversize/multi-session rejection.');

@@ -855,3 +855,19 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 .sieste-v3 .account-modal .tredict-fallback input{font-size:16px}
 .sieste-v3 .account-modal .tredict-fallback small{display:block;margin-top:8px;font-size:13px;line-height:1.4}
 .sieste-v3 .account-modal .docs-link{margin:10px 0 0;min-height:44px}
+
+/* File import stays behind the homepage More control. */
+.sieste-v3 .home-more-menu{position:relative;flex-shrink:0;z-index:5}
+.sieste-v3 .home-more-menu>summary{list-style:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid var(--s-line);border-radius:8px;color:var(--s-muted);background:#fff;cursor:pointer}
+.sieste-v3 .home-more-menu>summary::-webkit-details-marker{display:none}
+.sieste-v3 .home-more-menu>summary:focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
+.sieste-v3 .home-more-popover{position:absolute;right:0;top:36px;min-width:158px;padding:4px;background:white;border:1px solid var(--s-line);border-radius:9px;box-shadow:0 8px 24px #17202b16}
+.sieste-v3 .home-more-menu:not([open]) .home-more-popover{display:none}
+.sieste-v3 .home-more-popover button{width:100%;display:flex;align-items:center;gap:7px;white-space:nowrap;border:0;background:transparent;text-align:left;color:var(--s-text)}
+.sieste-v3 .home-more-popover button:hover{background:var(--s-accent-soft)}
+.sieste-v3 .activity-import-modal{width:min(420px,calc(100vw - 28px));max-height:calc(100dvh - 36px);overflow:auto;padding:18px;border-radius:16px;margin:auto}
+.activity-import-modal header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.activity-import-modal h2{font-size:18px;margin:0}.activity-import-modal p{font-size:13px;line-height:1.55;color:#71717a;margin:10px 0}
+.activity-import-modal .primary-button{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;margin:14px 0 8px;min-height:42px}
+.activity-import-modal small,.activity-import-modal .activity-import-footnote{font-size:11px;line-height:1.5;color:#71717a}.activity-import-modal .error{color:#b91c1c}.imported-activity-note{margin:8px 18px;font-size:11px}
+@media(max-width:650px){.sieste-v3 .home-period-actions{flex-wrap:wrap}.sieste-v3 .home-period-actions time{margin-right:auto}.sieste-v3 .home-more-menu>summary{width:28px;height:28px}}
