@@ -13,6 +13,7 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "test:cache": "node scripts/test-device-cache.mjs && node scripts/test-auto-sync.mjs && node scripts/test-account-metadata.mjs",
+    "test:notifications": "node scripts/test-activity-alerts.mjs",
     "typecheck": "tsc --noEmit --incremental false --noUnusedLocals --noUnusedParameters",
     "audit:code": "node scripts/audit-code.mjs",
     "audit:bundle": "node scripts/audit-bundle.mjs",

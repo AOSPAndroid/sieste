@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://sieste.daaalil.chatgpt.site"),
   title: "sieste | Athlete Performance",
   applicationName: "sieste",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "sieste", statusBarStyle: "default" },
   description: "Sommeil, Intensité, Endurance, Suivi, Travail & Énergie. Training, sleep and recovery with COROS.",
   other: {
     "codex-preview": "development",

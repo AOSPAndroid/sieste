@@ -23,6 +23,7 @@ type Options = {
   onBusy: (busy: boolean) => void;
   onError: (message: string) => void;
   onPhase: (phase: string) => void;
+  onRetrieved?: (data: AthleteData) => void;
   current?: () => boolean;
   request?: typeof fetch;
   cache?: {
@@ -39,6 +40,7 @@ export async function restoreDashboard({
   onBusy,
   onError,
   onPhase,
+  onRetrieved,
   current = () => true,
   request = fetch,
   cache = {
@@ -165,6 +167,7 @@ export async function restoreDashboard({
           authoritative = true;
           shown = true;
           onData(fresh, null);
+          onRetrieved?.(fresh);
           ready();
         }
       },

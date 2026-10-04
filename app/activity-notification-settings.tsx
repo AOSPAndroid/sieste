@@ -1,0 +1,6 @@
+"use client";
+import type {useActivityNotifications} from './use-activity-notifications';
+export default function ActivityNotificationSettings({notifications,connected}:{notifications:ReturnType<typeof useActivityNotifications>;connected:boolean}){
+ const {enabled,busy,support,message,enable,disable}=notifications;
+ return <section className="activity-notification-settings" aria-labelledby="activity-notifications-heading"><h3 id="activity-notifications-heading">New activity notifications</h3><p>Get an alert when a new workout is retrieved during sync. Sieste checks while it’s open; older imports stay quiet.</p>{support==='homescreen'?<p>On iPhone or iPad, open Sieste in Safari, choose Share → Add to Home Screen, then enable notifications from that app.</p>:support==='unsupported'?<p>This browser does not support device notifications. Open Sieste in a supported browser.</p>:<button className="primary-button" disabled={busy||support==='loading'||!connected} onClick={enabled?disable:enable}>{busy?'Enabling…':enabled?'Disable notifications':'Enable notifications'}</button>}{!connected&&<small>Connect and sync your account first.</small>}{message&&<p role="status">{message}</p>}</section>;
+}
