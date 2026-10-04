@@ -33,7 +33,9 @@ const {POST}=new Function('lapElevation','workoutEvidence',route+';return {POST}
 const originalFetch=globalThis.fetch;
 try{
  globalThis.fetch=async url=>{assert.equal(new URL(url).searchParams.get('allSeries'),'1');return Response.json({...fixture,seriesSampled:{...fixture.seriesSampled,data:{...fixture.seriesSampled.data,positionLat:[48,49]}}})};
- const result=await POST(new Request('https://sieste.test/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:'synthetic-only',action:'preview',id:'run'})}));
- assert.equal(result.status,200);const preview=(await result.json()).details[0];assert.equal(preview.previewVersion,1);assert.ok(preview.elevationPreview);assert.equal(preview.seriesSampled,undefined);assert.ok(!JSON.stringify(preview).includes('positionLat'));
+ for(const action of ['preview','enrich']){
+  const result=await POST(new Request('https://sieste.test/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:'synthetic-only',action,id:'run',ids:['run']})}));
+  assert.equal(result.status,200);const preview=(await result.json()).details[0];assert.equal(preview.previewVersion,1);assert.ok(preview.elevationPreview);assert.deepEqual(preview.laps,fixture.laps);assert.equal(preview.seriesSampled,undefined);assert.ok(!JSON.stringify(preview).includes('positionLat'));
+ }
 }finally{globalThis.fetch=originalFetch}
 console.log('Lap elevation: recorded boundaries, paused timing, gaps, flat/negative altitude, missing data, distance reconciliation, bounded extrema and compact Tredict preview passed.');
