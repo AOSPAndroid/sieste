@@ -13,6 +13,7 @@ import "./sieste-v2.css";
 import "./sieste-v3.css";
 import "./weekly-volume.css";
 import "./load-overlays.css";
+import "./recovery-matrix.css";
 
 export const viewport: Viewport = {
   width: "device-width",

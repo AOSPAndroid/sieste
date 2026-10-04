@@ -1,0 +1,35 @@
+.recovery-ledger .sleep-training-matrix{gap:4px;margin-top:0}
+.recovery-ledger .sleep-training-matrix>button,.recovery-ledger .sleep-training-labels{grid-template-rows:34px 34px 27px 27px 27px;gap:3px}
+.recovery-ledger .sleep-training-matrix>button{border:1px solid transparent;border-radius:9px;padding:3px 2px;color:#343448;font-size:12px;transition:background .15s,border-color .15s}
+.recovery-ledger .sleep-training-matrix>button:hover{background:#f7f7fb;border-color:#e9e6f3;box-shadow:none}
+.recovery-ledger .sleep-training-matrix>button:focus-visible{outline:2px solid #7660c7;outline-offset:-1px}
+.recovery-ledger .sleep-training-labels{padding:4px 0;color:#737383;font-size:11px}
+.recovery-ledger .sleep-training-labels>span{align-items:center;gap:3px}
+.recovery-ledger .sleep-training-labels>span:nth-child(2){flex-direction:column;align-items:flex-start;justify-content:center;gap:1px}
+.recovery-ledger .sleep-training-labels small{font-size:9px;color:#9292a1}
+.recovery-ledger .sleep-pair-date{flex-direction:column;gap:1px}
+.recovery-ledger .sleep-pair-date small{font-size:10px;color:#9393a0;font-weight:400}
+.recovery-ledger .sleep-pair-date time{font-size:13px;font-weight:650}
+.recovery-ledger .is-today .sleep-pair-date{color:#6754bb;background:#f1edfc}
+.recovery-ledger .is-today .sleep-pair-date small{color:#8d7cc4}
+.recovery-ledger .sleep-pair-load{border-bottom:1px solid #eae7f2;border-radius:0!important;padding-bottom:5px}
+.recovery-ledger .sleep-pair-load i{bottom:5px;width:72%;max-width:42px;border-radius:4px 4px 1px 1px;background:#e4dff4}
+.recovery-ledger .sleep-pair-load b{font-size:11px;font-weight:550;color:#665f7b}
+.recovery-ledger .sleep-training-matrix>button>span[class*=status-]{border-radius:6px;font-weight:550}
+.sleep-training-summary{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:3px 10px;margin:7px 0 10px;font-size:11px;color:#777786}
+.sleep-training-summary b{color:#444455;font-weight:600}
+.sleep-training-summary small{font-size:10px;color:#9797a3}
+.response-cards{gap:8px;margin:8px 0}
+.response-cards>button{border-color:#eae8f0;border-radius:10px;background:#faf9fd;padding:10px 11px;color:#3e3b52}
+.response-cards>button:hover{background:#f6f3fd;border-color:#d9d0ed}
+.response-cards>button:focus-visible{outline-color:#7660c7;outline-offset:2px}
+.response-cards .response-card-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px}
+.response-cards .response-card-heading small{font-size:11px;color:#767286}
+.response-cards .response-card-heading svg{flex:none;color:#a59cb9}
+.response-cards strong{display:block;font-size:18px;line-height:1.25;letter-spacing:-.35px;font-weight:650;margin:0 0 4px;font-variant-numeric:tabular-nums}
+.response-cards strong small{display:inline;font-size:14px;color:#a39aaa}
+.response-cards strong span{display:inline;font-size:12px;font-weight:500;letter-spacing:0;color:#5f5a71}
+.response-cards>button>span:last-child{font-size:10px;color:#92909e}
+.recovery-ledger>details{margin-top:10px;padding-top:9px;border-top:1px solid #eeedf3;color:#797586;font-size:11px}
+.recovery-ledger>details summary{cursor:pointer}
+@media(max-width:600px){.recovery-ledger .sleep-training-matrix{gap:2px}.recovery-ledger .sleep-training-matrix>button{padding:3px 0}.recovery-ledger .sleep-training-labels{font-size:10px}.recovery-ledger .sleep-training-labels small{font-size:8px}.response-cards>button{padding:9px 8px}.response-cards .response-card-heading small{font-size:10px}.response-cards strong{font-size:17px}.response-cards strong span{font-size:11px}}
