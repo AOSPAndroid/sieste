@@ -11,7 +11,9 @@ assert.equal(rows.length,28);assert.equal(rows[0].iso,'2026-08-23');assert.equal
 r=fatigueRecovery({...data,excludedWorkouts:[{id:'x',date:'2026-09-19T08:00:00Z'}]},now).at(-1);assert.equal(r.effort,null);assert.equal(r.load7,null);
 r=fatigueRecovery({...data,historyComplete:false},now).at(-1);assert.equal(r.effort,84);assert.equal(r.load7,null);
 r=fatigueRecovery({...data,activities:[{id:'x',date:'2026-09-18T08:00:00Z'}]},now).at(-1);assert.equal(r.load7,null);assert.equal(r.load28,null);
-rows=fatigueRecovery({...data,extra:{}},now);assert.ok(rows.every(r=>r.effort===null));
+rows=fatigueRecovery({...data,extra:{}},now);assert.ok(rows.every(r=>r.effort===0),'Complete activity history confirms rest without the daily effort endpoint');
+rows=fatigueRecovery({...data,extra:{},historyComplete:false},now);assert.ok(rows.every(r=>r.effort===null),'Incomplete activity history cannot invent rest');
+rows=fatigueRecovery({...data,extra:{},historyComplete:undefined},now);assert.ok(rows.every(r=>r.effort===null),'Legacy history without an effort feed cannot certify rest');
 rows=fatigueRecovery({...data,syncedAt:'2026-09-17T12:00:00Z'},now);assert.equal(rows.at(-2).effort,null);
 assert.equal(fatigueRecovery(data,new Date('2026-01-02T12:00:00Z'),7)[0].iso,'2025-12-27');
 console.log('Passed fatigue/recovery: rolling means, coverage, missing signals, exclusions, stale sync, future body readings and year boundary.');

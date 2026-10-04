@@ -3,7 +3,7 @@ import ts from 'typescript';
 import assert from 'node:assert/strict';
 process.env.TZ='UTC';
 function moduleUrl(name){let source=ts.transpileModule(readFileSync(new URL('../app/'+name+'.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;source=source.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,dep)=>`from "${moduleUrl(dep)}"`);return 'data:text/javascript;base64,'+Buffer.from(source).toString('base64')}
-const {trainingFatigue}=await import(moduleUrl('training-fatigue-data'));
+const {trainingFatigue,fatigueStatus}=await import(moduleUrl('training-fatigue-data'));
 const {loadAnalysis}=await import(moduleUrl('load-analysis-data'));
 const makeDays=n=>Array.from({length:n},(_,i)=>({iso:new Date(Date.UTC(2026,7,1+i)).toISOString().slice(0,10),effort:50,fatigueCovered:true}));
 let rows=makeDays(40),result=trainingFatigue(rows,rows.at(-1).iso);
@@ -26,4 +26,24 @@ const future={...data,activities:[...data.activities,{id:'future',date:'2026-10-
 const coros={...data,provider:'coros',activities:data.activities.map(activity=>({...activity,provider:'coros',summary:{...activity.summary,trainingLoad:activity.summary.effort.heartrate/5}}))};
 assert.ok(Math.abs(loadAnalysis(coros,now,14).today.fatigue-models[0].today.fatigue/5)<1e-10,'COROS uses its load instead of archived effort');
 const foreign=structuredClone(data);foreign.activities[2].provider='coros';assert.equal(loadAnalysis(foreign,now,14).today.fatigue,null,'Mixed provider days break the estimate');
+
+const rested={...data,extra:{},activities:data.activities.filter((_,i)=>i%7!==6)};
+const withFeed=loadAnalysis({...rested,extra:{efforts:{trainingEfforts:{}}}},now,14);
+assert.equal(loadAnalysis(rested,now,14).today.fatigue,withFeed.today.fatigue,'Confirmed rest does not depend on the daily effort endpoint');
+assert.ok(withFeed.today.fatigue>0);
+const missingToday={...rested,activities:rested.activities.map((a,i)=>i===0?{...a,summary:{duration:3600}}:a)};
+let model=loadAnalysis(missingToday,now,14);
+assert.equal(model.today.fatigue,null);assert.notEqual(model.rows.at(-2).fatigue,null);
+assert.equal(fatigueStatus(model.today),'missing load · 3 Oct','Missing current load is not insufficient years of history');
+const olderGap={...rested,activities:rested.activities.map(a=>a.id==='21'?{...a,summary:{duration:3600}}:a)};
+model=loadAnalysis(olderGap,now,14);
+assert.equal(model.today.fatigueDays,20);assert.equal(model.today.fatigueGap.iso,'2026-09-12');
+assert.equal(fatigueStatus(model.today),'20/28 completed days · missing load · 12 Sept','The diagnosis includes a gap outside the visible chart');
+assert.equal(loadAnalysis(olderGap,now,90).today.fatigueDays,model.today.fatigueDays);
+assert.equal(fatigueStatus(loadAnalysis(stale,now,14).today),'sync needed');
+assert.equal(fatigueStatus(loadAnalysis({...data,syncedAt:undefined},now,14).today),'sync needed');
+assert.equal(fatigueStatus(loadAnalysis({...data,historyComplete:false},now,14).today),'history import incomplete');
+assert.equal(fatigueStatus(loadAnalysis(excluded,now,14).today),'1/28 completed days · removed workout · 1 Oct');
+assert.equal(fatigueStatus(models[0].today),'provisional');assert.equal(fatigueStatus(models[0].rows.at(-2)),'');
+assert.equal(fatigueStatus(loadAnalysis({...data,historyStart:'2026-09-21'},now,14).today),'12/28 completed days');
 console.log('Training fatigue passed: seven-day decay, seed/warm-up, constant load, spikes/rest, coverage/gap resets, exclusions, source separation, fixed chart periods, time-mode stability and provisional today.');

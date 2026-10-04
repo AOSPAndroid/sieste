@@ -6,6 +6,7 @@ const LoadChart=lazy(()=>import('./load-chart'));
 import {useExpand} from './expansion';
 import {loadAnalysis} from './load-analysis-data';
 import {loadOverlays,formatLoadOverlay,defaultLoadLayers} from './load-chart-series';
+import {fatigueStatus} from './training-fatigue-data';
 import {metricStatus} from './metric-status';
 import {sportFamily} from './sports';
 import type {AthleteData} from './analytics';
@@ -27,7 +28,7 @@ function LoadTool({data,now,large=false}:{data:AthleteData;now:Date;large?:boole
  <p className="load-overlay-scale-note">Estimated fatigue: recent load · other lines use separate scales</p>
  <div className="load-tool-chart" style={{height:large?300:180}}>{large?<Suspense fallback={<p role="status">Loading load chart…</p>}><LoadChart model={model} large layers={activeLayers} onHover={setHover}/></Suspense>:<CompactLoadChart model={model} layers={activeLayers} activeIso={hover?.iso} onHover={setHover}/>}</div>
  <div className="load-tool-readout"><b>{row.label}</b><span>{amount(row.value)}{mode==='load'?' points':''} · {row.sessions} session{row.sessions===1?'':'s'}{row.iso===model.today.iso?' · training so far':''}</span>{large&&<><span>7d avg {fmt(row.short)}</span><span>28d avg {fmt(row.long)}</span></>}</div>
- <div className="load-overlay-readout" aria-live="polite">{overlays.filter(series=>activeLayers.includes(series.key)).map(series=><span key={series.key} style={{color:series.color}}>{series.label} <b>{formatLoadOverlay(series.key,row[series.key])}</b>{series.key==='minutes'&&row.iso===model.today.iso?<small> so far</small>:series.key==='fatigue'?<small>{row.fatigue===null?' insufficient history':row.fatigueProvisional?' provisional':''}</small>:null}</span>)}</div>
+ <div className="load-overlay-readout" aria-live="polite">{overlays.filter(series=>activeLayers.includes(series.key)).map(series=><span key={series.key} style={{color:series.color}}>{series.label} <b>{formatLoadOverlay(series.key,row[series.key])}</b>{series.key==='minutes'&&row.iso===model.today.iso?<small> so far</small>:series.key==='fatigue'?<small> {fatigueStatus(row)}</small>:null}</span>)}</div>
  {model.missing.length>0&&<p className="load-tool-gap">{model.missing.length}/{days} days missing {mode==='load'?'load':'duration'} · gaps mean unknown, not rest{mode==='load'?'. Switch to training time for a volume view.':'.'}</p>}
  {large&&<div className="load-tool-recovery">{(['sleep','hrv','rhr'] as const).map(key=>{const status=metricStatus(key,data,now,sportFamily);return <span key={key} className={`status-${status.tone}`} title={status.reason}><b>{key==='rhr'?'RHR':key==='hrv'?'HRV':'Sleep'}</b> {status.label}</span>})}</div>}
  <p className="load-tool-note">{mode==='load'?'Taller bars = more recorded training load. Points reflect duration and intensity.':'Taller bars = more time training; intensity is not included.'} Today is partial and excluded from weekly totals. {large?`${model.source}. More is not automatically better.`:''}</p>
