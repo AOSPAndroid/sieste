@@ -27,8 +27,17 @@ export const shareFinishes=[
 ] as const;
 export type ShareFinish='solid'|typeof shareFinishes[number]['key'];
 export const finishSwatch=(colors:readonly string[])=>'linear-gradient(165deg,'+colors.map((c,i)=>c+' '+[0,18,39,48,50,61,76,88,100][i]+'%').join(',')+')';
-export type ShareTemplate='cinemamonolith'|'cinemaepic'|'cinemawide'|'cinemamission'|'cinemalens'|'cinemawave'|'routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
-export const routeTemplates:ShareTemplate[]=['routegiant','cinematrace','route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
+export const routeStatDesigns=[
+ {key:'traceposter',name:'Trace poster',description:'Thick route · bold headline · all your stats'},
+ {key:'tracesplit',name:'Trace split',description:'Large route beside a cinematic stat column'},
+ {key:'traceheadline',name:'Trace headline',description:'Huge headline · thick route · stat grid'},
+ {key:'tracefooter',name:'Trace footer',description:'Route and stats below · room for your photo'},
+ {key:'tracescorecard',name:'Trace scorecard',description:'Thick route · six equally bold readings'},
+ {key:'tracestamp',name:'Trace stamp',description:'Framed route · slab-serif headline · stats'}
+] as const;
+export type ShareTemplate=typeof routeStatDesigns[number]['key']|'cinemamonolith'|'cinemaepic'|'cinemawide'|'cinemamission'|'cinemalens'|'cinemawave'|'routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export const routeStatTemplates:ShareTemplate[]=routeStatDesigns.map(design=>design.key);
+export const routeTemplates:ShareTemplate[]=[...routeStatTemplates,'routegiant','cinematrace','route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;showLabels?:boolean;routeStroke?:number;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
@@ -87,7 +96,7 @@ export function shareCardSvg(o:ShareDesign){
  const isActivity=[o.sport,o.title].some(label=>label.trim()&&value.toLocaleLowerCase().includes(label.toLocaleLowerCase()));
  return pictogram+`<text${isStat?' data-share-stat="true"':''}${isActivity?' data-share-activity="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
  }
- function route(x:number,y:number,w:number,hh:number,stroke=4){if(!o.route)return '';const {points,segments,center}=o.route,minX=points.reduce((n,p)=>Math.min(n,p.x),Infinity),maxX=points.reduce((n,p)=>Math.max(n,p.x),-Infinity),minY=points.reduce((n,p)=>Math.min(n,p.y),Infinity),maxY=points.reduce((n,p)=>Math.max(n,p.y),-Infinity),scale=Math.min((w-30)/Math.max(maxX-minX,1e-9),(hh-30)/Math.max(maxY-minY,1e-9));return segments.filter(s=>s.length>1).map(s=>{const stride=Math.max(1,Math.ceil(s.length/3000)),p=s.filter((_,i)=>i%stride===0||i===s.length-1).map((p,i)=>`${i?'L':'M'}${(x+w/2+(p.x-center.x)*scale).toFixed(2)},${(y+hh/2+(p.y-center.y)*scale).toFixed(2)}`).join(' ');return `<path d="${p}" fill="none" stroke="${ink}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`}).join('')}
+ function route(x:number,y:number,w:number,hh:number,stroke=4,inset=15){if(!o.route)return '';const {points,segments,center}=o.route,minX=points.reduce((n,p)=>Math.min(n,p.x),Infinity),maxX=points.reduce((n,p)=>Math.max(n,p.x),-Infinity),minY=points.reduce((n,p)=>Math.min(n,p.y),Infinity),maxY=points.reduce((n,p)=>Math.max(n,p.y),-Infinity),scale=Math.min((w-inset*2)/Math.max(maxX-minX,1e-9),(hh-inset*2)/Math.max(maxY-minY,1e-9));return segments.filter(s=>s.length>1).map(s=>{const stride=Math.max(1,Math.ceil(s.length/3000)),p=s.filter((_,i)=>i%stride===0||i===s.length-1).map((p,i)=>`${i?'L':'M'}${(x+w/2+(p.x-center.x)*scale).toFixed(2)},${(y+hh/2+(p.y-center.y)*scale).toFixed(2)}`).join(' ');return `<path d="${p}" fill="none" stroke="${ink}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`}).join('')}
  const backdrop=o.finish&&o.finish!=='solid'?true:!o.template.startsWith('chrome')?shareColourContrast(ink)==='#111111':o.ink==='white';
  if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${backdrop?'#181818':'#fafafa'}"/>`);
  const first=o.stats[0],others=o.stats.slice(1),cy=h/2;
@@ -105,7 +114,69 @@ export function shareCardSvg(o:ShareDesign){
   return (outline?'':`<g transform="translate(0 5)">${glyph.replace('fill="url(#metal)"','fill="#252b37" stroke="#252b37" stroke-width="3"')}</g>`)+
    glyph.replace('fill="url(#metal)"',`fill="${outline?'none':'url(#metal)'}" stroke="url(#rim)" stroke-width="${outline?3:1.8}" paint-order="stroke fill"`);
  };
- if(o.template==='routegiant'){
+ if(routeStatTemplates.includes(o.template)){
+  const stroke=typeof o.routeStroke==='number'&&Number.isFinite(o.routeStroke)?Math.max(12,Math.min(40,o.routeStroke)):28;
+  const paint=isChrome?'url(#metal)':ink,shown=o.stats.slice(0,6),support=shown.slice(1);
+  const bottom=h-(o.brand||o.demo?110:64)-(o.date?44:0),labelSpace=o.showLabels?30:0;
+  const heading=(x:number,y:number,w:number,center=false)=>{
+   const lines=cinematicTitleLines(o.title||o.sport);
+   lines.forEach((line,i)=>parts.push(cinematicText(line,{x,y:y+i*42,width:w,height:34,face:'tall',color:paint,align:center?'middle':'start'})));
+   return y+lines.length*42-8;
+  };
+  const trace=(x:number,y:number,w:number,hh:number)=>{
+   const paths=route(x,y,w,hh,stroke,stroke/2+8);
+   parts.push(`<g data-share-route="true">${paths||text('NO RECORDED ROUTE',x+w/2,y+hh/2,22,600,secondary,w,false,'middle')}</g>`);
+  };
+  const metric=(stat:ShareStat|undefined,x:number,y:number,w:number,hh:number,face:DisplayFace='tall',center=false,stretch=false)=>{
+   if(!stat)return;
+   const value=cinematicText(compact(stat).toUpperCase(),{x,y,width:w,height:hh,face,color:paint,align:center?'middle':'start',stretch});
+   const shortLabels:Record<string,string>={distance:'Distance',duration:'Time',pace:'Avg pace',speed:'Avg speed',power:'Avg power',hr:'Avg HR',ascent:'Gain',calories:'Calories',cadence:'Cadence',sessions:'Sessions',sleep:'Sleep',hrv:'HRV'};
+   const labelText=o.template==='tracefooter'?shortLabels[stat.key]??stat.label:stat.label;
+   const label=o.showLabels?text(labelText.toUpperCase(),center?x+w/2:x,y+hh+26,17,600,secondary,w,false,center?'middle':'start'):'';
+   parts.push(`<g data-share-stat-key="${xml(stat.key)}">${value}${label}</g>`);
+  };
+  const gridHeight=(count:number,columns:number,cellHeight:number)=>count?Math.ceil(count/columns)*cellHeight+(Math.ceil(count/columns)-1)*18:0;
+  const grid=(stats:ShareStat[],x:number,y:number,w:number,columns:number,cellHeight:number,face:DisplayFace='tall',valueHeight=44)=>{
+   const columnWidth=(w-(columns-1)*24)/columns;
+   stats.forEach((stat,i)=>metric(stat,x+i%columns*(columnWidth+24),y+Math.floor(i/columns)*(cellHeight+18),columnWidth,Math.min(valueHeight,cellHeight-labelSpace),face));
+  };
+  if(o.template==='tracesplit'){
+   const top=heading(72,72,936)+40,available=bottom-top,heroHeight=Math.min(108,available*.18);
+   trace(64,top,550,available);
+   metric(first,682,top,334,heroHeight,'serif');
+   const statTop=top+heroHeight+labelSpace+40,cellHeight=Math.min(112,(bottom-statTop-Math.max(0,support.length-1)*18)/Math.max(1,support.length));
+   parts.push(`<path d="M682 ${statTop-20}h334" fill="none" stroke="${ink}" stroke-width="2"/>`);
+   grid(support,682,statTop,334,1,cellHeight);
+  }else if(o.template==='tracefooter'){
+   const cellHeight=o.showLabels?100:76,statsHeight=gridHeight(shown.length,2,cellHeight),titleHeight=cinematicTitleLines(o.title||o.sport).length*42-8;
+   const top=bottom-Math.max(410,titleHeight+36+statsHeight),contentTop=heading(64,top,952)+36;
+   trace(64,contentTop,550,bottom-contentTop);
+   grid(shown,680,contentTop,336,2,cellHeight,'tall',38);
+  }else if(o.template==='tracescorecard'){
+   const top=heading(72,72,936)+32,cellHeight=o.showLabels?114:88,statTop=bottom-gridHeight(shown.length,3,cellHeight);
+   trace(64,top,952,statTop-top-52);
+   parts.push(`<path d="M72 ${statTop-26}h936" fill="none" stroke="${ink}" stroke-width="2"/>`);
+   grid(shown,72,statTop,936,3,cellHeight,'wide',54);
+  }else{
+   const top=heading(72,72,936,o.template==='tracestamp')+32,cellHeight=o.showLabels?84:64;
+   const statTop=bottom-gridHeight(support.length,3,cellHeight);
+   if(o.template==='traceheadline'){
+    const heroHeight=170,routeTop=top+heroHeight+labelSpace+38;
+    metric(first,64,top,952,heroHeight,'bold',false,true);
+    trace(64,routeTop,952,statTop-routeTop-38);
+   }else{
+    const heroHeight=96,heroTop=statTop-heroHeight-labelSpace-30,routeHeight=heroTop-top-36;
+    if(o.template==='tracestamp'){
+     const frameWidth=Math.min(860,routeHeight*1.45),x=(1080-frameWidth)/2;
+     parts.push(`<rect x="${x}" y="${top}" width="${frameWidth}" height="${routeHeight}" rx="${Math.min(64,routeHeight*.12)}" fill="none" stroke="${ink}" stroke-width="2"/>`);
+     trace(x+28,top+28,frameWidth-56,routeHeight-56);
+    }else trace(64,top,952,routeHeight);
+    metric(first,72,heroTop,936,heroHeight,o.template==='tracestamp'?'slab':'bold',o.template==='tracestamp');
+   }
+   grid(support,72,statTop,936,3,cellHeight);
+  }
+  if(o.date)parts.push(text(o.date,72,bottom+34,21,500,secondary,936));
+ }else if(o.template==='routegiant'){
   const stroke=typeof o.routeStroke==='number'&&Number.isFinite(o.routeStroke)?Math.max(4,Math.min(28,o.routeStroke)):16;
   parts.push(route(24,24,1032,h-(o.brand||o.demo?108:48),stroke));
  }else if(['cinemamonolith','cinemaepic','cinemawide','cinemamission','cinemalens','cinemawave'].includes(o.template)){
