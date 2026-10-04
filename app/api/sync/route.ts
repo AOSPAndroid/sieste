@@ -15,7 +15,7 @@ if(action==='sync'){
  if(payload.phase==='workouts'||payload.phase==='health'){
   const started=performance.now();let training:any,health:any;
   if(payload.phase==='workouts'){
-   const [r,h]=await Promise.all([legacy(payload),row?corosSnapshot(row):Promise.resolve(null)]);if(!r.ok)return r;training=await r.json();health=h;
+   const [r,h]=await Promise.all([legacy(payload),row?corosSnapshot(row):Promise.resolve(null)]);if(!r.ok){if(!row||supplied)return r;return privateJson({...await r.json() as any,canSyncHealth:true},r.status)}training=await r.json();health=h;
   }else{
    const r=await tredict.GET();if(!r.ok)return r;training=(await r.json() as any).data;health=row?await syncCoros(row,true,{...options,primary:training}):null;
   }
