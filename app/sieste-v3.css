@@ -1,7 +1,8 @@
 /* sieste 3: white surfaces, neutral greys and indigo interaction accents.
    The previous compact primitives remain the layout fallback. */
 :root{--s-ink:#242433;--s-muted:#686875;--s-faint:#81818e;--s-canvas:#f6f6f9;--s-line:#e9e9f0;--s-accent:#5145cd;--s-accent-soft:#f0efff;--s-blue:#5145cd;--s-radius:18px}
-body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+:root{--sieste-safe-top:env(safe-area-inset-top,0px);--sieste-safe-bottom:env(safe-area-inset-bottom,0px);--sieste-safe-left:env(safe-area-inset-left,0px);--sieste-safe-right:env(safe-area-inset-right,0px);--sieste-dock-bottom:calc(24px + var(--sieste-safe-bottom));--sieste-action-bottom:calc(var(--sieste-dock-bottom) + 7px)}
+body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;padding-top:var(--sieste-safe-top);padding-left:var(--sieste-safe-left);padding-right:var(--sieste-safe-right)}
 .sieste-v3{background:var(--s-canvas);color:var(--s-ink);--v2-ink:var(--s-ink);--v2-muted:var(--s-muted);--v2-bg:var(--s-canvas);--v2-line:var(--s-line);--v2-accent:var(--s-accent);--v2-radius:var(--s-radius)}
 .sieste-v3 .content main{max-width:1220px;padding:22px 30px 90px}
 .sieste-v3 :is(h1,h2,h3,strong,b){font-synthesis:none}
@@ -12,6 +13,7 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 .sieste-v3 button:disabled{opacity:.4}
 .sieste-v3 .sieste-topbar{height:58px;min-height:58px;padding:0 30px;background:var(--s-canvas);border:0;position:relative;gap:14px}
 .sieste-v3 .sieste-brand-home strong{font-size:28px;letter-spacing:-1.7px;font-weight:800;color:var(--s-ink);gap:6px}
+.sieste-wordmark{display:block;flex-shrink:0}
 .sieste-v3 .v2-brand-version{font-size:10px;font-weight:750;color:var(--s-ink);background:var(--s-accent);border-radius:5px;padding:3px 5px;letter-spacing:0}
 .sieste-v3 .sieste-brand-home>span{font-size:11px;letter-spacing:.1px;color:var(--s-muted);margin-left:10px}
 .sieste-v3 .v2-current-page{font-size:12px;letter-spacing:.2px;color:var(--s-muted)}
@@ -871,3 +873,21 @@ body:has(.sieste-v3){background:var(--s-canvas);font-family:Inter,ui-sans-serif,
 .activity-import-modal .primary-button{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;margin:14px 0 8px;min-height:42px}
 .activity-import-modal small,.activity-import-modal .activity-import-footnote{font-size:11px;line-height:1.5;color:#71717a}.activity-import-modal .error{color:#b91c1c}.imported-activity-note{margin:8px 18px;font-size:11px}
 @media(max-width:650px){.sieste-v3 .home-period-actions{flex-wrap:wrap}.sieste-v3 .home-period-actions time{margin-right:auto}.sieste-v3 .home-more-menu>summary{width:28px;height:28px}}
+
+/* Keep mobile app controls clear of the home indicator, on one center line. */
+@media(max-width:1049px){
+ .sieste-v3 .mini-dock{bottom:var(--sieste-dock-bottom)}
+ .sieste-v3 .floating-sync,body:has(.sieste-v3)>.athena-launcher{bottom:var(--sieste-action-bottom);width:44px;height:44px;min-height:44px;padding:0;justify-content:center;touch-action:manipulation}
+ .sieste-v3 .floating-sync{left:max(12px,var(--sieste-safe-left))}
+ body:has(.sieste-v3)>.athena-launcher{right:max(12px,var(--sieste-safe-right));border-radius:50%}
+ body:has(.sieste-v3)>.athena-launcher>span{display:none}
+ .sieste-v3.dashboard-theme .content main{padding-bottom:calc(104px + var(--sieste-safe-bottom))}
+ body:has(.sieste-v3)>.athena-chat{right:max(8px,var(--sieste-safe-right));max-width:calc(100vw - max(8px,var(--sieste-safe-left)) - max(8px,var(--sieste-safe-right)));bottom:max(var(--athena-bottom,8px),calc(8px + var(--sieste-safe-bottom)));max-height:calc(var(--athena-height,100dvh) - var(--sieste-safe-top) - var(--sieste-safe-bottom))}
+}
+@media(max-width:600px){body:has(.sieste-v3)>.athena-chat{left:max(8px,var(--sieste-safe-left));width:calc(100vw - max(8px,var(--sieste-safe-left)) - max(8px,var(--sieste-safe-right)))}}
+@media(max-width:1049px) and (orientation:landscape){body:has(.sieste-v3) .overlay:is(.account-overlay,.metric-expansion,.activity-card-stack){padding-left:max(16px,var(--sieste-safe-left));padding-right:max(16px,var(--sieste-safe-right))}}
+@media(min-width:1050px){
+ .sieste-v3 .mini-dock{top:calc(12px + var(--sieste-safe-top));bottom:calc(12px + var(--sieste-safe-bottom));left:calc(12px + var(--sieste-safe-left))}
+ .sieste-v3 .floating-sync{bottom:calc(24px + var(--sieste-safe-bottom));left:calc(25px + var(--sieste-safe-left))}
+ body:has(.sieste-v3)>.athena-launcher{right:max(16px,var(--sieste-safe-right))}
+}

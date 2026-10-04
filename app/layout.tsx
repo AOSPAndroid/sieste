@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./sleep-page.css";
 import "./ui-refinement.css";
@@ -13,6 +13,13 @@ import "./sieste-v2.css";
 import "./sieste-v3.css";
 import "./weekly-volume.css";
 import "./load-overlays.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f6f6f9",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sieste.daaalil.chatgpt.site"),
