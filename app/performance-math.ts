@@ -12,4 +12,3 @@ export function normalizedPower(values:unknown[],sampleSeconds:number){
  const n=Math.ceil(30/sampleSeconds);if(values.length<n*2)return null;let sum=0,total=0,count=0;for(let i=0;i<values.length;i++){sum+=values[i] as number;if(i>=n)sum-=values[i-n] as number;if(i>=n-1){total+=(sum/n)**4;count++}}return (total/count)**.25;
 }
 export function sessionTotals(activities:{summary?:Record<string,any>}[]){const sum=(key:string)=>{const values=activities.map(a=>a.summary?.[key]).filter(numeric);return values.length?values.reduce((a,b)=>a+b,0):null};return {sessions:activities.length,duration:sum('duration'),distance:sum('distance'),calories:sum('calories'),vo2max:mean(activities.map(a=>a.summary?.vo2max)),heartrate:mean(activities.map(a=>a.summary?.heartrate)),power:mean(activities.map(a=>a.summary?.power)),durationCoverage:activities.filter(a=>numeric(a.summary?.duration)).length}}
-export function utcDay(date:string){return date.slice(0,10)}

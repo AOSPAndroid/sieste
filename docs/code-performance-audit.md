@@ -1,6 +1,33 @@
 # Sieste code and performance audit
 
-Audited 1 October 2026 against the deployed dashboard, API routes, dependency lockfile and production browser manifest.
+Updated 5 October 2026 against application and tooling references, the dependency lockfile, current full-screen editor and production browser manifest.
+
+## Cleanup on 5 October 2026
+
+The approved full-screen editor, active shared-image designs and current athlete calculations are preserved.
+
+| Finding | Cleanup |
+| --- | --- |
+| The superseded inline/sticky share editor left heading, palette, preview-column, caption, grid and recommendation rules behind. | Remove 27 obsolete/duplicate CSS rules, retire legacy classes and sticky positioning, and keep the closed launcher’s appearance. |
+| Every colour/thickness change generated the entire closed design gallery. | Generate gallery SVGs only while the Design tray is open. A closed-gallery colour change now produces 3 SVGs rather than 183 across 60 templates. |
+| Two abandoned calculation modules and an unused starter mobile hook had no application callers. | Delete daily-ring-data, training-assessment and use-mobile, with the obsolete tests/configuration. |
+| Active data modules retained unused exports for old recovery/workload, comparison, stress/device and provider-merging experiments. | Remove only exports without production callers; preserve active fatigue, sensor evidence, efficiency, FIT, provider and COROS calculations and their tests. |
+| Old Tailwind vendor CSS and its license were unimported; favicon.svg duplicated the active icon. | Delete these three files. Keep installed-app icons, notification icons, all cinematic fonts, font licenses and the glyph generator. |
+| Optional pnpm installer helpers were unused by this npm project. | Remove the unreferenced helper pair; retain the active npm install:ci scripts and framework build tooling. |
+| The file audit omitted hooks and flagged intentional database tooling as unreachable app code. | Include hooks and distinguish framework/database/example entry points from web routes. The audited graph has 202 application-reachable sources, 10 tooling-only sources and no unreferenced files. |
+
+### Verification and measurement
+
+- A browser fixture runs the real ActivityShare and ShareCanvas, with the committed v253 editor and CSS frozen for comparison. Mobile (390px) and desktop (1280px) screenshots are pixel-identical after cleanup; closed-launcher geometry, pointer controls, all colour/finish choices, thickness, design selection and parent dialog interaction pass.
+- Selected SVG and actual 2160 × 3840 transparent PNG bytes match the previous renderer. Opaque export also passes. The artwork, values and export dimensions are unchanged.
+- Instrumented synchronous SVG construction for a sample closed-gallery colour update fell from 183 calls / 22.5 ms to 3 calls / 0.9 ms on this execution machine. This is a sample local render measurement, not a page-load or user-device timing promise.
+- The 42 retained parser/calculation declarations in the affected helper modules are unchanged. Focused tests cover performance math, efficiency insights, sensor evidence, COROS records and extended readings, fatigue recovery, FIT import and provider syncing. Overview, share-design, strict TypeScript and whitespace checks pass.
+- All declared packages still support application, migration, build or test workflows; no dependency was removed. The v253 initial browser JavaScript baseline is 561,468 bytes uncompressed / 180,521 gzip bytes. The final production build is checked against the existing 200,000-byte gzip budget. Unreachable repository-file removal alone is not a homepage-load improvement.
+- Whole-repository ESLint is still failing: 519 errors and 49 warnings, compared with 538 errors and 49 warnings before this cleanup. Most remaining errors are explicit-any declarations (465) and hook rules. They are existing audit findings; rules were not weakened or suppressed. Strict TypeScript unused-local and unused-parameter checks pass. A broader typing/hooks refactor needs separate behavior checks.
+
+Database schemas, migrations, the optional D1 example and getDb wrapper remain intentional tooling, rather than unused application features. Broader global CSS still includes conditional/chart styling; this cleanup removes only selectors verified against current callers and browser comparisons.
+
+## Earlier optimization on 1 October 2026
 
 ## Changes made
 
@@ -30,9 +57,9 @@ A local calculation benchmark used 4,002 activity records, 2,000 body readings a
 
 ## Retained code and next opportunities
 
-- `app/daily-ring-data.ts` and `app/training-assessment.ts` are currently referenced by tests rather than application routes. Retain these small calculation modules as documented candidates for a later decision about those features.
+- The test-only daily-ring-data and training-assessment candidates from the earlier audit were removed in the 5 October cleanup above.
 - `db/schema.ts` and `db/index.ts` are outside the application route graph, but the schema, Drizzle configuration and migrations remain part of the database tooling. Database tables and migrations were preserved.
-- The layered global styles include historical selectors. Static class-name searches cannot establish safety for all conditional views, chart classes and exported designs. A later CSS cleanup should collect coverage across all views and export layouts before removing selectors.
+- Superseded sharing/recommendation selectors were removed and verified in the 5 October cleanup. Further CSS pruning should collect coverage across conditional views, chart classes and export layouts.
 - Background refresh still transfers the complete dashboard snapshot. An authenticated revision/ETag check could avoid unchanged transfers; incremental history responses could further reduce large-account payloads. These require API and sync contract changes, beyond this cleanup.
 - Overview week summaries and other advanced analyses still have repeated scans. Profile them with representative athlete data before broader rewrites; the daily load path was the verified expensive case fixed here.
 
@@ -48,6 +75,6 @@ npm run build
 npm run audit:bundle
 ```
 
-`audit:code` reports static reachability, including type references and literal dynamic imports. Its review candidates must be checked against tests and tooling before deletion. `audit:bundle` prevents expanded charts from moving back into the homepage's static import graph and enforces a 200,000-byte initial gzip JavaScript budget.
+`audit:code` reports static reachability, including type references and literal dynamic imports, with intentional build/database/example entries separated from web routes. Its review candidates must be checked against tests and tooling before deletion. `audit:bundle` prevents expanded charts from moving back into the homepage's static import graph and enforces a 200,000-byte initial gzip JavaScript budget.
 
 Additional regression checks cover retained pages, progressive sync, workout caching, provider merging, running technique, routes, COROS extended data and shared image rendering. Selected new modules pass ESLint. No live-browser load-time measurement was available for this audit.

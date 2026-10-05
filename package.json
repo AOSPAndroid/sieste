@@ -20,7 +20,7 @@
     "typecheck": "tsc --noEmit --incremental false --noUnusedLocals --noUnusedParameters",
     "audit:code": "node scripts/audit-code.mjs",
     "audit:bundle": "node scripts/audit-bundle.mjs",
-    "test:overview": "node scripts/test-compact-load-chart.mjs && node scripts/test-fatigue-recovery.mjs && node scripts/test-training-fatigue.mjs && node scripts/test-load-analysis.mjs && node scripts/test-load-recovery-trends.mjs && node scripts/test-weekly-volume.mjs && node scripts/test-widget-comparisons.mjs",
+    "test:overview": "node scripts/test-compact-load-chart.mjs && node scripts/test-fatigue-recovery.mjs && node scripts/test-training-fatigue.mjs && node scripts/test-load-analysis.mjs && node scripts/test-weekly-volume.mjs && node scripts/test-widget-comparisons.mjs",
     "test:share": "node scripts/test-activity-share.mjs && node scripts/test-cinematic-share.mjs && node scripts/test-cinematic-concepts.mjs && node scripts/test-share-languages.mjs && node scripts/test-complete-finishes.mjs && node scripts/test-route-giant.mjs && node scripts/test-route-stats.mjs"
   },
   "dependencies": {
