@@ -146,7 +146,7 @@ try{
   assert.equal(validSleepAlertState({seen:['20261004'],lastNotifiedDay:'invalid'}),false);
   assert.equal(validSleepAlertState({seen:[],lastNotifiedDay:'20261004'}),true);
   assert.equal(validSleepAlertState({seen:Array(731).fill('20261004')}),false);
-  assert.deepEqual(sleepAlertBaseline(fixture({20260230:[28000],20261005:[30000]})).seen,[]);
+  assert.deepEqual(sleepAlertBaseline(fixture({20260230:[28000],20261005:[30000]}),undefined,now).seen,[]);
  });
  check('Travel back across midnight does not replay a previous wake date',()=>{
   process.env.TZ='Europe/Paris';

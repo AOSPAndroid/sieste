@@ -11,8 +11,12 @@ import {corosConnection} from '../../../db/coros';
 export const dynamic='force-dynamic';
 export async function GET(){const user=await getChatGPTUser();if(!user)return privateJson({signedIn:false,connected:false,signInUrl:chatGPTSignInPath('/')});try{const row=await connection(user.userId);const coros=await corosConnection(user.userId);const object=row?await storage().bucket.get(row.snapshot_key):null;return privateJson({signedIn:true,name:user.displayName,connected:!!row,corosConnected:!!coros,preferredProvider:'coros',activeProvider:row?'tredict':null,data:object?await filteredSnapshot(user.userId,await restoreAnalyses(user.userId,await analysisIdentity(await unseal(row!.token_ciphertext,storage().key,user.userId)),await object.json())):null,signOutUrl:chatGPTSignOutPath('/')})}catch{return privateJson({error:'Your saved account could not be loaded. Please retry.'},503)}}
 export async function POST(request:Request){
+ const signedIn=await getChatGPTUser();if(!signedIn)return privateJson({error:'Sign in first.'},401);return savedAccountPOST(request,signedIn.userId);
+}
+export async function syncStoredAccount(owner:string,origin:string,timeZone:string){return savedAccountPOST(new Request(origin+'/api/sync',{method:'POST',headers:{'Content-Type':'application/json','Origin':origin},body:JSON.stringify({action:'sync',timeZone})}),owner)}
+async function savedAccountPOST(request:Request,owner:string){
  if(!sameOrigin(request))return privateJson({error:'Cross-site requests are not allowed.'},403);
- const user=await getChatGPTUser();if(!user)return privateJson({error:'Sign in with ChatGPT to save your own Tredict connection.'},401);
+ const user={userId:owner};
  if(!request.headers.get('content-type')?.includes('application/json'))return privateJson({error:'Expected JSON.'},415);
  const raw=await request.text();if(raw.length>10000)return privateJson({error:'Request too large.'},413);
  let payload:any;try{payload=JSON.parse(raw)}catch{return privateJson({error:'Invalid request.'},400)}
@@ -50,7 +54,7 @@ export async function POST(request:Request){
    if(previous)try{await removeObjects(prefix+previous.revision+'/')}catch{/* Unreferenced old cache can be cleaned on account deletion. */}
    if(supplied&&previous){const oldIdentity=await analysisIdentity(await unseal(previous.token_ciphertext,key,user.userId));if(oldIdentity!==identity)await removeObjects(prefix+'workout-cache-v1/'+oldIdentity+'/')}
    if(supplied){await db.prepare("DELETE FROM athlete_analyses WHERE owner = ? AND identity NOT LIKE 'coros:%' AND identity != ?").bind(user.userId,identity).run();await db.prepare("DELETE FROM athlete_session_labels WHERE owner = ? AND identity NOT LIKE 'coros:%' AND identity != ?").bind(user.userId,identity).run();}
-   return privateJson(await filteredSnapshot(user.userId,await restoreAnalyses(user.userId,identity,data)));
+   const response=privateJson(await filteredSnapshot(user.userId,await restoreAnalyses(user.userId,identity,data)));response.headers.set('X-Sync-Refreshed','true');return response;
   }
   const ids=action!=='enrich'?[payload.id]:payload.ids;
   if(!Array.isArray(ids)||ids.length<1||ids.length>4||ids.some(id=>typeof id!=='string'||!/^[a-zA-Z0-9_-]{1,120}$/.test(id)))return privateJson({error:'Invalid activity selection.'},400);

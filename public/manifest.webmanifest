@@ -2,6 +2,7 @@
  "id":"/",
  "name":"sieste | Athlete Performance",
  "short_name":"sieste",
+ "description":"Training, sleep and recovery, with background sync notifications.",
  "start_url":"/",
  "scope":"/",
  "display":"standalone",

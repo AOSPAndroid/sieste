@@ -35,3 +35,15 @@ export const sessionLabels=sqliteTable('athlete_session_labels',{
 export const analyses=sqliteTable('athlete_analyses',{
  owner:text('owner').notNull(),identity:text('identity').notNull(),activityId:text('activity_id').notNull(),signature:text('signature').notNull(),data:text('data').notNull()
 },table=>[primaryKey({columns:[table.owner,table.identity,table.activityId]})]);
+export const backgroundSync=sqliteTable('background_sync',{
+ owner:text('owner').primaryKey(),enabled:real('enabled').notNull().default(0),timeZone:text('time_zone').notNull(),intervalMinutes:real('interval_minutes').notNull().default(30),nextRun:real('next_run').notNull(),lease:text('lease'),leaseUntil:real('lease_until').notNull().default(0),lastCompleted:text('last_completed'),lastStatus:text('last_status'),lastError:text('last_error'),lastFingerprint:text('last_fingerprint')
+});
+export const syncPushSubscriptions=sqliteTable('sync_push_subscriptions',{
+ owner:text('owner').notNull(),id:text('id').notNull(),subscription:text('subscription').notNull()
+},table=>[primaryKey({columns:[table.owner,table.id]})]);
+export const syncNotificationJobs=sqliteTable('sync_notification_jobs',{
+ id:text('id').primaryKey(),owner:text('owner').notNull(),subscriptionId:text('subscription_id').notNull(),payload:text('payload').notNull(),createdAt:real('created_at').notNull(),attempts:real('attempts').notNull().default(0),claim:text('claim'),leaseUntil:real('lease_until').notNull().default(0)
+});
+export const syncWorkerHealth=sqliteTable('sync_worker_health',{
+ id:text('id').primaryKey(),updatedAt:real('updated_at').notNull()
+});

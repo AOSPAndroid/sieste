@@ -15,7 +15,7 @@ function locked<T>(scope:string,task:()=>T):Promise<T>{return navigator.locks?na
 const ios=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
 const standalone=()=>matchMedia('(display-mode: standalone)').matches||(navigator as Navigator&{standalone?:boolean}).standalone===true;
 async function worker(){
- await navigator.serviceWorker.register('/activity-notifications-sw.js',{scope:'/',updateViaCache:'none'});
+ await navigator.serviceWorker.register('/sieste-sw.js',{scope:'/',updateViaCache:'none'});
  let timer:ReturnType<typeof setTimeout>|undefined;
  try{return await Promise.race([navigator.serviceWorker.ready,new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(Error('Notifications could not start. Please try again.')),10000)})]);}
  finally{clearTimeout(timer)}

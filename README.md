@@ -10,6 +10,8 @@ Returning visits restore a dashboard snapshot from IndexedDB on the current devi
 
 Run `npm run test:cache` to verify device storage, account isolation, expiry and background restore behavior.
 
+Background sync can run while the app is closed, using an outbound-only worker on a Windows PC. Enable it in Account → Background sync and opt into push notifications on each device. Setup and operational details are in [Background sync](docs/background-sync.md). Run `node scripts/test-background-sync.mjs` to verify account isolation, scheduling leases, provider fallback and notification retries.
+
 ## Prerequisites
 
 - Node.js `>=22.13.0`
