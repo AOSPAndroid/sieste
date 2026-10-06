@@ -8,7 +8,7 @@ Set shell = CreateObject("WScript.Shell")
 Set files = CreateObject("Scripting.FileSystemObject")
 
 nodePath = "C:\Program Files\nodejs\node.exe"
-configPath = shell.ExpandEnvironmentStrings("%LOCALAPPDATA%\SiesteBackground\config.json")
+configPath = shell.ExpandEnvironmentStrings("%PROGRAMDATA%\Sieste\private\config.json")
 If WScript.Arguments.Count > 0 Then nodePath = WScript.Arguments(0)
 If WScript.Arguments.Count > 1 Then configPath = WScript.Arguments(1)
 workerPath = files.BuildPath(files.GetParentFolderName(WScript.ScriptFullName), "sieste-background-worker.mjs")

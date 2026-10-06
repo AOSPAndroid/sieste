@@ -42,10 +42,23 @@ Focus and notification settings can affect when alerts appear. See
 
 ## Private PC configuration
 
-The default private directory is `%LOCALAPPDATA%\SiesteBackground`, which resolves
-to `C:\Users\adell\AppData\Local\SiesteBackground` for this PC's account.
-Keep its Windows permissions restricted to the worker account, SYSTEM, and
-administrators. Do not put this directory or its configuration in the repository.
+The default private directory is `C:\ProgramData\Sieste\private`. Keep its Windows
+permissions restricted to the worker account and SYSTEM. Do not put this directory
+or its configuration in the repository. ProgramData provides the same physical
+path to the packaged desktop app and Windows Task Scheduler; AppData can be
+virtualized inside the desktop app and unavailable to a scheduled process.
+
+The local layout is:
+
+```text
+C:\ProgramData\Sieste\
+  sieste-background-launcher.exe
+  private\
+    config.json
+    runtime\node_modules\web-push\
+    status.json
+    delivery-receipts.json
+```
 
 `config.json` contains these fields, without any provider credentials:
 
@@ -55,7 +68,7 @@ administrators. Do not put this directory or its configuration in the repository
 | `token` | Private bearer token matching the website's worker secret |
 | `vapidPublicKey` | Web Push public key matching the website's public key |
 | `vapidPrivateKey` | Private key used only to sign push delivery requests |
-| `runtimePath` | Absolute path to the separate runtime directory containing `node_modules/web-push`, or its `package.json` |
+| `runtimePath` | `C:\ProgramData\Sieste\private\runtime`, containing `node_modules/web-push`, or its absolute `package.json` path |
 
 The worker uses `createRequire` to load `web-push` from that private runtime. It
 reads the config on every check, so a changed token or key is picked up without
@@ -71,12 +84,23 @@ Neither file contains subscriptions, push keys, provider results, or health data
 
 ## Windows scheduled task
 
-The background sync task is separate from `sieste Athena Bridge`. Its proposed
+The background sync task is separate from `sieste Athena Bridge`. Its
 name is `sieste Background Sync`. Register it only after the website, database
 tables, worker secret, public push key, private config, and runtime are ready.
 
-The following command uses the current signed-in Windows account without storing
-a password. It creates a login trigger and an indefinite five-minute watchdog.
+The default launcher is `scripts/sieste-background-launcher.cs`, compiled into
+`C:\ProgramData\Sieste\sieste-background-launcher.exe` with the Windows
+.NET Framework compiler at
+`C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe`. Compile with `/target:winexe`
+to use the GUI subsystem. The launcher starts Node using `CreateNoWindow` and
+waits for it to exit, so neither process opens a terminal window. Its three
+arguments are absolute paths to Node, the worker script, and private config;
+secrets stay in the config file. The scheduled action needs no working directory:
+the launcher sets Node's working directory to the worker script's directory.
+
+The following command compiles the launcher and registers the task for the
+current signed-in Windows account without storing a password. It creates a
+login trigger and an indefinite five-minute watchdog.
 The launcher stays active while Node runs, and **IgnoreNew** prevents watchdog
 triggers from starting another worker. It has no execution time limit. The
 settings keep Windows' defaults of refusing a battery start and stopping on a
@@ -85,14 +109,19 @@ switch to battery; **WakeToRun** remains off.
 ```powershell
 $siesteTaskName = 'sieste Background Sync'
 $siesteRepo = 'C:\Users\adell\Projects\apex-athlete'
-$siesteLauncher = Join-Path $siesteRepo 'scripts\sieste-background-hidden.vbs'
+$siesteRoot = 'C:\ProgramData\Sieste'
+$siestePrivateDir = Join-Path $siesteRoot 'private'
+$siesteLauncherSource = Join-Path $siesteRepo 'scripts\sieste-background-launcher.cs'
+$siesteLauncher = Join-Path $siesteRoot 'sieste-background-launcher.exe'
+$siesteCompiler = 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe'
+$siesteWorker = Join-Path $siesteRepo 'scripts\sieste-background-worker.mjs'
 $siesteNode = 'C:\Program Files\nodejs\node.exe'
-$siesteConfig = Join-Path $env:LOCALAPPDATA 'SiesteBackground\config.json'
+$siesteConfig = Join-Path $siestePrivateDir 'config.json'
 $siesteUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
-foreach ($siesteFile in @($siesteLauncher, $siesteNode, $siesteConfig)) {
+foreach ($siesteFile in @($siesteLauncherSource, $siesteCompiler, $siesteWorker, $siesteNode, $siesteConfig)) {
     if (-not (Test-Path -LiteralPath $siesteFile -PathType Leaf)) {
-        throw 'A required Sieste launcher, Node executable, or private config is missing.'
+        throw 'A required Sieste source, compiler, worker, Node executable, or private config is missing.'
     }
     if ($siesteFile.Contains('"')) { throw 'A Sieste path contains an invalid quote.' }
 }
@@ -100,10 +129,14 @@ if (Get-ScheduledTask -TaskPath '\' -TaskName $siesteTaskName -ErrorAction Silen
     throw 'The Sieste background task already exists. Inspect it before changing it.'
 }
 
+& $siesteCompiler /nologo /target:winexe ('/out:{0}' -f $siesteLauncher) $siesteLauncherSource
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $siesteLauncher -PathType Leaf)) {
+    throw 'The Sieste GUI launcher could not be compiled.'
+}
+
 $siesteAction = New-ScheduledTaskAction `
-    -Execute (Join-Path $env:WINDIR 'System32\wscript.exe') `
-    -Argument ('//B //NoLogo "{0}" "{1}" "{2}"' -f $siesteLauncher, $siesteNode, $siesteConfig) `
-    -WorkingDirectory $siesteRepo
+    -Execute $siesteLauncher `
+    -Argument ('"{0}" "{1}" "{2}"' -f $siesteNode, $siesteWorker, $siesteConfig)
 $siesteLogin = New-ScheduledTaskTrigger -AtLogOn -User $siesteUser
 $siesteWatchdog = New-ScheduledTaskTrigger `
     -Once -At (Get-Date).AddMinutes(1) `
@@ -119,6 +152,19 @@ Register-ScheduledTask -TaskPath '\' -TaskName $siesteTaskName `
     -Action $siesteAction -Trigger @($siesteLogin, $siesteWatchdog) `
     -Settings $siesteSettings -Principal $siestePrincipal `
     -Description 'Refresh Sieste in the background and deliver sync notifications.' | Out-Null
+```
+
+`scripts/sieste-background-hidden.vbs` is an optional fallback on a host where
+Windows Script Host works under Task Scheduler. It accepts Node and config paths,
+locates the worker beside itself, and uses `WshShell.Run` with window style zero
+and waits for Node. The default scheduled task uses the compiled GUI launcher.
+If using the fallback, substitute this action before registering the task:
+
+```powershell
+$siesteVbs = Join-Path $siesteRepo 'scripts\sieste-background-hidden.vbs'
+$siesteAction = New-ScheduledTaskAction `
+    -Execute (Join-Path $env:WINDIR 'System32\wscript.exe') `
+    -Argument ('//B //NoLogo "{0}" "{1}" "{2}"' -f $siesteVbs, $siesteNode, $siesteConfig)
 ```
 
 Start or resume the task after configuration is ready:
@@ -147,7 +193,7 @@ alongside the scheduled worker.
     'C:\Users\adell\Projects\apex-athlete\scripts\sieste-background-worker.mjs'
 & 'C:\Program Files\nodejs\node.exe' `
     'C:\Users\adell\Projects\apex-athlete\scripts\sieste-background-worker.mjs' `
-    --config (Join-Path $env:LOCALAPPDATA 'SiesteBackground\config.json') --once
+    --config 'C:\ProgramData\Sieste\private\config.json' --once
 ```
 
 The one-check result is sanitized JSON. A clean result has `connected: true` and
@@ -163,15 +209,23 @@ Get-ScheduledTask -TaskPath '\' -TaskName 'sieste Background Sync' |
     Select-Object TaskName, State
 Get-ScheduledTaskInfo -TaskPath '\' -TaskName 'sieste Background Sync' |
     Select-Object LastRunTime, LastTaskResult, NextRunTime
-Get-Content -LiteralPath (Join-Path $env:LOCALAPPDATA 'SiesteBackground\status.json') |
+Get-Content -LiteralPath 'C:\ProgramData\Sieste\private\status.json' |
     ConvertFrom-Json
 ```
 
-A persistent task normally stays **Running**. A forced stop, power loss, or
+A persistent task normally stays **Running**, with `LastTaskResult` equal to
+`267009` (`0x41301`, task currently running). A forced stop, power loss, or
 Windows termination can leave the status file's online flag stale; check
 `updatedAt` and `lastSuccessAt` as well. Sieste's **Sync PC online** indicator uses
 the website's latest worker heartbeat and becomes offline after four minutes.
 The five-minute watchdog restarts a stopped worker when conditions allow.
+If Task Scheduler returns `0x80070002`, check that the action's executable is
+the compiled GUI launcher at its current absolute path. Launcher exit code `10`
+means it did not receive exactly three arguments. Codes `20`, `21`, and `22`
+mean the Node, worker, or config path is missing or invalid, respectively. Code
+`3` means Node could not start; `1` is a contained launcher failure or a worker
+failure. These codes contain no secrets. Rebuild the launcher after changing its
+source while the task is paused.
 
 | Status error | Check |
 | --- | --- |
@@ -191,6 +245,6 @@ or Windows push-service hosts. It refuses arbitrary destinations and redirects
 from the website worker endpoint.
 
 To move the worker later, prepare the same private runtime/config on the new
-always-on host, keep the existing push key pair, and stop the old PC task before
-starting the new worker. Per-account schedules and subscriptions remain on the
-website.
+always-on host, keep the existing push key pair, compile its GUI launcher, and
+stop the old PC task before starting the new worker. Per-account schedules and
+subscriptions remain on the website.

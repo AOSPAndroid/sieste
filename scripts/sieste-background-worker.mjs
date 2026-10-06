@@ -1,7 +1,7 @@
 /**
  * Outbound-only sieste scheduler and Web Push delivery bridge.
  * Configuration and delivery receipts live outside the repository, under the
- * user's private %LOCALAPPDATA%\SiesteBackground directory. Never log secrets,
+ * protected %PROGRAMDATA%\Sieste\private directory on Windows. Never log secrets,
  * subscription URLs, provider responses, or health/activity data.
  */
 import fs from 'node:fs/promises';
@@ -18,7 +18,9 @@ const once = args.includes('--once');
 const configArgument = args.indexOf('--config');
 const configPath = path.resolve(configArgument >= 0 && args[configArgument + 1]
   ? args[configArgument + 1]
-  : path.join(process.env.LOCALAPPDATA || process.cwd(), 'SiesteBackground', 'config.json'));
+  : process.platform === 'win32'
+    ? path.join(process.env.ProgramData || 'C:/ProgramData', 'Sieste', 'private', 'config.json')
+    : path.join(process.cwd(), 'SiesteBackground', 'config.json'));
 const privateDirectory = path.dirname(configPath);
 const statusPath = path.join(privateDirectory, 'status.json');
 const receiptPath = path.join(privateDirectory, 'delivery-receipts.json');
