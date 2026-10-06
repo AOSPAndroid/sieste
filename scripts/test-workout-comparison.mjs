@@ -1,0 +1,34 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+const compile=path=>ts.transpileModule(readFileSync(path,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import[^;]*;\s*/gm,'').replace(/^export /gm,'');
+const sports=new Function(compile('app/sports.ts')+';return {sportFamily}')();
+const {effortProfile}=new Function(compile('app/effort-profile-data.ts')+';return {effortProfile}')();
+const {compareRoutes,routeCandidates,fetchableComparisonId}=new Function('sportFamily',compile('app/workout-route-compare-data.ts')+';return {compareRoutes,routeCandidates,fetchableComparisonId}')(sports.sportFamily);
+const {lapMosaic,mosaicLevel,mosaicStorageKey,validLapLabels}=new Function('sportFamily','effortProfile',compile('app/workout-lap-mosaic-data.ts')+';return {lapMosaic,mosaicLevel,mosaicStorageKey,validLapLabels}')(sports.sportFamily,effortProfile);
+const {demoWorkoutDetail}=new Function('sportFamily',compile('app/demo-workout-detail.ts')+';return {demoWorkoutDetail}')(sports.sportFamily);
+
+function route(id,step=1){return {id,date:id==='current'?'2026-10-06T08:00:00Z':'2026-10-01T08:00:00Z',sportType:'running',summary:{distance:1800,duration:600*step,durationTotal:601*step},seriesSampled:{sampleSize:step,data:{distance:Array.from({length:601},(_,i)=>i*3),positionLat:Array.from({length:601},(_,i)=>48.85+i*.000025),positionLong:Array.from({length:601},(_,i)=>2.3+i*.000015),speed:Array(601).fill(3/step),heartrate:Array(601).fill(140),power:Array(601).fill(200)}}}}
+const current=route('current'),prior=route('previous',2),match=compareRoutes(current,prior);
+const demoCurrent=demoWorkoutDetail({...current,summary:{distance:5000,duration:1600}}),demoPrior=demoWorkoutDetail({...prior,summary:{distance:5000,duration:1650}});assert.equal(demoCurrent.demo,true);assert.equal(compareRoutes(demoCurrent,demoPrior).matched,true,'Only explicitly requested illustrative demo details can be compared');
+assert.equal(match.matched,true);assert.equal(match.overlap,1);assert.equal(match.delta,-600);assert.equal(match.points.length,101);assert.equal(match.points.at(-1).km,1.8);
+const shifted=structuredClone(prior);shifted.seriesSampled.data.positionLat=shifted.seriesSampled.data.positionLat.map(value=>value+.01);assert.equal(compareRoutes(current,shifted).matched,false,'Same distance is not enough');
+const reversed=structuredClone(prior);reversed.seriesSampled.data.positionLat.reverse();reversed.seriesSampled.data.positionLong.reverse();assert.equal(compareRoutes(current,reversed).matched,false,'Opposite direction is rejected');
+const differentSport={...prior,sportType:'cycling'};assert.equal(compareRoutes(current,differentSport).matched,false);
+const distanceReset=structuredClone(prior);distanceReset.seriesSampled.data.distance[200]=0;assert.equal(compareRoutes(current,distanceReset).matched,false);
+const distanceJitter=structuredClone(prior);distanceJitter.seriesSampled.data.distance[200]=distanceJitter.seriesSampled.data.distance[199]-.1;assert.equal(compareRoutes(current,distanceJitter).matched,false,'Even a small backwards counter must not enter binary distance interpolation');
+const incomplete=structuredClone(prior);incomplete.seriesSampled.data.positionLat.fill(null,200,301);assert.equal(compareRoutes(current,incomplete).matched,false,'Incomplete route is rejected');
+const missingSpeed=structuredClone(prior);missingSpeed.seriesSampled.data.speed[200]=null;const incompleteClock=compareRoutes(current,missingSpeed);assert.equal(incompleteClock.matched,true);assert.equal(incompleteClock.movingTimeAvailable,false);assert.equal(incompleteClock.delta,null);assert.ok(incompleteClock.points.every(point=>point.delta===null),'No inferred moving clocks across sensor gaps');
+const stopped=structuredClone(prior);stopped.seriesSampled.data.speed.fill(0,100,110);assert.equal(compareRoutes(current,stopped).delta,-580,'Observed stopped seconds are excluded from moving time');
+const coarse=structuredClone(prior);coarse.seriesSampled.sampleSize=30;assert.equal(compareRoutes(current,coarse).matched,false);
+const future={...prior,id:'future',date:'2026-10-07T00:00:00Z'},merged={...prior,id:'merged',mergedIds:['a','b'],seriesSampled:undefined},residentMerged={...merged,seriesSampled:prior.seriesSampled};
+assert.deepEqual(routeCandidates(current,[current,prior,future,merged,residentMerged]).map(candidate=>candidate.activity.id),['previous','merged']);
+assert.equal(fetchableComparisonId(merged),false);assert.equal(fetchableComparisonId({id:'imported:123'}),false);assert.equal(fetchableComparisonId(prior),true);
+const laps={id:'laps',sportType:'running',summary:{duration:60,durationTotal:60},laps:[{duration:20,distance:40,heartrate:130},{duration:40,distance:160,heartrate:150}],seriesSampled:{sampleSize:2,data:{speed:Array(30).fill(3)}}};
+const mosaic=lapMosaic(laps);assert.equal(mosaic.laps.length,2);assert.equal(mosaic.totalDuration,60);assert.equal(mosaic.laps[0].start,0);assert.equal(mosaic.laps[0].end,1/3);assert.equal(mosaic.laps[1].end,1);assert.equal(mosaic.laps[0].speed,2);assert.equal(mosaic.laps[1].speed,4);assert.equal(mosaicLevel(mosaic.laps[0],mosaic.laps,'speed'),0);assert.equal(mosaicLevel(mosaic.laps[1],mosaic.laps,'speed'),1);
+const unaligned=structuredClone(laps);unaligned.laps[0].duration=200;assert.ok(lapMosaic(unaligned).laps.every(lap=>lap.start===null),'Wrong-timed laps remain viewable but never highlighted');
+const unknown={...laps,laps:[{duration:10},{duration:20}]};assert.equal(lapMosaic(unknown).laps[0].speed,null);assert.equal(mosaicLevel(lapMosaic(unknown).laps[0],lapMosaic(unknown).laps,'speed'),null);
+const zeros=lapMosaic({...laps,sportType:'cycling',laps:[{duration:20,power:0},{duration:40,power:100}]});assert.equal(zeros.laps[0].power,0,'Recorded zero power is preserved');
+assert.deepEqual(validLapLabels({'1':'Warm-up','2':'Work','3':'Recovery','0':'Work','bad':'Work','1.5':'Work','7':'<script>'},2),{'1':'Warm-up','2':'Work'});
+assert.notEqual(mosaicStorageKey('account-a',laps),mosaicStorageKey('account-b',laps),'Labels are account scoped');assert.notEqual(mosaicStorageKey('account-a',laps),mosaicStorageKey('account-a',unaligned),'Changed lap revisions do not inherit stale labels');assert.equal(mosaicStorageKey('',laps),null);assert.equal(mosaicStorageKey('account-a',{...laps,demo:true}),null);
+console.log('Workout route comparison and lap mosaic: same-route direction/coverage, independent moving clocks, stops, missing data, shortlist safety, source lap timing, relative intensity and scoped label fixtures passed.');

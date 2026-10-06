@@ -1,5 +1,5 @@
 import ts from 'typescript';import {readFileSync} from 'node:fs';import assert from 'node:assert/strict';
-const code=ts.transpileModule(readFileSync('app/route-geometry.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replaceAll('export ','');const {routeGeometry,selectedRouteSegments,fitRouteSegments,contextualSelectionFit}=new Function(code+';return {routeGeometry,selectedRouteSegments,fitRouteSegments,contextualSelectionFit}')();
+const code=ts.transpileModule(readFileSync('app/route-geometry.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replaceAll('export ','');const {routeGeometry,selectedRouteSegments,fitRouteSegments,contextualSelectionFit,routeCursorPoint}=new Function(code+';return {routeGeometry,selectedRouteSegments,fitRouteSegments,contextualSelectionFit,routeCursorPoint}')();
 const geometry=routeGeometry([48,48.001,null,48.003,48.004,48.005],[2,2.001,null,2.003,2.004,2.005]);
 const selected=selectedRouteSegments(geometry.segments,60,{start:1,end:5,label:'Effort 1'});assert.deepEqual(selected.map(s=>s.map(p=>p.index)),[[1],[3,4]]);assert.equal(selectedRouteSegments(geometry.segments,60,null).length,0);assert.equal(selectedRouteSegments(geometry.segments,null,{start:1,end:5,label:'a'}).length,0);assert.equal(selectedRouteSegments(geometry.segments,60,{start:2,end:3,label:'GPS gap'}).length,0);
 for(const selection of [{start:-1,end:2},{start:NaN,end:2},{start:1,end:Infinity},{start:2,end:2},{start:3,end:2}])assert.deepEqual(selectedRouteSegments(geometry.segments,60,{...selection,label:'Invalid'}),[]);
@@ -32,3 +32,14 @@ const world=fitRouteSegments([[{x:0,y:0},{x:1,y:1}]]);assert.equal(contextualSel
 const tightBefore=JSON.stringify(shortFit);contextualSelectionFit(shortFit,kind);assert.equal(JSON.stringify(shortFit),tightBefore,'Automatic framing leaves the tighter explicit fit unchanged');
 }
 console.log('Effort and climb auto framing: consistent broader span, centered recorded bounds, real zoom-in, lap/unspecified no-ops, missing/stationary GPS, dateline continuity and bounded zoom passed.');
+
+const contiguous=routeGeometry(Array.from({length:10},(_,i)=>48+i*.001),Array.from({length:10},(_,i)=>2+i*.001));
+const ranges={start:0,end:9,label:'Flat sections',kind:'terrain',ranges:[{start:6,end:9},{start:0,end:2},{start:1,end:3}]};
+assert.deepEqual(selectedRouteSegments(contiguous.segments,60,ranges).map(s=>s.map(p=>p.index)),[[0,1,2],[6,7,8]],'Disjoint terrain/coasting selections never join the intervening route; overlaps merge');
+assert.deepEqual(ranges.ranges,[{start:6,end:9},{start:0,end:2},{start:1,end:3}],'Selection input remains unchanged');
+assert.deepEqual(selectedRouteSegments(contiguous.segments,60,{...ranges,ranges:[]}),[]);
+assert.deepEqual(selectedRouteSegments(contiguous.segments,60,{...ranges,ranges:[{start:0,end:Infinity}]}),[]);
+assert.equal(routeCursorPoint(geometry.points,2),null,'GPS gaps have no replay position');
+assert.equal(routeCursorPoint(geometry.points,3).index,3,'Replay follows the original sensor index');
+for(const index of [null,-1,Infinity,NaN,.5,100])assert.equal(routeCursorPoint(geometry.points,index),null);
+console.log('Multi-range route highlighting and exact replay cursor gap handling passed.');

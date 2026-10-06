@@ -12,6 +12,18 @@ Run `npm run test:cache` to verify device storage, account isolation, expiry and
 
 Background sync can run while the app is closed, using an outbound-only worker on a Windows PC. Enable it in Account → Background sync and opt into push notifications on each device. Setup and operational details are in [Background sync](docs/background-sync.md). Run `node scripts/test-background-sync.mjs` to verify account isolation, scheduling leases, provider fallback and notification retries.
 
+## Workout explorer
+
+Open an activity → **Explore** (or unfold **Explore workout** in Summary). Replay, fingerprint, terrain, coasting, prior-route comparison, lap mosaic and following-morning recovery load when selected. The Summary also shows adjacent recorded sessions and strength sets / training effects when supplied.
+
+- Coasting uses recorded zero power while moving, excludes positive cadence, and falls back to mixed pedalling / zero cadence when power is unavailable. Missing measurements and stops stay separate; coverage and the chosen method are visible.
+- Fingerprints compare stable, near-flat one-minute blocks at similar output across the session. Running uses pace; cycling uses power, or speed without a power meter. Colours represent early to late, not a fitness score.
+- Route comparison retrieves only the earlier recording you choose, verifies GPS shape and direction, and compares common recorded distance. Moving-time differences are approximate and withheld when the speed timeline has gaps.
+- Lap widths use recorded duration, heights and colours use relative speed or power. Labels are stored in this browser under the verified account scope and recording revision. Unaligned laps keep their metrics without inventing route positions.
+- Following-morning readings belong to the whole training day. Baselines use only the previous 28 calendar days; future and missing readings remain unavailable.
+
+Run `npm run test:workouts` for data and alignment fixtures, and `npm run audit:bundle` after building to verify that the explorer stays out of the homepage’s initial JavaScript.
+
 ## Prerequisites
 
 - Node.js `>=22.13.0`

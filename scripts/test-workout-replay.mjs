@@ -1,0 +1,36 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+function moduleUrl(name){let source=ts.transpileModule(readFileSync(new URL('../app/'+name+'.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;source=source.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,dependency)=>`from "${moduleUrl(dependency)}"`);return 'data:text/javascript;base64,'+Buffer.from(source).toString('base64')}
+const {workoutReplayData,replayRanges}=await import(moduleUrl('workout-replay-data'));
+const ride={sportType:'cycling',summary:{durationTotal:25},seriesSampled:{sampleSize:10,data:{speed:[3,3,3],power:[0,100,0],heartrate:[100,120,140],cadence:[0,60,null],grade:[3,0,-3]}}};
+let r=workoutReplayData(ride);
+assert.equal(r.seconds,25);assert.equal(r.coasting.seconds,15);assert.equal(r.coasting.percent,60);assert.equal(r.coasting.confirmedSeconds,10);assert.equal(r.coasting.unknownCadenceSeconds,5);assert.equal(r.coasting.coverage,1);
+assert.deepEqual(r.coasting.ranges,[{start:0,end:10/60},{start:20/60,end:25/60}]);
+assert.deepEqual(r.terrain.map(b=>b.seconds),[10,10,5]);assert.equal(r.terrain[2].percent,20);assert.equal(r.terrain[0].hr,100);
+const gaps=structuredClone(ride);gaps.seriesSampled.data.power=[0,null,0];r=workoutReplayData(gaps);assert.equal(r.coasting.method,'cadence');assert.equal(r.coasting.percent,50);assert.equal(r.coasting.powerGapSeconds,10);assert.equal(r.coasting.coverage,.6);assert.equal(r.coasting.seconds,10);
+const stops=structuredClone(ride);stops.seriesSampled.data.speed=[0,3,null];r=workoutReplayData(stops);assert.equal(r.coasting.seconds,0);assert.equal(r.coasting.stoppedSeconds,10);assert.equal(r.coasting.motionGapSeconds,5);assert.equal(r.coasting.classifiedSeconds,10);
+const negative=structuredClone(ride);negative.seriesSampled.data.power=[-1,NaN,null];r=workoutReplayData(negative);assert.equal(r.coasting.method,'cadence');assert.equal(r.coasting.percent,50);assert.equal(r.coasting.powerGapSeconds,25);assert.equal(r.hasPower,false);
+const unloaded=structuredClone(ride);unloaded.seriesSampled.data.cadence=[30,60,null];r=workoutReplayData(unloaded);assert.equal(r.coasting.unloadedSeconds,10);assert.equal(r.coasting.seconds,5);assert.equal(r.coasting.percent,20);assert.equal(r.coasting.zeroPowerSeconds,15);assert.equal(r.coasting.method,'power');
+const zeroOnly=structuredClone(ride);zeroOnly.seriesSampled.data.power.fill(0);zeroOnly.seriesSampled.data.cadence.fill(0);r=workoutReplayData(zeroOnly);assert.equal(r.coasting.method,'unavailable');assert.equal(r.coasting.percent,null);assert.equal(r.coasting.confirmedSeconds,0);assert.equal(r.coasting.zeroPowerSeconds,25);assert.equal(r.coasting.allPowerZero,true);assert.equal(r.coasting.allCadenceZero,true);
+const cadenceOnly=structuredClone(ride);delete cadenceOnly.seriesSampled.data.power;r=workoutReplayData(cadenceOnly);assert.equal(r.coasting.method,'cadence');assert.equal(r.coasting.seconds,10);assert.equal(r.coasting.percent,50);assert.equal(r.coasting.measurementCoverage,.8);
+const absentSensors=structuredClone(ride);delete absentSensors.seriesSampled.data.power;delete absentSensors.seriesSampled.data.cadence;assert.equal(workoutReplayData(absentSensors).coasting.method,'unavailable');
+const gpsTimeline={seriesSampled:{sampleSize:5,data:{positionLat:[1,2,3],positionLong:[1,2,3],grade:[0,0,0],speed:[3]}}};assert.equal(workoutReplayData(gpsTimeline).rows.length,3);
+const sampleCount=840,step=1;
+const run={sportType:'running',summary:{durationTotal:sampleCount},seriesSampled:{sampleSize:step,data:{speed:Array(sampleCount).fill(3),heartrate:Array.from({length:sampleCount},(_,i)=>i<420?140:150),cadence:Array(sampleCount).fill(180),grade:Array(sampleCount).fill(0),distance:Array.from({length:sampleCount},(_,i)=>i*3),altitude:Array(sampleCount).fill(50)}},laps:[{durationTotal:420,distance:1260},{durationTotal:420,distance:1260}]};
+r=workoutReplayData(run);assert.ok(r.fingerprint.length>=8);assert.ok(r.fingerprint.some(p=>p.phase<.5&&p.hr===140));assert.ok(r.fingerprint.some(p=>p.phase>=.5&&p.hr===150));assert.equal(r.laps.length,2);assert.equal(r.laps[1].start,7);
+const hills=structuredClone(run);hills.seriesSampled.data.grade.fill(5);assert.equal(workoutReplayData(hills).fingerprint.length,0);
+const mismatch=structuredClone(run);mismatch.seriesSampled.data.speed=mismatch.seriesSampled.data.speed.map((v,i)=>i<420?v:4);assert.equal(workoutReplayData(mismatch).fingerprint.length,0);
+const missingHR=structuredClone(run);missingHR.seriesSampled.data.heartrate.fill(null);assert.equal(workoutReplayData(missingHR).fingerprint.length,0);
+const short=structuredClone(run);short.summary.durationTotal=180;assert.equal(workoutReplayData(short).fingerprint.length,0);
+const noMeter=structuredClone(run);noMeter.sportType='cycling';r=workoutReplayData(noMeter);assert.equal(r.fingerprintSource,'speed');assert.ok(r.fingerprint.length>=8);assert.equal(r.hasPower,false);
+const withMeter=structuredClone(noMeter);withMeter.seriesSampled.data.power=Array(sampleCount).fill(200);r=workoutReplayData(withMeter);assert.equal(r.fingerprintSource,'power');assert.ok(r.fingerprint.every(p=>p.output===200));
+const irregular={...run,summary:{durationTotal:840},seriesSampled:{sampleSize:7,data:{speed:Array(120).fill(3),grade:Array(120).fill(0),heartrate:Array(120).fill(140)}}};assert.ok(workoutReplayData(irregular).fingerprint.length>=8);
+// Grade derivation is bounded by stops and gaps instead of joining slopes.
+const inferred=structuredClone(run);delete inferred.seriesSampled.data.grade;inferred.seriesSampled.data.altitude=Array.from({length:sampleCount},(_,i)=>50+i*.1);r=workoutReplayData(inferred);assert.ok(r.terrain[0].seconds>800);
+inferred.seriesSampled.data.altitude.fill(null,200,300);r=workoutReplayData(inferred);assert.equal(r.rows[250].terrain,null);assert.ok(r.terrainSeconds<=740);
+const reset=structuredClone(inferred);reset.seriesSampled.data.distance[400]=0;r=workoutReplayData(reset);assert.notEqual(r.rows[400].grade,Infinity);assert.ok(r.rows.every(row=>row.grade===null||Number.isFinite(row.grade)));
+const ranges=replayRanges([{seconds:0,weight:5,power:0},{seconds:5,weight:5,power:0},{seconds:10,weight:5,power:null},{seconds:15,weight:5,power:0}],row=>row.power===0);assert.deepEqual(ranges,[{start:0,end:10/60},{start:15/60,end:20/60}]);
+assert.equal(workoutReplayData({seriesSampled:{sampleSize:0,data:{speed:[3]}}}).rows.length,0);
+assert.equal(workoutReplayData({seriesSampled:{sampleSize:120,data:{speed:[3]}}}).rows.length,0);
+console.log('Workout replay: duration weighting, zero-power coverage, stops/gaps, cadence confirmation, matched flat fingerprints, non-divisor sample intervals, aligned laps and terrain boundaries passed.');

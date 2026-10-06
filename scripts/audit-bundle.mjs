@@ -15,7 +15,7 @@ for(const [key,value] of Object.entries(manifest))if(value.isEntry)visit(key);
 const files=[...new Set([...initial].map(key=>manifest[key].file))];
 const chunks=files.map(file=>{const content=readFileSync('dist/client/'+file);return {file,bytes:content.length,gzip:gzipSync(content).length}});
 const total=field=>chunks.reduce((sum,chunk)=>sum+chunk[field],0);
-for(const deferred of ['app/metric-trend.tsx','app/widget-comparisons.tsx','app/weekly-volume-detail.tsx','app/load-chart.tsx']){
+for(const deferred of ['app/metric-trend.tsx','app/widget-comparisons.tsx','app/weekly-volume-detail.tsx','app/load-chart.tsx','app/workout-explorer.tsx','app/workout-replay.tsx','app/workout-route-compare.tsx','app/workout-lap-mosaic.tsx']){
  assert.ok(manifest[deferred],`Deferred view missing: ${deferred}`);
  assert.ok(!initial.has(deferred),`${deferred} is eagerly loaded by the homepage`);
 }
