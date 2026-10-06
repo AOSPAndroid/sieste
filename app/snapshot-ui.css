@@ -80,7 +80,13 @@
 
 /* Activity cards use one sheet, flat sensor groups and quiet controls. */
 .sieste-v3 .activity-card-stack>.workout-modal.modal { padding: 10px!important; border-color: var(--snap-line); border-radius: 18px!important; box-shadow: 0 4px 18px #24243308; }
-.sieste-v3 .activity-card-stack .activity-sheet-heading { padding: 2px 0 8px!important; gap: 7px; }
+/* Keep the title and tabs outside the scroller so its top/side gutters cannot
+   reveal content behind the activity heading. The rounded shell clips the body. */
+.sieste-v3 .activity-card-stack>.workout-modal.modal:not(.workout-loading) { --activity-inset: 10px; display: flex; flex-direction: column; padding: 0!important; overflow: hidden; }
+.sieste-v3 .activity-card-stack .activity-sheet-heading { position: relative; top: auto; flex: 0 0 auto; height: auto; min-height: 54px; margin: 0; padding: 10px var(--activity-inset) 8px!important; gap: 7px; background: #fff; }
+.sieste-v3 .activity-card-stack .workout-modal>.detail-tabs { flex: 0 0 auto; margin: 0 var(--activity-inset) 8px; }
+.sieste-v3 .activity-card-stack .activity-sheet-body { flex: 1 1 auto; min-height: 0; min-width: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 0 var(--activity-inset) var(--activity-inset); }
+.sieste-v3 .activity-card-stack .activity-sheet-body .activity-analysis-layout>.activity-mini-map:has(>.route-panel) { top: 0; }
 .sieste-v3 .workout-modal .activity-sheet-heading h2 { font-size: 17px; font-weight: 650; letter-spacing: -.35px; }
 .sieste-v3 .activity-sheet-icon { background: transparent; border: 0; width: 26px; height: 32px; padding: 2px; }
 .sieste-v3 .activity-sheet-icon svg { width: 20px; height: 20px; }
@@ -156,6 +162,7 @@
   .sieste-v3 .sieste-topbar { height: 40px; min-height: 40px; padding: 0 12px; }
   .sieste-v3 .laboratory .lab-grid { gap: 8px; }
   .sieste-v3 .activity-card-stack>.workout-modal.modal { padding: 8px!important; border-radius: 16px!important; }
+  .sieste-v3 .activity-card-stack>.workout-modal.modal:not(.workout-loading) { --activity-inset: 8px; padding: 0!important; }
   .sieste-v3 .workout-modal .activity-glance-value strong { font-size: 22px; }
   .sieste-v3.metric-expansion .expanded-widget { border-radius: 16px; }
   .sieste-v3 .expanded-widget-body { padding: 10px 10px max(16px,env(safe-area-inset-bottom)); }
