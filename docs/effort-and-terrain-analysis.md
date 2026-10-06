@@ -21,12 +21,15 @@ Missing primary samples, primary zeros and distance resets break sections. Heart
 
 Both activity profiles and cycling analyses use the same detector. Climbs need recorded elevation and cumulative distance, with samples no more than 15 seconds apart.
 
-| Sport | Minimum time | Net gain | Moving distance | Average gradient |
+| Sport | Minimum time | Net gain | Moving distance | Gradient requirement |
 | --- | ---: | ---: | ---: | ---: |
 | Running/walking/hiking | 30 seconds | 10 m | 60 m | 1% |
-| Cycling | 60 seconds | 20 m | 150 m | 1% |
+| Cycling · whole climb | 60 seconds | 20 m | 150 m | 1% |
+| Cycling · steep sections | 30 seconds | 10 m | 100 m | Local cutoff · 3% default |
 
 Short-bin and neighbouring median smoothing suppress isolated elevation spikes. Valley-to-peak detection tolerates small dips relative to the accumulated rise, plus brief moving flats. Stationary distance, gaps, resets, implausible elevation jumps and substantial descents separate sections. Shallow sustained road climbs can qualify. Gain is the smoothed net rise between detected boundaries, not an invented total ascent or a climb category.
+
+Cycling profiles default to **Steep sections**, trimming gentle approaches and tails and splitting sections at flats using the local smoothed gradient over roughly 50 m. The cutoff can be 2%, 3%, 4%, 5%, 6% or 8%; **Whole climb** retains the valley-to-peak view. Mode and cutoff are remembered on the device. Changing them clears the selected section and recomputes chart/map bounds, duration, distance, power, HR, gain, average gradient and copied text. The displayed section-average gradient is distinct from the local detection cutoff. Running and recorded laps keep their existing detection. The data API defaults to whole climbs for callers that supply no options.
 
 ## Display and comparison
 
