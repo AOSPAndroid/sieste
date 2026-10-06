@@ -1,0 +1,37 @@
+/* Compact effort discovery and comparison within activity sheets. */
+.effort-analysis-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;padding:5px 0 3px}
+.effort-analysis-toolbar label{display:flex;align-items:center;gap:5px;font-size:10px;color:#6d7283}
+.effort-analysis-toolbar select{font:inherit;color:#36354b;border:1px solid #e4e4ec;background:#fff;border-radius:7px;padding:5px 6px;max-width:165px;min-height:32px}
+.effort-analysis-toolbar>span{margin-left:auto;font-size:10px;color:#777689;font-variant-numeric:tabular-nums}
+.unified-profile .effort-segments{max-height:none;padding:7px 0 9px;scrollbar-width:thin;scroll-snap-type:x proximity}
+.unified-profile .effort-segments>button{display:grid;align-content:start;justify-items:start;gap:4px;min-width:116px;padding:8px 10px;scroll-snap-align:start;min-height:78px}
+.effort-segment-title{display:flex;gap:8px;align-items:center;font-size:10px}
+.effort-segments strong{font-size:14px;color:#29273d;letter-spacing:-.25px;font-variant-numeric:tabular-nums}
+.unified-profile .effort-segments small{font-size:10px;white-space:nowrap;color:#777689}
+.effort-segments .profile-row-badges{margin:0;min-height:12px}
+.effort-empty{font-size:11px;color:#757489;margin:4px 0;line-height:1.5}
+.effort-source-note{font-size:10px;color:#858295;margin:0 0 7px}
+.effort-timeline{position:relative;cursor:pointer}
+.effort-navigation{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:3px 0 8px;min-height:32px}
+.effort-navigation>div{display:flex;align-items:center;gap:5px;margin-right:auto;color:#777689;font-size:10px;font-variant-numeric:tabular-nums}
+.effort-navigation button{display:inline-flex;align-items:center;justify-content:center;gap:4px;border:1px solid #e5e4ed;border-radius:7px;background:#fff;color:#6053a1;font-size:10px;padding:6px 8px;min-height:34px}
+.effort-navigation button:disabled{opacity:.35;cursor:default}
+.effort-navigation>small{color:#858295}
+.unified-profile .effort-readout>header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.unified-profile .effort-readout>header>strong{font-size:11px;font-weight:600}
+.unified-profile .effort-readout>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:10px 8px;margin-top:10px}
+.effort-readout>div>span{font-size:10px;color:#777689;font-variant-numeric:tabular-nums}
+.effort-readout>div small{display:block;margin-top:3px;font-size:9px;color:#858295}
+.effort-recovery{font-size:10px;color:#777689;margin:9px 0 0;padding-top:7px;border-top:1px solid #dddded}
+.effort-comparison-table{overflow-x:auto;margin-top:5px}
+.effort-comparison-table table{width:100%;border-collapse:collapse;text-align:left;font-size:11px;font-variant-numeric:tabular-nums}
+.effort-comparison-table caption{text-align:left;padding:6px 0;font-size:10px;color:#777689}
+.effort-comparison-table th{font-size:10px;font-weight:500;color:#777689;padding:7px 5px;border-bottom:1px solid #e5e4ed}
+.effort-comparison-table td{padding:9px 5px;border-bottom:1px solid #efedf4;vertical-align:top;min-width:70px;cursor:pointer}
+.effort-comparison-table td small,.effort-comparison-table td span,.effort-comparison-table td strong{display:block;margin:3px 0}
+.effort-comparison-table td strong{font-size:11px;font-weight:600;color:#333146}
+.effort-comparison-table td button{display:flex;align-items:center;gap:4px;padding:3px 0;font-size:10px;color:#6353b7;border:0;background:transparent;min-height:28px}
+.effort-comparison-table .is-selected{background:#f0edfb}
+.effort-comparison-table .profile-row-badges,.effort-comparison-table .profile-row-badges>span{display:inline-flex;margin:0}
+.route-selection-status .route-fit-selection{margin-left:auto;padding:6px 8px;font-size:10px;min-height:34px}
+@media(max-width:480px){.effort-analysis-toolbar>span{width:100%;margin-left:0}.unified-profile.effort-analysis .unified-modes button{font-size:10px}.effort-navigation button{padding:6px}.effort-comparison-table td{min-width:62px}}

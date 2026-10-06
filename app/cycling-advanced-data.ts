@@ -1,5 +1,6 @@
 import {sampledBest} from './training-coach-data';
 import {sportFamily} from './sports';
+import {activityClimbs} from './activity-terrain-data';
 const valid=(x:any):x is number=>typeof x==='number'&&Number.isFinite(x);
 const mean=(xs:any[])=>{const a=xs.filter(valid);return a.length?a.reduce((s,v)=>s+v,0)/a.length:null};
 export function cyclingReference(detail:any){const c=detail.cyclingContext??{},manual=c.manualReference,when=Date.parse(detail.date),historic=Object.entries(c.fitnessHistory??{}).filter(([d,v]:any)=>valid(v.ftp)&&Date.parse(d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8)+'T00:00:00Z')<=when).sort(([a],[b])=>b.localeCompare(a))[0] as [string,any]|undefined;const recorded=detail.summary?.ftp,manualFtp=valid(manual?.ftp)&&manual.ftp>0?manual.ftp:null;const ftp=valid(recorded)&&recorded>0?recorded:historic?.[1].ftp??manualFtp??c.fitness?.ftp;const weight=valid(manual?.weight)&&manual.weight>0?manual.weight:c.profile?.weight;return {ftp:valid(ftp)&&ftp>0?ftp:null,label:valid(recorded)&&recorded>0?'Workout FTP':historic?`COROS FTP recorded ${historic[0].slice(0,4)}-${historic[0].slice(4,6)}-${historic[0].slice(6,8)}`:manualFtp?`Athlete-reported FTP · ${manual.savedAt?.slice(0,10)??'current'} · current reference` :valid(ftp)?`Current COROS FTP${c.fitness?.observedAt?' · '+c.fitness.observedAt.slice(0,10):''} · historical fallback`:'FTP not supplied by this connection',weight:valid(weight)&&weight>0?weight:null,weightLabel:valid(manual?.weight)?'athlete-reported current weight':'current COROS weight'};}
@@ -16,7 +17,9 @@ export function cyclingAdvanced(detail:any,history:any[],efforts:any[]){
  const repeats=efforts.filter(e=>efforts[0]&&Math.abs((e.end-e.start)/(efforts[0].end-efforts[0].start)-1)<=.2),repeatChange=repeats.length>=3&&repeats[0].mean>0?(repeats.at(-1).mean/repeats[0].mean-1)*100:null;
  const half=timed?Math.floor(n/2):0,early=timed?sampledBest(p.slice(0,half),step,300,half*step):null,late=timed?sampledBest(p.slice(half,n),step,300,(n-half)*step):null;
  const durability=early&&late&&early.value>0?{early:early.value,late:late.value,change:(late.value/early.value-1)*100}:null;
- const climbs:any[]=[];let climb:any=null;const finish=()=>{if(climb&&climb.end-climb.start>=120&&climb.gain>=20){const from=Math.ceil(climb.start/step),to=Math.floor(climb.end/step),power=mean(p.slice(from,to)),hr=mean((s.heartrate??[]).slice(from,to)),cadence=mean((s.cadence??[]).slice(from,to));climbs.push({...climb,power,hr,cadence,grade:climb.gain/climb.distance*100})}climb=null};
- if(timed&&s.altitude?.length&&s.distance?.length){for(let t=0;t+60<=cap;t+=60){const from=Math.ceil(t/step),to=Math.floor((t+60)/step),a=mean(s.altitude.slice(from,from+Math.max(1,Math.round(10/step)))),b=mean(s.altitude.slice(Math.max(from,to-Math.max(1,Math.round(10/step))),to)),d0=s.distance[from],d1=s.distance[to];const gain=a!==null&&b!==null?b-a:null,dist=valid(d0)&&valid(d1)?d1-d0:null;if(gain!==null&&dist!==null&&dist>=50&&gain/dist>=.02){if(!climb)climb={start:t,end:t,gain:0,distance:0};climb.end=t+60;climb.gain+=gain;climb.distance+=dist}else finish()}finish()}
+ const climbs=activityClimbs(detail,'cycling').map(climb=>{
+  const from=Math.ceil(climb.start/step),to=Math.floor(climb.end/step);
+  return {...climb,power:mean(p.slice(from,to)),hr:mean((s.heartrate??[]).slice(from,to)),cadence:mean((s.cadence??[]).slice(from,to))};
+ });
  return {ref,curve,np,vi,ifactor:np&&ref.ftp?np/ref.ftp:null,averagePct:average!==null&&ref.ftp?average/ref.ftp*100:null,zones,validSeconds,repeatChange,repeats:repeats.length,durability,climbs};
 }

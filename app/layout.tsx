@@ -15,6 +15,7 @@ import "./weekly-volume.css";
 import "./load-overlays.css";
 import "./recovery-matrix.css";
 import "./share-canvas.css";
+import "./effort-analysis.css";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -30,9 +31,6 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "sieste", statusBarStyle: "default" },
   description: "Sommeil, Intensité, Endurance, Suivi, Travail & Énergie. Training, sleep and recovery with COROS.",
-  other: {
-    "codex-preview": "development",
-  },
   icons: {
     icon: [
       { url: "/sieste-icon.svg", type: "image/svg+xml" },
