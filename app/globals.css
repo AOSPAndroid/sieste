@@ -60,6 +60,6 @@
 
 .route-selection-status{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:5px 8px;background:#f3f2ff;font-size:11px}.route-selection-status small{font-size:10px;color:#7d8497}
 
-.profile-show-map{float:right;border:0;border-radius:5px;background:#e9e8ff;color:#4f46e5;padding:4px 7px;font-size:10px}.activity-mini-map{scroll-margin-top:75px}
+.activity-mini-map{scroll-margin-top:75px}
 
 .fatigue-today{display:flex;justify-content:space-between;gap:5px;flex-wrap:wrap;font-size:10px;padding:4px 0;color:#8490a0}.fatigue-today strong{color:#c26422;font-weight:600}

@@ -1,5 +1,5 @@
 "use client";
-import {useState,useRef,lazy,useMemo} from 'react';
+import {useState,lazy,useMemo} from 'react';
 import type {RouteSelection} from './route-geometry';
 import DeferredPanel from './deferred-panel';
 const CyclingAnalysis=lazy(()=>import('./cycling-analysis'));
@@ -28,12 +28,14 @@ function MetricCard({metric,step,comparison}:{metric:ActivityMetric;step:unknown
  return <section className={`activity-glance-card${hasChart?' has-microchart':''}`}><header><h3><i style={{background:metric.color}}/>{metric.title}</h3><ExpandButton title={metric.title}><div className="activity-expanded-sensor"><div className="activity-expanded-value"><strong style={{color:metric.color}}>{metric.value}</strong> {metric.unit}<small>{metric.note}</small></div><p>{metric.explanation}</p>{comparison?.metric===metric.id&&<><TrendBadge trend={comparison.trend} caption={comparison.comparison}/><p>{comparison.explanation}</p></>}{hasChart&&<SensorChart rows={rows} title={metric.title} unit={metric.unit} color={metric.color} step={step} pace={metric.pace} area={metric.id==='altitude'} expanded/>}</div></ExpandButton></header><div className="activity-glance-value"><strong style={{color:metric.color}}>{metric.value}</strong><span>{metric.unit}</span></div><p>{metric.note}</p>{comparison?.metric===metric.id&&<TrendBadge trend={comparison.trend} caption={comparison.metric==='vo2max'?'vs prior estimate':'vs similar session'}/>}{hasChart&&<MicroChart metric={metric}/>}</section>;
 }
 export default function ActivitySummary({detail,loading,history=[],onClassify}:{onClassify?:(label:string|null)=>void;detail:Record<string,any>;loading:boolean;history?:any[]}){
- const mapRef=useRef<HTMLDivElement>(null);
  const [routeSelection,setRouteSelection]=useState<RouteSelection|null>(null);
  const {cards,other,family}=useMemo(()=>activityMetrics(detail),[detail]),step=detail.seriesSampled?.sampleSize,comparison=useMemo(()=>sessionTrend(detail,history),[detail,history]),vo2=useMemo(()=>vo2Trend(detail,history),[detail,history]);
+ const showRoute=['running','cycling','walking','hiking'].includes(family);
  return <div className="activity-scroll-summary compact-activity activity-glance">
- {['running','cycling','walking','hiking'].includes(family)&&<div className="activity-mini-map" ref={mapRef}><ExpandButton title="Recorded route"><RouteMap detail={detail} loading={loading} selection={routeSelection}/></ExpandButton><RouteMap detail={detail} loading={loading} selection={routeSelection}/></div>}
- {detail.seriesSampled?.data&&<ActivityProfile key={`profile-${detail.id}`} detail={detail} onSelection={setRouteSelection} onShowMap={()=>mapRef.current?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}/>}
+ <div className={`activity-analysis-layout${showRoute?' has-route':''}`}>
+ {showRoute&&<div className="activity-mini-map"><ExpandButton title="Recorded route"><RouteMap detail={detail} loading={loading} selection={routeSelection}/></ExpandButton><RouteMap detail={detail} loading={loading} selection={routeSelection} compact/></div>}
+ {detail.seriesSampled?.data&&<ActivityProfile key={`profile-${detail.id}`} detail={detail} onSelection={setRouteSelection}/>}
+ </div>
  {detail.recordedSource==='COROS FIT'&&<a className="docs-link" href={'/api/coros/file?id='+encodeURIComponent(detail.id)}>Download original COROS FIT ↗</a>}<ActivityZones summary={detail.summary??{}} loading={loading}/>
  {family==='cycling'&&<DeferredPanel className="activity-extra-sensors" summary="Deep analysis · efficiency, power & durability"><CyclingAnalysis detail={detail} history={history}/></DeferredPanel>}
 

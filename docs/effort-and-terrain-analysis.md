@@ -35,6 +35,8 @@ Cycling profiles default to **Steep sections**, trimming gentle approaches and t
 
 Cards show output or climb gain/gradient alongside duration. Users can order sections by time, duration, output or climb gain, move between sections, focus the timeline, compare all sections and fit the selected route. Detection requirements and chart scales stay behind a disclosure.
 
+The activity summary keeps the route and analysis together: a compact pinned map on phones, and adjacent map/profile columns on larger screens. Selecting a compact card updates the map and chart without moving the scroll position. Small section cards, one-row climb controls and a shorter chart leave room for both terrain and output; expanded map/profile views keep their full controls and larger charts. Map pinning ends with the analysis section so later workout metrics remain readable.
+
 Segment averages weight partial boundary samples by their overlap. Power and speed zeroes remain recorded values; nonpositive HR, cadence and step length are missing. Distance requires complete monotonic cumulative evidence or complete recorded speed integration; gaps and resets are not bridged. Recorded lap duration, distance and valid means retain precedence, including copied lap durations. Normalized power remains an estimate with its existing complete-data requirements.
 
 ## Verification
