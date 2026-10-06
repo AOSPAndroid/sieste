@@ -16,6 +16,10 @@ import "./load-overlays.css";
 import "./recovery-matrix.css";
 import "./share-canvas.css";
 import "./effort-analysis.css";
+import "./snapshot-ui.css";
+import "./snapshot-home.css";
+import "./snapshot-tabs.css";
+import "./snapshot-aux.css";
 
 export const viewport: Viewport = {
   width: "device-width",

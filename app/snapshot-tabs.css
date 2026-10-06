@@ -1,0 +1,209 @@
+/* Snapshot typography and surfaces on the secondary screens.
+   Signal colours stay attached to the data; chrome stays white and neutral. */
+.sieste-v3 :is(.sleep-page,.training-journal,.weather-recon){color:var(--s-ink,#242433);min-width:0;font-variant-numeric:tabular-nums}
+.sieste-v3 :is(.sleep-page,.training-journal,.weather-recon) :is(h1,h2,h3){font-weight:650;letter-spacing:-.15px}
+.sieste-v3 :is(.sleep-page,.weather-recon) h1{font-size:14px;line-height:1.3;margin:0}
+.sieste-v3 :is(.sleep-page,.weather-recon) h2{font-size:14px;line-height:1.3;margin:0}
+.sieste-v3 :is(.sleep-page,.training-journal,.weather-recon) :is(input,select){min-width:0;max-width:100%}
+.sieste-v3 :is(.sleep-page,.training-journal,.weather-recon) :is(.expand-widget,.weather-location button){width:28px;height:28px;min-height:28px;padding:5px;border-radius:7px;box-shadow:none}
+.sieste-v3 :is(.sleep-page,.training-journal,.weather-recon) .expand-widget svg{width:13px;height:13px}
+
+/* Sleep: one set of values, three columns, no separate coloured cards. */
+.sieste-v3 .sleep-page{gap:10px}
+.sieste-v3 .sleep-page .sleep-page-heading{margin:0 0 5px;min-height:30px;gap:8px;flex-wrap:wrap}
+.sieste-v3 .sleep-page .sleep-page-heading h1{font-size:14px;letter-spacing:0;gap:5px}
+.sieste-v3 .sleep-page .sleep-page-heading h1 svg{width:14px;height:14px;stroke-width:1.7;color:var(--s-accent)}
+.sieste-v3 .sleep-page .sleep-page-heading [role=group]{margin-left:auto;background:#f6f6f9;padding:2px;border-radius:7px}
+.sieste-v3 .sleep-page .sleep-page-heading button{min-height:28px;padding:4px 7px;font-size:11px;box-shadow:none}
+.sieste-v3 .sleep-page .sleep-night-picker{margin:0;max-width:125px}
+.sieste-v3 .sleep-page .sleep-night-picker select{font-size:11px;min-height:30px;padding:4px 5px;border-color:var(--snap-line,#e9e9f0);border-radius:7px}
+.sieste-v3 .sleep-page .sleep-period-nav{padding:1px 0 6px;font-size:10px;gap:6px;line-height:1.35}
+.sieste-v3 .sleep-page .sleep-period-nav button{width:28px;min-height:28px;padding:4px;border-color:var(--snap-line,#e9e9f0);box-shadow:none}
+.sieste-v3 .sleep-page .sleep-period-nav .sleep-back-current{width:auto;padding:4px 7px}
+.sieste-v3 .sleep-page .sleep-vitals{margin:0 0 8px;min-width:0}
+.sieste-v3 .sleep-page .sleep-vital-cards{gap:0;margin:0;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);box-shadow:none;background:#fff;overflow:hidden}
+.sieste-v3 .sleep-page .sleep-vital-cards>button{border:0;border-radius:0;padding:11px 10px;background:transparent;box-shadow:none;min-width:0;color:var(--status-ink,var(--s-ink))}
+.sieste-v3 .sleep-page .sleep-vital-cards>button+button{border-left:1px solid var(--snap-line,#e9e9f0)}
+.sieste-v3 .sleep-page .sleep-vital-cards small{font-size:10px;font-weight:500;color:var(--snap-muted,#686875);line-height:1.4}
+.sieste-v3 .sleep-page .sleep-vital-cards strong{font-size:30px;line-height:1.2;font-weight:650;letter-spacing:-.9px;margin:5px 0 3px;color:var(--status-ink,var(--s-ink))}
+.sieste-v3 .sleep-page .sleep-vital-cards em{font-size:11px;font-weight:400;color:var(--snap-muted,#686875)}
+.sieste-v3 .sleep-page .sleep-vital-cards span{font-size:10px;line-height:1.35}
+.sieste-v3 .sleep-page .sleep-vital-cards .widget-spark{height:25px;margin:7px 0 5px}
+.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget){padding:11px 12px;margin:0 0 8px;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;box-shadow:none;min-width:0}
+.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget)>header{min-height:22px;margin:0 0 7px;gap:6px}
+.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget) h2{font-size:14px;letter-spacing:-.15px}
+.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget)>header :is(small,span){font-size:10px}
+.sieste-v3 .sleep-page .sleep-training-matrix{gap:2px;margin-top:4px}
+.sieste-v3 .sleep-page .sleep-training-matrix>button>span[class*=status-]{background:transparent;border-radius:0}
+.sieste-v3 .sleep-page .sleep-training-matrix>button>span+span{border-top:1px solid #f3f3f6}
+.sieste-v3 .sleep-page .sleep-training-matrix>button.is-today{background:var(--s-accent-soft,#f0efff);border-radius:5px}
+.sieste-v3 .sleep-page .sleep-pair-load i{background:#ded9f6}
+.sieste-v3 .sleep-page .sleep-training-summary{font-size:10px;color:var(--snap-muted,#686875);padding-top:5px}
+.sieste-v3 .sleep-page .recovery-response{gap:0;margin:7px 0 3px;padding-top:7px;border-top:1px solid var(--snap-line,#e9e9f0)}
+.sieste-v3 .sleep-page .recovery-response>button{padding:3px 8px;background:transparent;border:0;border-radius:0;box-shadow:none}
+.sieste-v3 .sleep-page .recovery-response>button:first-child{padding-left:0}
+.sieste-v3 .sleep-page .recovery-response>button+button{border-left:1px solid var(--snap-line,#e9e9f0)}
+.sieste-v3 .sleep-page .recovery-response strong{font-size:12px}
+.sieste-v3 .sleep-page .sleep-window-plot svg{height:auto;width:100%;max-height:290px}
+.sieste-v3 .sleep-page .sleep-window-readout{font-size:11px;gap:5px 10px;padding:4px 0 2px;line-height:1.4;flex-wrap:wrap}
+.sieste-v3 .sleep-page .sleep-timing-caption{font-size:10px;margin:3px 0 0;color:var(--snap-muted,#686875)}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log){margin:0 0 8px;padding:0;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;overflow:hidden;box-shadow:none;min-width:0}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)>summary{padding:10px 12px;min-height:36px;font-size:12px;gap:7px;color:var(--snap-muted,#686875);background:transparent}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)>summary::before{width:14px;height:14px;font-size:14px;border-radius:0;background:transparent;color:var(--s-accent)}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)[open]>summary{border-bottom:1px solid var(--snap-line,#e9e9f0);background:transparent;color:var(--s-ink)}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)>div{padding:8px 12px}
+.sieste-v3 .sleep-page :is(.sleep-night-matrix,.sleep-tools){border:0;border-radius:0;box-shadow:none;background:transparent;margin:0;padding:0}
+.sieste-v3 .sleep-page .sleep-consistency-strip{gap:0;margin-top:6px}
+.sieste-v3 .sleep-page .sleep-consistency-strip button{border:0;border-radius:0;padding:7px 10px;background:transparent;box-shadow:none}
+.sieste-v3 .sleep-page .sleep-consistency-strip button+button{border-left:1px solid var(--snap-line,#e9e9f0)}
+.sieste-v3 .sleep-page .sleep-clock-card{padding:7px 0;border-radius:0;box-shadow:none}
+.sieste-v3 .sleep-page .sleep-tools-stats article{background:transparent;border-radius:0;border-left:1px solid var(--snap-line,#e9e9f0)}
+.sieste-v3 .sleep-page .sleep-tools-stats article:first-child{border-left:0}
+.sieste-v3 .sleep-page .sleep-page-note{font-size:10px;line-height:1.5;color:var(--snap-muted,#686875);margin:2px 2px 0}
+
+/* Log: compact controls, quiet calendar and grouped paper-like session rows. */
+.sieste-v3 .training-journal .journal-toolbar{gap:5px;margin:0;padding:0 0 6px;flex-wrap:nowrap;min-width:0}
+.sieste-v3 .training-journal .journal-toolbar .journal-sport{flex:1 1 110px;min-width:0;max-width:190px;font-size:14px;font-weight:650;letter-spacing:0;padding:5px 15px 5px 0;min-height:30px}
+.sieste-v3 .training-journal .journal-search{flex:1 1 100px;min-width:60px;max-width:220px;min-height:30px;border:1px solid var(--snap-line,#e9e9f0);border-radius:7px;box-shadow:none;padding:0 7px}
+.sieste-v3 .training-journal .journal-search svg{width:13px;height:13px;flex-shrink:0}
+.sieste-v3 .training-journal .journal-search input{font-size:12px;line-height:1.3;padding:5px 0}
+.sieste-v3 .training-journal .log-compare-toggle{font-size:10px;line-height:1.3;min-height:30px;padding:5px 7px;border-color:var(--snap-line,#e9e9f0);border-radius:7px;background:#fff;box-shadow:none;white-space:nowrap}
+.sieste-v3 .training-journal .log-quick-filters{gap:4px;margin:0;padding:0 0 8px;flex-wrap:wrap}
+.sieste-v3 .training-journal .log-quick-filters button{font-size:10px;min-height:27px;padding:4px 8px;background:#f5f5f8;border:0;border-radius:6px;box-shadow:none}
+.sieste-v3 .training-journal .log-quick-filters button[aria-pressed=true]{background:var(--s-accent-soft,#f0efff);color:var(--s-accent)}
+.sieste-v3 .training-journal .log-quick-filters select{font-size:10px;padding:4px 5px;min-height:27px;border-color:var(--snap-line,#e9e9f0);border-radius:6px}
+.sieste-v3 .training-journal .v2-log-totals{margin:0 0 10px;padding:10px 0;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;box-shadow:none}
+.sieste-v3 .training-journal .v2-log-totals>span{padding:0 11px;border-color:var(--snap-line,#e9e9f0);min-width:0}
+.sieste-v3 .training-journal .v2-log-totals small{font-size:10px;line-height:1.3;margin-bottom:4px;color:var(--snap-muted,#686875)}
+.sieste-v3 .training-journal .v2-log-totals b{font-size:24px;font-weight:650;letter-spacing:-.5px;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+.sieste-v3 .training-journal .v2-log-totals em{font-size:10px;font-weight:400;letter-spacing:0}
+.sieste-v3 .training-journal .v3-log-body{gap:12px}
+.sieste-v3 .training-journal :is(.journal-calendar,.weekly-zones){padding:10px 12px;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;box-shadow:none}
+.sieste-v3 .training-journal .weekly-zones{margin-bottom:8px}
+.sieste-v3 .training-journal .weekly-zones :is(header,nav){gap:5px;margin-bottom:6px}
+.sieste-v3 .training-journal .weekly-zones h2{font-size:14px}
+.sieste-v3 .training-journal .weekly-zones select{font-size:11px;min-height:28px;border-radius:6px;padding:3px 5px;background:#fff;border-color:var(--snap-line,#e9e9f0)}
+.sieste-v3 .training-journal .weekly-zones nav{font-size:10px}
+.sieste-v3 .training-journal .weekly-zones nav button{width:27px;height:27px;border-color:var(--snap-line,#e9e9f0)}
+.sieste-v3 .training-journal .weekly-zones footer{font-size:10px;color:var(--snap-muted,#686875);line-height:1.45}
+.sieste-v3 .training-journal .journal-month-picker input{font-size:12px;min-height:28px;font-weight:550}
+.sieste-v3 .training-journal .journal-month-grid.log-heat-grid{gap:3px}
+.sieste-v3 .training-journal .journal-month-grid.log-heat-grid button{min-height:37px;border-radius:5px;gap:2px}
+.sieste-v3 .training-journal .journal-calendar-key{font-size:10px;margin-top:7px;gap:8px;flex-wrap:wrap}
+.sieste-v3 .training-journal .journal-day-dots .journal-dot{border:0;box-shadow:none;outline:0}
+.sieste-v3 .training-journal .journal-list{padding:3px 12px 8px;margin:0;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;gap:0;min-width:0;overflow:hidden}
+.sieste-v3 .training-journal .log-day-heading{padding:10px 0 5px;margin:0;gap:5px;align-items:baseline;flex-wrap:wrap}
+.sieste-v3 .training-journal .log-day-heading:first-child{padding-top:7px}
+.sieste-v3 .training-journal .log-day-heading b{font-size:11px;font-weight:600}
+.sieste-v3 .training-journal .log-day-heading span{font-size:10px;color:var(--snap-muted,#686875);line-height:1.4}
+.sieste-v3 .training-journal .journal-activity{margin:0;padding:9px 0;border:0;border-bottom:1px solid var(--snap-line,#e9e9f0);border-radius:0;background:transparent;gap:8px;box-shadow:none;transform:none}
+.sieste-v3 .training-journal .journal-activity.journal-same-day{margin-top:0}
+.sieste-v3 .training-journal .journal-activity:hover{box-shadow:none;transform:none;background:#fafaff}
+.sieste-v3 .training-journal .journal-activity[aria-pressed=true]{outline-color:var(--s-accent);outline-offset:-1px;background:var(--s-accent-soft,#f0efff);border-radius:7px}
+.sieste-v3 .training-journal .journal-activity-copy{gap:3px 6px}
+.sieste-v3 .training-journal .journal-activity-main strong{font-size:25px;letter-spacing:-.6px;line-height:1.2;font-weight:650}
+.sieste-v3 .training-journal .journal-activity .journal-activity-main>svg{padding:0;width:16px;height:16px;border:0;border-radius:0;background:transparent;stroke-width:1.7}
+.sieste-v3 .training-journal .journal-activity-stats{font-size:11px;line-height:1.4;margin:2px 0;gap:3px 8px;color:var(--snap-muted,#686875)}
+.sieste-v3 .training-journal .journal-activity-title{font-size:11px;color:var(--snap-muted,#686875)}
+.sieste-v3 .training-journal .journal-activity-date{font-size:10px;color:var(--snap-muted,#686875)}
+.sieste-v3 .training-journal .journal-activity :is(.journal-route,.journal-sport-art){width:82px;height:52px;min-height:52px;border:0;border-radius:7px;background:#fafafa;box-shadow:none;overflow:hidden}
+.sieste-v3 .training-journal .journal-sport-art>svg{width:22px;height:22px;stroke-width:1.3}
+.sieste-v3 .training-journal .journal-session-divider{display:none}
+.sieste-v3 .training-journal :is(.journal-note,.journal-empty){font-size:11px;line-height:1.45;color:var(--snap-muted,#686875)}
+.sieste-v3 .training-journal .v2-load-more{padding:8px;min-height:32px;border-color:var(--snap-line,#e9e9f0);border-radius:7px;font-size:11px;box-shadow:none}
+
+/* Weather: a single compact outlook sheet above the fine-lined hourly table. */
+.sieste-v3 .weather-recon .weather-title{min-height:28px;padding:0;margin:0 0 6px;gap:6px}
+.sieste-v3 .weather-recon .weather-title h1{font-size:14px;letter-spacing:0}
+.sieste-v3 .weather-recon .weather-title>div{gap:5px}
+.sieste-v3 .weather-recon .weather-title>div>svg{width:14px;height:14px;color:var(--s-accent);stroke-width:1.7}
+.sieste-v3 .weather-recon .weather-title>span{font-size:10px;color:var(--snap-muted,#686875)}
+.sieste-v3 .weather-recon .weather-location{margin:0 0 7px;gap:5px}
+.sieste-v3 .weather-recon .weather-location>span{font-size:11px;font-weight:500;color:var(--snap-muted,#686875)}
+.sieste-v3 .weather-recon .weather-search{gap:5px}
+.sieste-v3 .weather-recon .weather-search-field{border-color:var(--snap-line,#e9e9f0);border-radius:7px;padding:0 8px}
+.sieste-v3 .weather-recon .weather-search input{font-size:13px;padding:7px 0}
+.sieste-v3 .weather-recon .weather-search>button{font-size:11px;padding:6px 9px;border-radius:7px;border-color:var(--snap-line,#e9e9f0);box-shadow:none}
+.sieste-v3 .weather-recon .weather-search>button[type=submit]{background:var(--s-accent);border-color:var(--s-accent)}
+.sieste-v3 .weather-recon .weather-day-controls{gap:5px;margin:0 0 8px}
+.sieste-v3 .weather-recon .weather-days{gap:3px;background:#f6f6f9;border-radius:7px;padding:2px}
+.sieste-v3 .weather-recon .weather-days button{font-size:10px;padding:5px 8px;min-height:28px;border-radius:5px;background:transparent;box-shadow:none}
+.sieste-v3 .weather-recon .weather-days button[aria-pressed=true]{background:#fff;color:var(--s-accent);box-shadow:none}
+.sieste-v3 .weather-recon .weather-day-controls>label{font-size:11px;gap:4px}
+.sieste-v3 .weather-recon .weather-day-controls select{font-size:11px;padding:4px 5px;min-height:29px;border-radius:7px;border-color:var(--snap-line,#e9e9f0)}
+.sieste-v3 .weather-recon .weather-overview{padding:11px 12px;margin:0 0 8px;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;box-shadow:none;min-width:0}
+.sieste-v3 .weather-recon .weather-overview .weather-window{padding:0 0 9px;gap:8px;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.sieste-v3 .weather-recon .weather-overview .weather-window>svg{width:17px;height:17px;color:var(--s-accent);stroke-width:1.5}
+.sieste-v3 .weather-recon .weather-overview .weather-window small{font-size:10px;font-weight:500;letter-spacing:0;color:var(--snap-muted,#686875)}
+.sieste-v3 .weather-recon .weather-overview .weather-window strong{font-size:26px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:2px 0;color:var(--s-ink)}
+.sieste-v3 .weather-recon .weather-overview .weather-window:not(.has-window) strong{font-size:14px;letter-spacing:0}
+.sieste-v3 .weather-recon .weather-overview .weather-window span{font-size:10px;color:var(--snap-muted,#686875);line-height:1.4}
+.sieste-v3 .weather-recon .weather-overview .weather-now{padding:8px 0 0;margin:0;background:transparent;border:0;border-top:1px solid var(--snap-line,#e9e9f0);border-radius:0;box-shadow:none}
+.sieste-v3 .weather-recon .weather-now-title>b{font-size:11px;font-weight:600}
+.sieste-v3 .weather-recon .weather-now-title>small{font-size:10px;line-height:1.3;color:var(--snap-muted,#686875)}
+.sieste-v3 .weather-recon .weather-metrics{gap:0;margin-top:8px}
+.sieste-v3 .weather-recon .weather-metrics>div{gap:4px;padding:0 9px;border-right:1px solid var(--snap-line,#e9e9f0);min-width:0}
+.sieste-v3 .weather-recon .weather-metrics>div:first-child{padding-left:0}
+.sieste-v3 .weather-recon .weather-metrics>div:last-child{border-right:0;padding-right:0}
+.sieste-v3 .weather-recon .weather-metrics strong{font-size:26px;font-weight:650;letter-spacing:-.5px}
+.sieste-v3 .weather-recon .weather-metrics :is(small,span){font-size:10px;line-height:1.3}
+.sieste-v3 .weather-recon .weather-metrics svg{width:13px;height:13px;stroke-width:1.7}
+.sieste-v3 .weather-recon .weather-overview .weather-sun-times{margin:0;padding:9px 0 0;gap:12px;font-size:10px}
+.sieste-v3 .weather-recon .weather-sun-times svg{width:12px;height:12px;stroke-width:1.7}
+.sieste-v3 .weather-recon .weather-hour-table{border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);box-shadow:none;background:#fff}
+.sieste-v3 .weather-recon .weather-hour-head{font-size:10px;padding:7px 10px;background:#fafafa;color:var(--snap-muted,#686875)}
+.sieste-v3 .weather-recon .weather-hour{padding:6px 10px;min-height:37px;font-size:12px;border-top:1px solid var(--snap-line,#e9e9f0);border-bottom:0}
+.sieste-v3 .weather-recon .weather-hour.is-best-ride{border-left:0;box-shadow:inset 2px 0 var(--s-accent);background:#f8f7ff}
+.sieste-v3 .weather-recon .weather-hour small{font-size:10px;line-height:1.25}
+.sieste-v3 .weather-recon .weather-hours-footer{font-size:10px;padding:2px 0}
+.sieste-v3 .weather-recon .weather-legend{font-size:10px;gap:10px;padding:2px 0 6px}
+.sieste-v3 .weather-recon .weather-rules{font-size:12px;margin:0;padding-top:8px;border-color:var(--snap-line,#e9e9f0)}
+.sieste-v3 .weather-recon .weather-rules>summary{font-weight:500;color:var(--snap-muted,#686875)}
+.sieste-v3 .weather-recon .weather-outfit{padding:11px 12px;margin-top:8px;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);box-shadow:none;background:#fff}
+.sieste-v3 .weather-recon .weather-outfit h2{font-size:14px}
+.sieste-v3 .weather-recon .weather-outfit>div{gap:0}
+.sieste-v3 .weather-recon .weather-outfit article{padding:6px 9px;background:transparent;border-radius:0;border:0}
+.sieste-v3 .weather-recon .weather-outfit article:first-child{padding-left:0}
+.sieste-v3 .weather-recon .weather-outfit article+article{border-left:1px solid var(--snap-line,#e9e9f0)}
+.sieste-v3 .weather-recon .weather-outfit article strong{font-size:12px;font-weight:600}
+.sieste-v3 .weather-recon .weather-source{font-size:10px;line-height:1.45;color:var(--snap-muted,#686875);padding-top:8px}
+.sieste-v3 .weather-recon .weather-empty{background:#fff;border-color:var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);padding:24px 16px;box-shadow:none}
+.sieste-v3 .weather-recon .weather-empty h2{font-size:14px}
+.sieste-v3 .weather-recon .weather-empty p{font-size:12px;line-height:1.5;margin-bottom:10px}
+.sieste-v3 .weather-recon .weather-empty small{font-size:10px}
+
+@media(max-width:650px){
+ .sieste-v3 .sleep-page .sleep-vital-cards>button{padding:9px 8px}
+ .sieste-v3 .sleep-page .sleep-vital-cards strong{font-size:27px;letter-spacing:-.8px}
+ .sieste-v3 .sleep-page .sleep-vital-cards span{font-size:9px}
+ .sieste-v3 .sleep-page .sleep-vital-cards .widget-spark{height:22px;margin:6px 0 4px}
+ .sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget){padding:10px}
+ .sieste-v3 .sleep-page .sleep-window-plot svg{max-height:250px}
+ .sieste-v3 .training-journal .journal-toolbar .journal-sport{max-width:120px;flex:1 1 100px;font-size:13px}
+ .sieste-v3 .training-journal .journal-search{max-width:100px;flex:1 1 70px}
+ .sieste-v3 .training-journal .journal-search input{font-size:16px;width:100%}
+ .sieste-v3 .training-journal .v2-log-totals>span{padding:0 8px}
+ .sieste-v3 .training-journal .v2-log-totals b{font-size:21px}
+ .sieste-v3 .training-journal .v2-log-totals small{font-size:9px}
+ .sieste-v3 .training-journal .journal-list{padding:2px 10px 7px}
+ .sieste-v3 .training-journal .journal-activity-main strong{font-size:23px}
+ .sieste-v3 .training-journal .journal-activity :is(.journal-route,.journal-sport-art){width:68px;height:48px;min-height:48px}
+ .sieste-v3 .weather-recon .weather-overview{padding:10px}
+ .sieste-v3 .weather-recon .weather-metrics>div{padding:0 7px}
+ .sieste-v3 .weather-recon .weather-metrics strong{font-size:23px}
+ .sieste-v3 .weather-recon .weather-hour-head,.sieste-v3 .weather-recon .weather-hour{padding-left:8px;padding-right:8px;gap:4px}
+}
+@media(max-width:375px){
+ .sieste-v3 .sleep-page .sleep-vital-cards>button{padding:9px 6px}
+ .sieste-v3 .sleep-page .sleep-vital-cards strong{font-size:24px}
+ .sieste-v3 .sleep-page .sleep-vital-cards small{font-size:9px}
+ .sieste-v3 .training-journal .journal-toolbar{flex-wrap:wrap}
+ .sieste-v3 .training-journal .journal-toolbar .journal-sport{flex:1 1 120px;max-width:none}
+ .sieste-v3 .training-journal .journal-search{flex:1 1 120px;max-width:none}
+ .sieste-v3 .training-journal .v2-log-totals b{font-size:19px}
+ .sieste-v3 .training-journal .v2-log-totals>span{padding:0 6px}
+ .sieste-v3 .weather-recon .weather-metrics strong{font-size:21px}
+}
+@media(max-width:650px){
+ .sieste-v3 .training-journal .v2-log-totals>span:nth-child(2) b{font-size:18px;white-space:nowrap;letter-spacing:-.5px}
+}

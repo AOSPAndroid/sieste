@@ -1,0 +1,152 @@
+/* Snapshot language for supporting controls. Exported artwork and its preview
+   colours are intentionally outside these selectors. */
+
+/* Connected readings use one divided surface instead of a card per number. */
+.sieste-v3 :is(.coros-hub,.coros-fitness){padding:10px;margin:8px 0;border-color:var(--snap-line,var(--s-line));border-radius:var(--snap-radius,14px);background:#fff;box-shadow:none}
+.sieste-v3 :is(.coros-hub>header,.coros-fitness>header){gap:8px;margin-bottom:8px;align-items:center;flex-wrap:wrap}
+.sieste-v3 :is(.coros-hub h3,.coros-hub h4,.coros-fitness h2){font-size:13px;line-height:1.35;font-weight:650;margin:0}
+.sieste-v3 :is(.coros-hub>header>span,.coros-fitness>header>small){font-size:10px;color:var(--snap-muted,var(--s-muted))}
+.sieste-v3 :is(.coros-hub-grid,.coros-fitness-metrics,.coros-races,.coros-hub .coros-readings){gap:1px;background:var(--snap-line,var(--s-line));overflow:hidden;border-radius:7px}
+.sieste-v3 :is(.coros-hub-grid>button,.coros-fitness-metrics>button,.coros-races>button,.coros-hub .coros-readings>div){padding:7px 8px;min-height:56px;border:0;border-radius:0;background:#fff;box-shadow:none;gap:2px;color:var(--s-ink);min-width:0}
+.sieste-v3 :is(.coros-hub-grid>button,.coros-fitness-metrics>button,.coros-races>button):hover{background:#f8f8fb;transform:none;box-shadow:none}
+.sieste-v3 :is(.coros-hub strong,.coros-fitness strong){font-size:23px;font-weight:650;line-height:1.2;letter-spacing:-.5px;color:var(--s-ink)}
+.sieste-v3 :is(.coros-hub-grid small,.coros-hub-grid span,.coros-fitness-metrics small,.coros-fitness-metrics span,.coros-races small,.coros-hub .coros-readings small){font-size:10px;line-height:1.35;color:var(--snap-muted,var(--s-muted))}
+.sieste-v3 :is(.coros-hub em,.coros-fitness em){font-size:10px;letter-spacing:0;color:var(--snap-muted,var(--s-muted))}
+.sieste-v3 .coros-hub svg{height:22px}
+.sieste-v3 .coros-races{margin-top:7px}
+.sieste-v3 .coros-races strong{font-size:17px;letter-spacing:-.25px}
+.sieste-v3 :is(.coros-hub details,.coros-fitness>p){font-size:11px;line-height:1.5;margin-top:8px;color:var(--snap-muted,var(--s-muted))}
+.sieste-v3 .coros-hub details>summary{min-height:36px;display:list-item;line-height:36px;list-style-position:inside;cursor:pointer}
+.sieste-v3 .coros-hub .lab-note{padding:7px 0 0;font-size:11px;line-height:1.5}
+.sieste-v3 .coros-source-list>div{padding:7px 0;border-bottom:1px solid var(--snap-line,var(--s-line));align-items:center;gap:7px}
+.sieste-v3 .coros-source-list a{display:inline-flex;align-items:center;min-height:36px;color:var(--s-accent)}
+.sieste-v3 .coros-source-text{background:#fafafb;border:1px solid var(--snap-line,var(--s-line));border-radius:8px;padding:8px;font-size:11px;line-height:1.55;margin:8px 0 0}
+
+/* Small, consistent workspace controls; content is still loaded on demand. */
+.sieste-v3 .workspace-tools{margin:8px 0;padding:0}
+.sieste-v3 .workspace-tool-buttons{gap:3px;border-bottom:0;padding:0}
+.sieste-v3 .workspace-tool-buttons>button{min-height:36px;padding:6px 8px;gap:5px;border:1px solid var(--snap-line,var(--s-line));border-radius:8px;background:#fff;color:var(--snap-muted,var(--s-muted));font-size:11px;line-height:1.3;box-shadow:none}
+.sieste-v3 .workspace-tool-buttons>button:hover{background:#f8f8fb;box-shadow:none;transform:none}
+.sieste-v3 .workspace-tool-buttons>button[aria-expanded=true]{background:var(--s-accent-soft);color:var(--s-accent);border-color:#dedaf8}
+.sieste-v3 .workspace-tool-buttons>button>svg{width:13px;height:13px}
+.sieste-v3 .workspace-tool-panel{padding:10px;border:1px solid var(--snap-line,var(--s-line));border-radius:var(--snap-radius,14px);box-shadow:none;background:#fff}
+.sieste-v3 .workspace-tool-heading{margin-bottom:8px;gap:7px;flex-wrap:wrap}
+.sieste-v3 .workspace-tool-heading h2{font-size:13px;line-height:1.35;font-weight:650}
+.sieste-v3 .workspace-tool-heading>div{margin-left:auto;min-width:0;flex-wrap:wrap}
+.sieste-v3 .workspace-tool-heading :is(button,select){min-height:36px;padding:6px 8px;border:1px solid var(--snap-line,var(--s-line));border-radius:8px;background:#fff;color:var(--snap-muted,var(--s-muted));font-size:12px}
+.sieste-v3 .workspace-tool-heading button[aria-label="Collapse section"]{width:36px;padding:0;display:grid;place-items:center}
+.sieste-v3 .log-advanced-toggle{min-height:36px;padding:6px 8px;border:1px solid var(--snap-line,var(--s-line));border-radius:8px;background:#fff;color:var(--snap-muted,var(--s-muted));font-size:11px}
+
+/* Account and import sheets: the header is small and each provider is a row. */
+.sieste-v3 .modal.account-modal{border:1px solid var(--snap-line,var(--s-line));border-radius:var(--snap-radius,14px);box-shadow:0 8px 28px #24243312}
+.sieste-v3 .account-modal-header{padding:7px 10px 7px 14px;border-color:var(--snap-line,var(--s-line));gap:6px}
+.sieste-v3 .account-modal-header h2{font-size:15px;font-weight:650;letter-spacing:-.15px}
+.sieste-v3 .account-modal-header button{width:40px;height:40px;min-height:40px;border:0;border-radius:9px;background:#fafafb}
+.sieste-v3 .account-modal-content{padding:0 14px 14px}
+.sieste-v3 .account-modal-content>p,.sieste-v3 .account-signin p{font-size:12px;line-height:1.5;margin:10px 0;color:var(--snap-muted,var(--s-muted))}
+.sieste-v3 .account-modal .coros-connection{padding:10px 0;margin:0;border:0;border-top:1px solid var(--snap-line,var(--s-line));border-radius:0;background:#fff}
+.sieste-v3 .account-modal .provider-heading strong{font-size:14px;font-weight:650}
+.sieste-v3 .account-modal .provider-heading span{font-size:10px;padding:3px 6px;background:#f5f5f8;color:var(--snap-muted,var(--s-muted));border-radius:5px}
+.sieste-v3 .account-modal .coros-connection p{font-size:12px;line-height:1.5;margin:7px 0;color:var(--snap-muted,var(--s-muted))}
+.sieste-v3 .account-modal :is(.coros-connection label,.tredict-fallback label){font-size:11px;margin:8px 0 4px;color:var(--snap-muted,var(--s-muted))}
+.sieste-v3 .account-modal :is(input,select){border-color:var(--snap-line,var(--s-line));border-radius:8px;background:#fff;color:var(--s-ink);padding:9px 10px;min-height:44px}
+.sieste-v3 .account-modal .coros-connection select{margin:0 0 7px;font-size:16px}
+.sieste-v3 .account-modal :is(.primary-button,.disconnect,.docs-link){min-height:44px;font-size:12px;border-radius:8px}
+.sieste-v3 .account-modal .primary-button{padding:9px 12px;background:var(--s-accent);color:#fff}
+.sieste-v3 .account-modal .disconnect{margin:4px auto;color:var(--snap-muted,var(--s-muted));background:transparent}
+.sieste-v3 .account-modal :is(.coros-connection small,.tredict-fallback small,.help){font-size:11px;line-height:1.5;margin-top:6px;color:var(--snap-muted,var(--s-muted))}
+.sieste-v3 .account-modal .tredict-fallback{margin:0;padding:7px 0;border-color:var(--snap-line,var(--s-line))}
+.sieste-v3 .tredict-fallback>summary{font-size:12px;min-height:36px;line-height:36px}
+.sieste-v3 .account-modal .docs-link{justify-content:flex-start;color:var(--s-accent);margin:6px 0 0}
+.sieste-v3 .account-modal :is(.notice,.error){font-size:12px;line-height:1.5;padding:8px 10px;margin:8px 0;border-radius:8px}
+.sieste-v3 :is(.activity-notification-settings,.background-sync-settings){padding:10px 0;margin:0;border:0;border-top:1px solid var(--snap-line,var(--s-line));border-radius:0;background:#fff;box-shadow:none}
+.sieste-v3 :is(.activity-notification-settings h3,.background-sync-settings h3){font-size:13px;line-height:1.35;font-weight:650;margin:0}
+.sieste-v3 :is(.activity-notification-settings p,.background-sync-settings>p,.background-sync-notifications>p){font-size:11px;line-height:1.5;margin:7px 0;color:var(--snap-muted,var(--s-muted))}
+.sieste-v3 .activity-notification-settings small{font-size:11px}
+.sieste-v3 .background-sync-controls{margin:8px 0;gap:6px}
+.sieste-v3 .background-sync-settings :is(button,.background-sync-controls select){min-height:40px;border-radius:8px}
+.sieste-v3 .background-sync-settings .background-sync-controls select{font-size:16px;padding:6px 8px;max-width:110px}
+.sieste-v3 .background-sync-status{padding:8px;border-radius:8px;background:#fafafb;line-height:1.5}
+.sieste-v3 .background-sync-notifications{margin-top:8px;padding-top:9px;border-color:var(--snap-line,var(--s-line))}
+.sieste-v3 .background-sync-notifications h4{font-size:12px;line-height:1.35;flex-wrap:wrap}
+.sieste-v3 .background-sync-settings .background-sync-actions button{padding:7px 9px;border-color:var(--snap-line,var(--s-line));background:#fff;color:var(--s-accent)}
+.sieste-v3 .home-more-menu>summary{width:36px;height:36px;border-radius:8px}
+.sieste-v3 .home-more-popover{top:42px;padding:4px;border-color:var(--snap-line,var(--s-line));border-radius:10px;box-shadow:0 5px 18px #2424330d}
+.sieste-v3 .home-more-popover button{min-height:40px;padding:7px 9px;font-size:12px;border-radius:7px}
+.sieste-v3 .activity-import-modal{padding:14px;border-color:var(--snap-line,var(--s-line));border-radius:var(--snap-radius,14px);box-shadow:0 8px 28px #24243312}
+.sieste-v3 .activity-import-modal header{gap:8px;margin-bottom:8px}
+.sieste-v3 .activity-import-modal h2{font-size:15px;font-weight:650}
+.sieste-v3 .activity-import-modal .icon-button{min-width:40px;min-height:40px;border-radius:9px;background:#fafafb}
+.sieste-v3 .activity-import-modal p{font-size:12px;line-height:1.5;margin:8px 0}
+.sieste-v3 .activity-import-modal .primary-button{margin:10px 0 7px;min-height:44px;border-radius:8px;font-size:12px;background:var(--s-accent);color:#fff}
+
+/* Athena is portaled: scope it by the app's presence rather than its parent. */
+body:has(.sieste-v3) .athena-launcher{border-color:var(--snap-line,var(--s-line));background:#fff;color:var(--s-accent);box-shadow:0 3px 14px #2424330d}
+body:has(.sieste-v3) .athena-chat{border-color:var(--snap-line,var(--s-line));border-radius:var(--snap-radius,14px);box-shadow:0 8px 28px #24243312;background:#fff;color:var(--s-ink)}
+body:has(.sieste-v3) .athena-chat::backdrop{background:#24243324}
+body:has(.sieste-v3) .athena-chat header{padding:8px 10px 8px 14px;border-color:var(--snap-line,var(--s-line));gap:2px}
+body:has(.sieste-v3) .athena-chat header strong{font-size:15px;font-weight:650}
+body:has(.sieste-v3) .athena-chat header small{font-size:11px;line-height:1.4;color:var(--snap-muted,var(--s-muted))}
+body:has(.sieste-v3) .athena-chat header button{width:38px;height:40px;border-radius:8px;background:transparent}
+body:has(.sieste-v3) .athena-messages{padding:12px 14px;font-size:14px;line-height:1.5}
+body:has(.sieste-v3) .athena-question{margin:0 0 16px 24px;padding:8px 11px;border-radius:11px;background:#f5f5f8;color:var(--s-ink);font-size:13px}
+body:has(.sieste-v3) .athena-prose .athena-takeaway{font-size:15px;line-height:1.45;font-weight:650;margin-bottom:12px}
+body:has(.sieste-v3) .athena-prose .athena-evidence{font-size:13px;line-height:1.5;margin-bottom:7px}
+body:has(.sieste-v3) .athena-prose>p{margin-bottom:10px}
+body:has(.sieste-v3) .athena-next{padding:9px 10px;background:#f8f7fe;border-left:2px solid var(--s-accent);border-radius:0 8px 8px 0;margin:10px 0}
+body:has(.sieste-v3) .athena-next p{font-size:13px;line-height:1.5}
+body:has(.sieste-v3) .athena-empty>strong{font-size:14px;font-weight:650}
+body:has(.sieste-v3) .athena-empty p{font-size:12px;line-height:1.5;margin:6px 0 10px}
+body:has(.sieste-v3) .athena-empty button{min-height:40px;padding:9px 10px;margin:6px 0;border-color:var(--snap-line,var(--s-line));border-radius:8px;background:#fff;color:var(--s-accent);font-size:13px}
+body:has(.sieste-v3) .athena-history{padding:6px 12px;border-color:var(--snap-line,var(--s-line))}
+body:has(.sieste-v3) .athena-history select{font-size:16px;min-height:40px;padding:7px 8px;border-color:var(--snap-line,var(--s-line));border-radius:8px}
+body:has(.sieste-v3) .athena-chat form{padding:9px 12px;border-color:var(--snap-line,var(--s-line))}
+body:has(.sieste-v3) .athena-compose textarea{font-size:16px;border-color:var(--snap-line,var(--s-line));border-radius:10px;background:#fafafb}
+body:has(.sieste-v3) .athena-compose>button{width:44px;height:44px;border-radius:10px;background:var(--s-accent);display:grid;place-items:center;padding:0}
+body:has(.sieste-v3) .athena-compare{min-height:36px;margin-bottom:6px;font-size:11px;line-height:1.4}
+body:has(.sieste-v3) .athena-footer{margin-top:3px;min-height:36px}
+body:has(.sieste-v3) .athena-footer button{width:36px;height:36px;padding:0}
+
+/* Share tools are portaled too. These rules never target art, canvas or swatches. */
+body:has(.sieste-v3) .share-canvas{background:var(--s-canvas);color:var(--s-ink)}
+body:has(.sieste-v3) .share-canvas-header{gap:7px;padding-bottom:7px}
+body:has(.sieste-v3) .share-canvas-back{border-color:var(--snap-line,var(--s-line));border-radius:10px;box-shadow:none}
+body:has(.sieste-v3) .share-canvas .share-export-toolbar{gap:7px}
+body:has(.sieste-v3) .share-canvas .share-export-label b{font-size:12px;font-weight:650}
+body:has(.sieste-v3) .share-canvas .share-export-label small{font-size:10px;color:var(--snap-muted,var(--s-muted))}
+body:has(.sieste-v3) .share-canvas .share-actions button{min-height:42px;padding:9px 11px;border-color:var(--snap-line,var(--s-line));border-radius:10px;background:#fff;color:var(--s-accent);font-size:12px}
+body:has(.sieste-v3) .share-canvas .share-actions button+button{background:var(--s-accent);color:#fff;border-color:var(--s-accent)}
+body:has(.sieste-v3) .share-canvas-tools{padding:4px;border-color:var(--snap-line,var(--s-line));border-radius:14px;background:#fff;box-shadow:0 3px 14px #2424330d;backdrop-filter:none}
+body:has(.sieste-v3) .share-canvas-tools button{min-height:50px;border-radius:10px;gap:4px;padding:6px 9px;color:var(--snap-muted,var(--s-muted))}
+body:has(.sieste-v3) .share-canvas-tools button[aria-pressed=true]{background:var(--s-accent-soft);color:var(--s-accent)}
+body:has(.sieste-v3) .share-canvas-tray{border-color:var(--snap-line,var(--s-line));border-radius:var(--snap-radius,14px);background:#fff;box-shadow:0 5px 18px #2424330d;backdrop-filter:none}
+body:has(.sieste-v3) .share-canvas-tray>header{padding:6px 9px 4px 12px;border-bottom:1px solid var(--snap-line,var(--s-line))}
+body:has(.sieste-v3) .share-canvas-tray>header button{width:36px;height:36px;border-radius:8px;background:#fafafb}
+body:has(.sieste-v3) .share-canvas-tool-content{padding:7px 10px 10px}
+body:has(.sieste-v3) .share-canvas-tray .share-template-grid{gap:7px}
+body:has(.sieste-v3) .share-template-grid>button{padding:5px;border:1px solid var(--snap-line,var(--s-line));border-radius:9px;background:#fff;color:var(--s-ink);box-shadow:none}
+body:has(.sieste-v3) .share-template-grid>button[aria-pressed=true]{border:1px solid var(--s-accent);padding:5px;outline:1px solid var(--s-accent);outline-offset:-1px;box-shadow:none}
+body:has(.sieste-v3) .share-template-grid b{font-size:12px;line-height:1.35;font-weight:650;margin:6px 3px 2px}
+body:has(.sieste-v3) .share-template-grid small{font-size:10px;line-height:1.4;color:var(--snap-muted,var(--s-muted));margin-bottom:3px}
+body:has(.sieste-v3) .share-canvas-details :is(label,legend){font-size:11px;line-height:1.4}
+body:has(.sieste-v3) .share-canvas-details :is(input:not([type=checkbox]),select){font-size:16px;min-height:44px;padding:8px;border-color:var(--snap-line,var(--s-line));border-radius:8px}
+body:has(.sieste-v3) .share-canvas-details .share-check{font-size:12px;min-height:36px;margin:5px 0}
+body:has(.sieste-v3) .share-canvas-details fieldset{border-color:var(--snap-line,var(--s-line));border-radius:8px;padding:8px;margin-bottom:9px;gap:7px}
+body:has(.sieste-v3) .share-canvas-details .share-hint{font-size:10px;line-height:1.5;margin:5px 0}
+body:has(.sieste-v3) .home-snapshot-actions button{min-height:40px;border-color:var(--snap-line,var(--s-line));border-radius:8px;background:#fff;color:var(--s-accent);font-size:12px}
+
+@media(max-width:650px){
+ .sieste-v3 .workspace-tool-heading select{font-size:16px;min-height:40px;max-width:132px}
+ .sieste-v3 .workspace-tool-buttons>button{min-height:36px;padding:6px 4px;font-size:10px;gap:4px}
+ .sieste-v3 .journal-tools .workspace-tool-buttons>button{min-height:36px;padding:6px 3px;font-size:10px;gap:3px}
+ .sieste-v3.today-shell .coros-hub{padding:9px}
+ .sieste-v3 .coros-hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sieste-v3 .coros-hub-grid>button{min-height:70px}
+ .sieste-v3 .coros-fitness-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sieste-v3 .coros-races{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sieste-v3 .account-modal :is(input,select){font-size:16px}
+ .sieste-v3 .home-more-menu>summary{width:36px;height:36px}
+ body:has(.sieste-v3) .athena-chat{border-radius:14px}
+ body:has(.sieste-v3) .share-canvas .share-actions button{width:42px;padding:9px}
+ body:has(.sieste-v3) .share-canvas-tools button{min-width:58px;padding:6px 8px}
+}

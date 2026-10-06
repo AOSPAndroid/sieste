@@ -1,0 +1,506 @@
+/* The Home overview follows the exported snapshot: numbers first, light chrome,
+   small contextual charts and one-pixel separators inside each white surface. */
+.sieste-v3 .health-headlines {
+  padding: 12px;
+  border: 1px solid var(--snap-line, #e9e9f0);
+  border-radius: var(--snap-radius, 16px);
+  background: #fff;
+  box-shadow: none;
+}
+.sieste-v3 .health-headlines > header {
+  min-height: 20px;
+  margin: 0 0 5px;
+  padding: 0 2px;
+}
+.sieste-v3 .health-headlines h2 {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -.2px;
+}
+.sieste-v3 .health-headlines > header > span {
+  font-size: 10px;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .health-headline-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+}
+.sieste-v3 .health-headline,
+.sieste-v3 .health-headline.secondary {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: 0;
+}
+.sieste-v3 .health-headline:not(:nth-child(3n)) {
+  border-right: 1px solid var(--snap-line, #e9e9f0);
+}
+.sieste-v3 .health-headline.secondary {
+  border-top: 1px solid var(--snap-line, #e9e9f0);
+}
+.sieste-v3 .health-headline-label {
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .health-headline-label svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  stroke-width: 1.7;
+}
+.sieste-v3 .health-headline > strong,
+.sieste-v3 .health-headline.secondary > strong {
+  margin: 4px 0;
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -1.1px;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-ink, #242433) !important;
+}
+.sieste-v3 .health-headline > strong > small {
+  margin-left: 3px;
+  font-size: 9px;
+  font-weight: 450;
+  letter-spacing: 0;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .health-headline .widget-spark {
+  width: 100%;
+  height: 19px;
+  min-height: 19px;
+  margin: 0 0 3px;
+}
+.sieste-v3 .health-headline.secondary .widget-spark {
+  height: 14px;
+  min-height: 14px;
+}
+.sieste-v3 .health-headline-change,
+.sieste-v3 .health-headline-status {
+  font-size: 9px;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+.sieste-v3 .health-headline-change {
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .health-headline-status {
+  margin-top: 1px;
+}
+@media (hover: hover) {
+  .sieste-v3 .health-headline:hover {
+    border-radius: 0;
+    background: #fafaff;
+  }
+}
+
+/* Preserve the today strip and its activity-sheet morph without adding height. */
+.sieste-v3 .health-scroll-strip {
+  border-color: var(--snap-line, #e9e9f0);
+  border-radius: 12px;
+  box-shadow: 0 4px 18px #2424330c;
+}
+.sieste-v3 .health-scroll-strip button + button {
+  border-color: var(--snap-line, #e9e9f0);
+}
+.sieste-v3 .health-scroll-strip strong {
+  font-weight: 650;
+}
+
+/* Each day is one column; recorded sessions are separated rather than boxed. */
+.sieste-v3 .focus-calendar {
+  padding: 12px;
+  border: 1px solid var(--snap-line, #e9e9f0);
+  border-radius: var(--snap-radius, 16px);
+  background: #fff;
+  box-shadow: none;
+  margin: 0;
+  overflow: hidden;
+}
+.sieste-v3 .focus-calendar > header {
+  min-height: 20px;
+  margin: 0 0 7px;
+  gap: 6px;
+  padding: 0 2px;
+}
+.sieste-v3 .focus-calendar h2 {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -.2px;
+}
+.sieste-v3 .focus-calendar > header > span {
+  font-size: 10px;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .focus-calendar .calendar-subtitle {
+  display: none;
+}
+.sieste-v3 .focus-calendar .home-week-grid {
+  min-width: 0;
+  min-height: 0;
+  gap: 0;
+  border: 0;
+  align-items: stretch;
+}
+.sieste-v3 .focus-calendar .home-week-day,
+.sieste-v3 .focus-calendar .home-week-day.current {
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.sieste-v3 .focus-calendar .home-week-day:not(:last-child) {
+  border-right: 1px solid var(--snap-line, #e9e9f0);
+}
+.sieste-v3 .focus-calendar .home-day-label {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px;
+  min-height: 26px;
+  margin: 0 4px;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+}
+.sieste-v3 .focus-calendar .home-week-day.current .home-day-label {
+  border: 0;
+  background: var(--s-accent-soft, #f0efff);
+}
+.sieste-v3 .focus-calendar .home-day-label span,
+.sieste-v3 .focus-calendar .home-day-label strong {
+  font-size: 10px;
+  line-height: 1.3;
+}
+.sieste-v3 .focus-calendar .home-day-label strong {
+  font-weight: 650;
+}
+.sieste-v3 .focus-calendar .home-day-sessions {
+  padding: 6px 5px;
+  gap: 0;
+}
+.sieste-v3 .focus-calendar .home-day-sessions button.calendar-session-preview {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 4px 2px;
+  text-align: left;
+  border: 0;
+  border-radius: 5px;
+  box-shadow: none;
+  background: transparent;
+}
+.sieste-v3 .focus-calendar .home-day-sessions .calendar-session-preview + .calendar-session-preview {
+  margin-top: 7px;
+  padding-top: 9px;
+  border-top: 1px solid var(--snap-line, #e9e9f0);
+  border-radius: 0;
+}
+.sieste-v3 .focus-calendar .calendar-session-title {
+  align-items: flex-start;
+  gap: 4px;
+}
+.sieste-v3 .focus-calendar .calendar-session-title > svg:first-child {
+  display: block;
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  margin: 1px 0 0;
+  color: var(--sport-color, #5145cd);
+  stroke-width: 1.7;
+}
+.sieste-v3 .focus-calendar .calendar-session-title > svg:last-child {
+  display: none;
+}
+.sieste-v3 .focus-calendar .calendar-session-title b {
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--sport-color, #5145cd);
+  overflow-wrap: anywhere;
+}
+.sieste-v3 .focus-calendar .calendar-session-title small {
+  display: block;
+  margin-top: 2px;
+  font-size: 9px;
+  line-height: 1.3;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .focus-calendar .calendar-session-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 3px;
+  margin: 7px 0 5px;
+}
+.sieste-v3 .focus-calendar .calendar-session-stats small {
+  display: block;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .focus-calendar .calendar-session-stats strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -.25px;
+  color: var(--s-ink, #242433);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.sieste-v3 .focus-calendar .calendar-session-stats em {
+  font-size: 10px;
+  font-weight: 450;
+  font-style: normal;
+  letter-spacing: 0;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .focus-calendar .calendar-lap-preview {
+  margin-top: 4px;
+  padding-top: 5px;
+  border-top: 1px solid var(--snap-line, #e9e9f0);
+}
+.sieste-v3 .focus-calendar .calendar-lap-heading,
+.sieste-v3 .focus-calendar .calendar-elevation-key {
+  font-size: 8px;
+  line-height: 1.4;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .focus-calendar .calendar-lap-timeline {
+  display: block;
+  width: 100%;
+  height: 30px;
+  margin: 3px 0;
+}
+.sieste-v3 .focus-calendar .calendar-lap-values {
+  font-size: 9px;
+  line-height: 1.3;
+  gap: 2px 5px;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .focus-calendar .calendar-lap-preview > span {
+  font-size: 9px !important;
+  line-height: 1.4;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .focus-calendar .home-day-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 8px 3px;
+  font-size: 10px;
+  color: var(--snap-muted, #777786);
+}
+@media (hover: hover) {
+  .sieste-v3 .focus-calendar .home-day-sessions button.calendar-session-preview:hover {
+    background: #fafaff;
+    border-color: var(--snap-line, #e9e9f0);
+  }
+}
+
+/* Keep deeper Home data in its 2×2 cards, with quiet labels and flat interiors. */
+.sieste-v3 .home-insights-board {
+  margin: 12px 0;
+}
+.sieste-v3 .home-insights-board > header {
+  margin: 0 2px 7px;
+}
+.sieste-v3 .home-insights-board h2 {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -.2px;
+}
+.sieste-v3 .home-insights-board > header > span {
+  font-size: 10px;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .home-insights-grid {
+  gap: 8px;
+}
+.sieste-v3 .home-insight-card {
+  border: 1px solid var(--snap-line, #e9e9f0);
+  border-radius: var(--snap-radius, 16px);
+  box-shadow: none;
+  background: #fff;
+}
+.sieste-v3 .home-insight-ribbon {
+  padding: 8px 9px;
+  border-color: var(--snap-line, #e9e9f0);
+  background: transparent;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.sieste-v3 .home-insight-ribbon b {
+  font-weight: 650;
+}
+.sieste-v3 .home-insight-ribbon svg {
+  width: 12px;
+  height: 12px;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .home-insight-cell {
+  padding: 7px 8px;
+  gap: 2px;
+  border-color: var(--snap-line, #e9e9f0);
+}
+.sieste-v3 .home-insight-cell > small {
+  font-size: 9px;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .home-insight-cell > strong {
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.5px;
+  font-variant-numeric: tabular-nums;
+}
+.sieste-v3 .home-insight-cell em {
+  font-size: 9px;
+  color: var(--snap-muted, #777786);
+}
+.sieste-v3 .home-insight-cell .widget-spark {
+  height: 15px;
+  min-height: 15px;
+  margin-top: 1px;
+}
+.sieste-v3 .home-insight-note {
+  padding: 5px 8px;
+  font-size: 9px;
+  line-height: 1.4;
+  border-color: var(--snap-line, #e9e9f0);
+  color: var(--snap-muted, #777786);
+}
+
+@media (max-width: 650px) {
+  .sieste-v3 .health-headlines,
+  .sieste-v3 .focus-calendar {
+    padding: 9px;
+  }
+  .sieste-v3 .health-headlines > header,
+  .sieste-v3 .focus-calendar > header {
+    min-height: 20px;
+    margin-bottom: 5px;
+  }
+  .sieste-v3 .health-headline,
+  .sieste-v3 .health-headline.secondary {
+    padding: 6px;
+  }
+  .sieste-v3 .health-headline > strong,
+  .sieste-v3 .health-headline.secondary > strong {
+    font-size: 28px;
+    margin: 3px 0;
+  }
+  .sieste-v3 .health-headline .widget-spark {
+    height: 18px;
+    min-height: 18px;
+    margin-bottom: 2px;
+  }
+  .sieste-v3 .health-headline.secondary .widget-spark {
+    height: 14px;
+    min-height: 14px;
+  }
+  .sieste-v3 .focus-calendar.mode-3 .home-week-grid,
+  .sieste-v3 .focus-calendar.mode-7 .home-week-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    min-width: 0;
+  }
+  .sieste-v3 .focus-calendar.mode-7 .home-week-day:nth-child(n+4) {
+    margin-top: 7px;
+    padding-top: 7px;
+    border-top: 1px solid var(--snap-line, #e9e9f0);
+  }
+  .sieste-v3 .focus-calendar .home-week-day:nth-child(3n) {
+    border-right: 0;
+  }
+  .sieste-v3 .focus-calendar .home-day-label {
+    margin: 0 2px;
+    padding: 4px 3px;
+  }
+  .sieste-v3 .focus-calendar .home-day-sessions {
+    padding: 5px 3px;
+  }
+  .sieste-v3 .focus-calendar .calendar-session-title b {
+    font-size: 11px;
+  }
+  .sieste-v3 .focus-calendar .calendar-session-title small {
+    font-size: 9px;
+  }
+  .sieste-v3 .focus-calendar .calendar-session-stats {
+    gap: 4px 2px;
+    margin: 6px 0 4px;
+  }
+  .sieste-v3 .focus-calendar .calendar-session-stats strong {
+    font-size: 12px;
+    margin-top: 1px;
+    letter-spacing: -.3px;
+  }
+  .sieste-v3 .focus-calendar .calendar-session-stats em {
+    font-size: 8px;
+  }
+  .sieste-v3 .focus-calendar .calendar-lap-timeline {
+    height: 26px;
+  }
+  .sieste-v3 .focus-calendar .calendar-lap-values {
+    font-size: 8px;
+    gap: 1px 4px;
+  }
+  .sieste-v3 .home-insight-cell > strong {
+    font-size: 19px;
+  }
+}
+@media (max-width: 360px) {
+  .sieste-v3 .health-headline > strong,
+  .sieste-v3 .health-headline.secondary > strong {
+    font-size: 26px;
+  }
+  .sieste-v3 .health-headline-label {
+    font-size: 9px;
+    gap: 3px;
+  }
+  .sieste-v3 .health-headline-change,
+  .sieste-v3 .health-headline-status {
+    font-size: 8px;
+  }
+  .sieste-v3 .focus-calendar .home-day-label span,
+  .sieste-v3 .focus-calendar .home-day-label strong {
+    font-size: 9px;
+  }
+  .sieste-v3 .focus-calendar .calendar-session-stats strong {
+    font-size: 11px;
+  }
+  .sieste-v3 .home-insight-cell {
+    padding: 6px;
+  }
+  .sieste-v3 .home-insight-cell > strong {
+    font-size: 18px;
+  }
+}
+
+/* Week columns respond to their card width, including the desktop split view. */
+.sieste-v3 .snapshot-home-focus { container-type: inline-size; }
+@container (max-width: 800px) {
+  .sieste-v3 .snapshot-home-focus .focus-calendar.mode-7 .home-week-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  .sieste-v3 .snapshot-home-focus .focus-calendar.mode-7 .home-week-day:nth-child(n+4) {
+    margin-top: 7px;
+    padding-top: 7px;
+    border-top: 1px solid var(--snap-line, #e9e9f0);
+  }
+  .sieste-v3 .snapshot-home-focus .focus-calendar.mode-7 .home-week-day:nth-child(3n) { border-right: 0; }
+}
