@@ -22,7 +22,8 @@
     "audit:bundle": "node scripts/audit-bundle.mjs",
     "test:overview": "node scripts/test-compact-load-chart.mjs && node scripts/test-fatigue-recovery.mjs && node scripts/test-training-fatigue.mjs && node scripts/test-load-analysis.mjs && node scripts/test-weekly-volume.mjs && node scripts/test-widget-comparisons.mjs",
     "test:share": "node scripts/test-activity-share.mjs && node scripts/test-cinematic-share.mjs && node scripts/test-cinematic-concepts.mjs && node scripts/test-share-languages.mjs && node scripts/test-complete-finishes.mjs && node scripts/test-route-giant.mjs && node scripts/test-route-stats.mjs",
-    "test:efforts": "node scripts/test-effort-profile.mjs && node scripts/test-effort-detection.mjs && node scripts/test-steep-climbs.mjs && node scripts/test-climb-settings.mjs && node scripts/test-profile-segment-data.mjs && node scripts/test-running-profile.mjs && node scripts/test-cycling-advanced.mjs && node scripts/test-cycling-analysis.mjs && node scripts/test-route-selection.mjs && node scripts/test-segment-statistics.mjs && node scripts/test-segment-share.mjs"
+    "test:efforts": "node scripts/test-effort-profile.mjs && node scripts/test-effort-detection.mjs && node scripts/test-steep-climbs.mjs && node scripts/test-climb-settings.mjs && node scripts/test-profile-segment-data.mjs && node scripts/test-running-profile.mjs && node scripts/test-cycling-advanced.mjs && node scripts/test-cycling-analysis.mjs && node scripts/test-route-selection.mjs && node scripts/test-segment-statistics.mjs && node scripts/test-segment-share.mjs",
+    "test:garmin": "node scripts/test-garmin-oauth.mjs"
   },
   "dependencies": {
     "@garmin/fitsdk": "^21.214.0",
