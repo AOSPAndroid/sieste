@@ -37,6 +37,8 @@ Cards show output or climb gain/gradient alongside duration. Users can order sec
 
 The activity summary keeps the route and analysis together: a compact pinned map on phones, and adjacent map/profile columns on larger screens. Selecting a compact card updates the map and chart without moving the scroll position. Small section cards, one-row climb controls and a shorter chart leave room for both terrain and output; expanded map/profile views keep their full controls and larger charts. Map pinning ends with the analysis section so later workout metrics remain readable.
 
+Selecting a climb automatically centers its recorded GPS bounds, one zoom level wider than the explicit **Fit section** action (twice the surrounding span). Manual pan, zoom and whole-route reset remain in place through unrelated chart/control updates. Choosing another climb or deliberately tapping the same climb again restores contextual framing. Effort/lap selections only highlight their route; missing or stationary GPS cannot trigger a fit. Expanded maps start with the selected climb's contextual view and retain independent navigation.
+
 Segment averages weight partial boundary samples by their overlap. Power and speed zeroes remain recorded values; nonpositive HR, cadence and step length are missing. Distance requires complete monotonic cumulative evidence or complete recorded speed integration; gaps and resets are not bridged. Recorded lap duration, distance and valid means retain precedence, including copied lap durations. Normalized power remains an estimate with its existing complete-data requirements.
 
 ## Verification

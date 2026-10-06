@@ -2,15 +2,18 @@
 import {LoadingState} from './loading-state';
 import {useEffect,useMemo,useRef,useState,useId} from 'react';
 import {Download,MapPin,Minus,Plus,LocateFixed,ArrowLeft,ArrowRight,ArrowUp,ArrowDown} from 'lucide-react';
-import {routeGeometry,selectedRouteSegments,fitRouteSegments,type RouteSelection} from './route-geometry';
+import {routeGeometry,selectedRouteSegments,fitRouteSegments,climbSelectionFit,type RouteSelection} from './route-geometry';
 export default function RouteMap({detail,loading=false,selection=null,compact=false}:{detail:Record<string,any>;loading?:boolean;selection?:RouteSelection|null;compact?:boolean}){
  const positionId=useId(),monochromeId=`route-monochrome-${useId().replace(/[^a-zA-Z0-9_-]/g,'')}`;
  const series=detail.seriesSampled?.data??{},geometry=useMemo(()=>routeGeometry(series.positionLat??[],series.positionLong??[]),[series.positionLat,series.positionLong]);
- const selectedSegments=useMemo(()=>selectedRouteSegments(geometry?.segments??[],detail.seriesSampled?.sampleSize,selection),[geometry,detail.seriesSampled?.sampleSize,selection]);
+ const selectionStart=selection?.start,selectionEnd=selection?.end;
+ const selectedSegments=useMemo(()=>selectedRouteSegments(geometry?.segments??[],detail.seriesSampled?.sampleSize,selectionStart===undefined||selectionEnd===undefined?null:{start:selectionStart,end:selectionEnd,label:''}),[geometry,detail.seriesSampled?.sampleSize,selectionStart,selectionEnd]);
  const selectedFit=useMemo(()=>fitRouteSegments(selectedSegments),[selectedSegments]);
  const drag=useRef<{x:number;y:number}|null>(null);
  const [offset,setOffset]=useState({x:0,y:0}),[zoomDelta,setZoomDelta]=useState(0),[cursor,setCursor]=useState(0),[tileError,setTileError]=useState(false);
  useEffect(()=>{setOffset({x:0,y:0});setZoomDelta(0);setCursor(0);setTileError(false)},[geometry]);
+ // Scalar bounds preserve manual adjustments; revision lets a repeated click recenter.
+ useEffect(()=>{const fit=climbSelectionFit(selectedFit,selection?.kind);if(!geometry||!fit)return;drag.current=null;setOffset({x:fit.center.x-geometry.center.x,y:fit.center.y-geometry.center.y});setZoomDelta(fit.zoom-geometry.zoom)},[geometry,selectedFit,selection?.kind,selection?.revision]);
  if(!geometry&&loading)return <div className="route-loading"><LoadingState label="Loading your route…"/></div>;
  if(!geometry)return <section className="route-empty"><MapPin size={26}/><h3>{loading?'Loading your route…':'No GPS route available'}</h3><p>{loading?'Retrieving the recorded location samples from COROS.':'This workout has no usable GPS track. Indoor sessions and recordings without location data cannot show a route.'}</p></section>;
  const zoom=Math.max(1,Math.min(18,geometry.zoom+zoomDelta)),scale=256*2**zoom,left=(geometry.center.x+offset.x)*scale-400,top=(geometry.center.y+offset.y)*scale-210;

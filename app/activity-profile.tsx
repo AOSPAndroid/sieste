@@ -17,9 +17,9 @@ const valid=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
 const measured=(v:unknown,key:string):v is number=>valid(v)&&(['heartrate','cadence','stepLength'].includes(key)?v>0:['power','speed','distance'].includes(key)?v>=0:true);
 const clock=(m:number)=>{const s=Math.max(0,Math.round(m*60));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
 const distanceLabel=(d:number|null)=>d===null?'—':d<1000?`${Math.round(d)} m`:`${(d/1000).toFixed(2)} km`;
-type ProfileState={mode:string;sensor:string|null;selection:number|null;focus:boolean;sort:string;layers:string[]|null;detail:any;climbSettings:CyclingClimbSettings};
+type ProfileState={mode:string;sensor:string|null;selection:number|null;selectionRevision:number;focus:boolean;sort:string;layers:string[]|null;detail:any;climbSettings:CyclingClimbSettings};
 function profileStore(detail:any){
- let value:ProfileState={mode:'efforts',sensor:null,selection:null,focus:false,sort:'timeline',layers:null,detail,climbSettings:readCyclingClimbSettings()};
+ let value:ProfileState={mode:'efforts',sensor:null,selection:null,selectionRevision:0,focus:false,sort:'timeline',layers:null,detail,climbSettings:readCyclingClimbSettings()};
  const listeners=new Set<()=>void>();
  return {getSnapshot:()=>value,subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}},set:(patch:Partial<ProfileState>)=>{value={...value,...patch};listeners.forEach(listener=>listener())}};
 }
@@ -64,10 +64,10 @@ export default function ActivityProfile({detail:incomingDetail,expanded=false,on
  const ordered=segments.map((s,i)=>({segment:s,index:i})).sort((a,b)=>state.sort==='longest'?(b.segment.end-b.segment.start)-(a.segment.end-a.segment.start):state.sort==='gain'?(b.segment.gain??-Infinity)-(a.segment.gain??-Infinity):state.sort==='output'?(output(b.index)??-Infinity)-(output(a.index)??-Infinity):a.index-b.index);
  const selectedPosition=ordered.findIndex(s=>s.index===selectedIndex);
  const clearSelection=()=>store.set({selection:null,focus:false});
- const choose=(i:number,scroll=true)=>{store.set({selection:i});if(scroll&&expanded)chartRef.current?.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})};
+ const choose=(i:number,scroll=true)=>{store.set({selection:i,selectionRevision:store.getSnapshot().selectionRevision+1});if(scroll&&expanded)chartRef.current?.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})};
  const changeMode=(m:string)=>{store.set({mode:m,selection:null,focus:false,sort:'timeline'});setCopy('');setFallback('')};
  const changeClimbSettings=(patch:Partial<CyclingClimbSettings>)=>{const climbSettings=normalizeCyclingClimbSettings({...state.climbSettings,...patch});store.set({climbSettings,selection:null,focus:false});saveCyclingClimbSettings(climbSettings);setCopy('');setFallback('')};
- useEffect(()=>{onSelection?.(selected?{start:selected.start,end:selected.end,label:selected.label}:null)},[selected?.start,selected?.end,selected?.label,onSelection]);
+ useEffect(()=>{onSelection?.(selected?{start:selected.start,end:selected.end,label:selected.label,kind:mode==='climbs'?'climb':mode==='laps'?'lap':'effort',revision:state.selectionRevision}:null)},[selected?.start,selected?.end,selected?.label,mode,state.selectionRevision,onSelection]);
  const focused=!!selected&&state.focus,padding=selected?Math.max(.25,(selected.end-selected.start)*.15):0,domain:[number,number]=focused?[Math.max(0,selected!.start-padding),Math.min(extent,selected!.end+padding)]:[0,Math.max(extent,.01)];
  const chartRows=useMemo(()=>{
   const section=rows.filter(r=>r.time>=domain[0]&&r.time<=domain[1]),stride=Math.max(1,Math.ceil(section.length/650));

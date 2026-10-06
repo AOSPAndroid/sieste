@@ -22,7 +22,11 @@ export function routeGeometry(latitudes:unknown[],longitudes:unknown[]){
  return {segments,points,...fit};
 }
 
-export type RouteSelection={start:number;end:number;label:string};
+export type RouteSelection={start:number;end:number;label:string;kind?:'climb'|'effort'|'lap';revision?:number};
+/** Automatic climb framing shows twice the surrounding span of a manual fit. */
+export function climbSelectionFit(fit:ReturnType<typeof fitRouteSegments>,kind:RouteSelection['kind']){
+ return fit&&kind==='climb'?{center:fit.center,zoom:Math.max(1,fit.zoom-1)}:null;
+}
 // Selection uses elapsed minutes and original GPS sample indices, never compressed point counts.
 export function selectedRouteSegments(segments:RoutePoint[][],step:unknown,selection:RouteSelection|null){
  if(!selection||typeof step!=='number'||!Number.isFinite(step)||step<=0||!Number.isFinite(selection.start)||selection.start<0||!Number.isFinite(selection.end)||selection.end<=selection.start)return [];
