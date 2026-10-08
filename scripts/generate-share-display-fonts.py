@@ -12,7 +12,7 @@ from fontTools.pens.boundsPen import BoundsPen
 root = Path(__file__).resolve().parent.parent
 characters = sorted(set(chr(i) for i in range(32, 256)) | set("ŒœŸẞ–—’‘×−"))
 faces = {}
-for key, filename in [("bold", "Anton-Regular.ttf"), ("tall", "BebasNeue-Regular.ttf"), ("serif", "DMSerifDisplay-Regular.ttf"), ("wide", "RussoOne-Regular.ttf"), ("slab", "RobotoSlab-Black.ttf")]:
+for key, filename in [("bold", "Anton-Regular.ttf"), ("tall", "BebasNeue-Regular.ttf"), ("serif", "DMSerifDisplay-Regular.ttf"), ("wide", "RussoOne-Regular.ttf"), ("slab", "RobotoSlab-Black.ttf"), ("retro", "Shrikhand-Regular.ttf")]:
     font = TTFont(root / "assets/share-fonts" / filename)
     glyphs = font.getGlyphSet()
     cmap = font.getBestCmap()
@@ -29,5 +29,5 @@ for key, filename in [("bold", "Anton-Regular.ttf"), ("tall", "BebasNeue-Regular
     faces[key] = {"units": font["head"].unitsPerEm, "glyphs": output}
 
 target = root / "app/share-display-glyphs.json"
-target.write_text(json.dumps(faces, ensure_ascii=False, separators=(",", ":")) + "\n")
+target.write_text(json.dumps(faces, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
 print(f"Generated {target.name}: {sum(len(face['glyphs']) for face in faces.values())} glyphs, {target.stat().st_size} bytes")

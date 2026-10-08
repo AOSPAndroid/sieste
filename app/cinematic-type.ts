@@ -1,7 +1,7 @@
 import faces from './share-display-glyphs.json';
 import {cinemaWarp,warpedGlyph,type CinemaWarp} from './cinematic-warp';
 type Glyph=[number,number,number,number,number,string];
-export type DisplayFace='bold'|'tall'|'serif'|'wide'|'slab';
+export type DisplayFace='bold'|'tall'|'serif'|'wide'|'slab'|'retro';
 const xml=(text:string)=>text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 
 /** Top-aligned, self-contained outlined letters; no font downloads during export. */
