@@ -23,3 +23,7 @@ Shrikhand (Jonny Pinhorn), from `ofl/shrikhand` in the official Google Fonts
 repository, is redistributed under the included SIL Open Font License.
 The retro share collection uses its Latin glyph outlines; neither the font nor
 the reference drafts are fetched at export time.
+
+Caprasimo (DocRepair), from `ofl/caprasimo` in the official Google Fonts
+repository, is redistributed under its included SIL Open Font License.
+The original-draft stickers use these vector outlines with a gentle italic shear.

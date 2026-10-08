@@ -2,6 +2,8 @@ import {cinematicText,cinematicTitleLines,type DisplayFace} from './cinematic-ty
 import type {routeGeometry} from './route-geometry';
 import {retroActivityDesigns,retroRecoveryDesigns,renderRetroShare} from './retro-share';
 export {retroActivityDesigns,retroRecoveryDesigns} from './retro-share';
+import {approvedActivityDesigns,approvedRecoveryDesigns,renderApprovedShare} from './approved-share';
+export {approvedActivityDesigns,approvedRecoveryDesigns} from './approved-share';
 export const shareSolidColours=[
  {color:'#ef3340',name:'Route red'}, {color:'#990F16',name:'Blood red'},
  {color:'#0B1F5E',name:'Deep blue'}, {color:'#4169E1',name:'Royal blue'},
@@ -11,7 +13,8 @@ export const shareSolidColours=[
  {color:'#4A0612',name:'Oxblood'}, {color:'#B64624',name:'Burnt orange'},
  {color:'#241139',name:'Midnight violet'}, {color:'#123E45',name:'Petrol teal'},
  {color:'#C8A45D',name:'Antique gold'}, {color:'#F3E8D0',name:'Warm ivory'},
- {color:'#F4D35E',name:'Film yellow'}, {color:'#B7DDF2',name:'Ice blue'}
+ {color:'#F4D35E',name:'Film yellow'}, {color:'#B7DDF2',name:'Ice blue'},
+ {color:'#ffdf00',name:'Café yellow'}, {color:'#fff4d5',name:'Club ivory'}
 ] as const;
 export function shareColourContrast(colour:string){
  const rgb=[1,3,5].map(i=>parseInt(colour.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
@@ -37,7 +40,7 @@ export const routeStatDesigns=[
  {key:'tracescorecard',name:'Trace scorecard',description:'Thick route · six equally bold readings'},
  {key:'tracestamp',name:'Trace stamp',description:'Framed route · slab-serif headline · stats'}
 ] as const;
-export type ShareTemplate=typeof retroActivityDesigns[number]['key']|typeof retroRecoveryDesigns[number]['key']|typeof routeStatDesigns[number]['key']|'cinemamonolith'|'cinemaepic'|'cinemawide'|'cinemamission'|'cinemalens'|'cinemawave'|'routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export type ShareTemplate=typeof approvedActivityDesigns[number]['key']|typeof approvedRecoveryDesigns[number]['key']|typeof retroActivityDesigns[number]['key']|typeof retroRecoveryDesigns[number]['key']|typeof routeStatDesigns[number]['key']|'cinemamonolith'|'cinemaepic'|'cinemawide'|'cinemamission'|'cinemalens'|'cinemawave'|'routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeStatTemplates:ShareTemplate[]=routeStatDesigns.map(design=>design.key);
 export const routeTemplates:ShareTemplate[]=[...routeStatTemplates,'routegiant','cinematrace','route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
@@ -65,6 +68,7 @@ export function shareCardSvg(o:ShareDesign){
  const englishVersions:Partial<Record<ShareTemplate,ShareTemplate>>={metroen:'metro',sweatreceipten:'sweatreceipt',excuseen:'excuse'},english=!!englishVersions[o.template];
  if(english)o={...o,template:englishVersions[o.template]!};
  const copy=(fr:string,en:string)=>english?en:fr;
+ const isApproved=[...approvedActivityDesigns,...approvedRecoveryDesigns].some(design=>design.key===o.template);
  const isRetro=[...retroActivityDesigns,...retroRecoveryDesigns].some(design=>design.key===o.template);
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
  const compact=(s:ShareStat)=>s.value+(s.unit==='min:sec'||s.unit==='h:mm:ss'?'':s.unit==='/km'?'/km':' '+s.unit);
@@ -117,7 +121,8 @@ export function shareCardSvg(o:ShareDesign){
   return (outline?'':`<g transform="translate(0 5)">${glyph.replace('fill="url(#metal)"','fill="#252b37" stroke="#252b37" stroke-width="3"')}</g>`)+
    glyph.replace('fill="url(#metal)"',`fill="${outline?'none':'url(#metal)'}" stroke="url(#rim)" stroke-width="${outline?3:1.8}" paint-order="stroke fill"`);
  };
- if(isRetro){
+ if(isApproved){parts.push(renderApprovedShare(o,{ink:isChrome?'url(#metal)':ink,route}));}
+ else if(isRetro){
   const icon=(glyph:string,kind:string,key:string,x:number,y:number,size:number,color:string)=>`<g data-${kind}-icon="${xml(key)}" transform="translate(${x} ${y}) scale(${size/24})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${glyph}</g>`;
   parts.push(renderRetroShare(o,{ink:isChrome?'url(#metal)':ink,route,
    sportIcon:(family,x,y,size,color)=>icon(sportGlyphs[family]??sportGlyphs.misc,'sport',family,x,y,size,color),
@@ -510,9 +515,9 @@ export function shareCardSvg(o:ShareDesign){
   if(first)parts.push(text(compact(first),72,top+laps.length*step+66,43,800));
   if((o.laps?.length??0)>16)parts.push(text('FIRST 16 RECORDED LAPS',72,top+laps.length*step+105,19));
  }
- if(!isRetro&&o.route&&o.template!=='laps'&&!routeTemplates.includes(o.template))parts.push(route(840,100,165,165,3));
- if(o.brand&&!isRetro)parts.push(text('sieste',72,h-48,23,700));
- if(o.demo&&!isRetro)parts.push(text('ILLUSTRATIVE DATA',730,h-48,18,600,ink,280));
+ if(!isRetro&&!isApproved&&o.route&&o.template!=='laps'&&!routeTemplates.includes(o.template))parts.push(route(840,100,165,165,3));
+ if(o.brand&&!isRetro&&!isApproved)parts.push(text('sieste',72,h-48,23,700));
+ if(o.demo&&!isRetro&&!isApproved)parts.push(text('ILLUSTRATIVE DATA',730,h-48,18,600,ink,280));
  // Finish every foreground element, including metadata, chart axes and icons.
  // Stroke gradients use canvas coordinates so horizontal/vertical paths render.
  let artwork=parts.join('');
@@ -523,14 +528,14 @@ export function shareCardSvg(o:ShareDesign){
   const shadowGroups:boolean[]=[];
   artwork=artwork.replace(/<\/g>|<(text|path|circle|rect|line|polyline|polygon|ellipse|g)[^>]*>/g,tag=>{
    if(tag==='</g>'){shadowGroups.pop();return tag;}
-   if(/^<g\b/.test(tag)&&!tag.endsWith('/>'))shadowGroups.push(tag.includes('data-retro-shadow="true"'));
+   if(/^<g\b/.test(tag)&&!tag.endsWith('/>'))shadowGroups.push(tag.includes('data-retro-shadow="true"')||tag.includes('data-approved-shadow="true"'));
    if(shadowGroups.some(Boolean))return tag;
    if(tag.includes('width="1080"'))return tag;
    const isText=tag.startsWith('<text'),size=Number(tag.match(/font-size="([^"]+)"/)?.[1]??0);
    // Filled ticket/card surfaces stay dark to contrast with finished lettering.
    const surface=cardSurface&&/^<(?:path|rect)\b/.test(tag)&&/fill="(?!none|transparent)[^"]+"/.test(tag);
    if(surface)tag=tag.replace(/fill="[^"]*"/,'fill="#151a22"');
-   else tag=tag.replace(/fill="(?!none|transparent)[^"]*"/,(isText&&size>=64||isRetro&&tag.includes('fill="url(#metal)"'))?'fill="url(#metal)"':'fill="url(#metalSoft)"');
+   else tag=tag.replace(/fill="(?!none|transparent)[^"]*"/,(isText&&size>=64||(isRetro||isApproved)&&tag.includes('fill="url(#metal)"'))?'fill="url(#metal)"':'fill="url(#metalSoft)"');
    return tag.replace(/stroke="(?!none|transparent)[^"]*"/,/data-(?:health|sport)-icon=/.test(tag)?'stroke="url(#iconFinish)"':'stroke="url(#finishStroke)"');
   });
  }

@@ -12,12 +12,14 @@ from fontTools.pens.boundsPen import BoundsPen
 root = Path(__file__).resolve().parent.parent
 characters = sorted(set(chr(i) for i in range(32, 256)) | set("ŒœŸẞ–—’‘×−"))
 faces = {}
-for key, filename in [("bold", "Anton-Regular.ttf"), ("tall", "BebasNeue-Regular.ttf"), ("serif", "DMSerifDisplay-Regular.ttf"), ("wide", "RussoOne-Regular.ttf"), ("slab", "RobotoSlab-Black.ttf"), ("retro", "Shrikhand-Regular.ttf")]:
+for key, filename in [("bold", "Anton-Regular.ttf"), ("tall", "BebasNeue-Regular.ttf"), ("serif", "DMSerifDisplay-Regular.ttf"), ("wide", "RussoOne-Regular.ttf"), ("slab", "RobotoSlab-Black.ttf"), ("retro", "Shrikhand-Regular.ttf"), ("approved", "Caprasimo-Regular.ttf")]:
     font = TTFont(root / "assets/share-fonts" / filename)
     glyphs = font.getGlyphSet()
     cmap = font.getBestCmap()
     output = {}
-    for character in characters:
+    # Originals contain only numbers, compact units, and the signature.
+    subset = sorted(set(" 0123456789abcdefghijklmnopqrstuvwxyz.,:/—·")) if key == "approved" else characters
+    for character in subset:
         name = cmap.get(ord(character))
         if not name:
             continue
@@ -25,7 +27,7 @@ for key, filename in [("bold", "Anton-Regular.ttf"), ("tall", "BebasNeue-Regular
         glyphs[name].draw(pen)
         bounds = BoundsPen(glyphs)
         glyphs[name].draw(bounds)
-        output[character] = [font["hmtx"][name][0], *(bounds.bounds or (0, 0, 0, 0)), pen.getCommands()]
+        output[character] = [round(font["hmtx"][name][0] * (0.94 if key == "approved" else 1)), *(bounds.bounds or (0, 0, 0, 0)), pen.getCommands()]
     faces[key] = {"units": font["head"].unitsPerEm, "glyphs": output}
 
 target = root / "app/share-display-glyphs.json"
