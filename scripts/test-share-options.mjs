@@ -67,6 +67,10 @@ function safe(svg,context){
 }
 function rawNode(svg,node){return svg.slice(node.start,node.end);}
 function marked(svg,attribute){return visible(tree(svg)).filter(node=>attribute in node.attrs).map(node=>rawNode(svg,node));}
+function alphaPadding(data,info,context){
+ for(let x=0;x<info.width;x++){assert.equal(data[x*4+3],0,`${context}: top alpha padding`);assert.equal(data[((info.height-1)*info.width+x)*4+3],0,`${context}: bottom alpha padding`);}
+ for(let y=0;y<info.height;y++){assert.equal(data[y*info.width*4+3],0,`${context}: left alpha padding`);assert.equal(data[(y*info.width+info.width-1)*4+3],0,`${context}: right alpha padding`);}
+}
 function assertFinish(node,finish,context){
  const colours=shareFinishes.find(option=>option.key===finish).colors;
  const gradients=new Map(all(node).filter(item=>item.tag==='linearGradient').map(item=>[item.attrs.id,item.children.filter(child=>child.tag==='stop').map(child=>child.attrs['stop-color'])]));
@@ -118,31 +122,33 @@ for(const template of ['scorecard','retrohero','approvedrun']){
 }
 console.log(`Passed: ${checks} annotation cases across regular, route/stat, daily, retro and original artwork exports; exact readings and units retained.`);
 
-for(const template of ['scorecard','retrohero','approvedrun','approvedrecovery']){
+for(const template of ['scorecard','tracescorecard','retrohero','approvedrun','approvedride','approvedrecovery']){
  const sample=samples.find(([key])=>key===template)[1],design={...sample,template,labelMode:'none'},defaultSvg=shareCardSvg(design);
  const measures=[];
- for(const textThickness of [-2,0,4]){
+ for(const textThickness of [-2,0,4,12]){
   const svg=shareCardSvg({...design,textThickness});safe(svg,`${template}/${textThickness}`);
   const {data,info}=await sharp(Buffer.from(svg)).resize(540).ensureAlpha().raw().toBuffer({resolveWithObject:true});
   let alpha=0;for(let index=3;index<data.length;index+=4)alpha+=data[index];measures.push(alpha/255);
-  for(let x=0;x<info.width;x++){assert.equal(data[x*4+3],0,`${template}: top alpha padding`);assert.equal(data[((info.height-1)*info.width+x)*4+3],0,`${template}: bottom alpha padding`);}
-  for(let y=0;y<info.height;y++){assert.equal(data[y*info.width*4+3],0,`${template}: left alpha padding`);assert.equal(data[(y*info.width+info.width-1)*4+3],0,`${template}: right alpha padding`);}
+  alphaPadding(data,info,`${template}/${textThickness}`);
   assert.deepEqual(numberReadings(tree(svg)),numberReadings(tree(defaultSvg)),`${template}: changing thickness preserves actual letters, measurements and units`);
   assert.deepEqual(marked(svg,'data-share-route'),marked(defaultSvg,'data-share-route'),`${template}: writing thickness preserves actual GPS paths and stroke widths`);
   assert.deepEqual(marked(svg,'data-approved-history-key'),marked(defaultSvg,'data-approved-history-key'),`${template}: writing thickness preserves source charts, gaps and dots`);
-  if(textThickness!==0)await sharp(Buffer.from(svg)).resize(540).png().toFile(join(directory,`${template}-${textThickness<0?'thin':'bold'}.png`));
+  if(textThickness!==0)await sharp(Buffer.from(svg)).resize(540).png().toFile(join(directory,`${template}-${textThickness<0?'thin':textThickness===12?'extra-bold':'bold'}.png`));
  }
  assert.ok(measures[0]<measures[1]-25,`${template}: thin writing actually reduces visible raster area (${measures.join(', ')})`);
  assert.ok(measures[2]>measures[1]+25,`${template}: bold writing actually increases visible raster area (${measures.join(', ')})`);
- for(const [input,expected] of [[-999,-2],[999,4],[NaN,0],[Infinity,0],[-Infinity,0],[undefined,0]])assert.equal(shareCardSvg({...design,textThickness:input}),shareCardSvg({...design,textThickness:expected}),`${template}: thickness ${input} normalizes safely`);
+ assert.ok(measures[3]>measures[2]+25,`${template}: new maximum writing is visibly thicker than the former maximum (${measures.join(', ')})`);
+ for(const [input,expected] of [[-999,-2],[999,12],[NaN,0],[Infinity,0],[-Infinity,0],[undefined,0]])assert.equal(shareCardSvg({...design,textThickness:input}),shareCardSvg({...design,textThickness:expected}),`${template}: thickness ${input} normalizes safely`);
 }
-console.log('Passed: writing changes rendered pixel area across native text, outlined retro letters and original PNG artwork; thickness clamps safely without changing charts or routes.');
+console.log('Passed: extra-bold 12 increases rendered pixel area beyond former maximum 4 across native text, route/stat designs, outlined retro letters and all original PNG artwork; thickness clamps safely without changing charts or routes.');
 
-for(const template of ['scorecard','retrohero','approvedrecovery'])for(const finish of shareFinishes.map(option=>option.key))for(const labelMode of ['short','full']){
- const sample=samples.find(([key])=>key===template)[1],design={...sample,template,labelMode,finish,textThickness:4},svg=shareCardSvg(design);assertFinish(tree(svg),finish,`${template}/${finish}/${labelMode}`);
+for(const template of ['scorecard','retrohero','approvedrecovery'])for(const finish of shareFinishes.map(option=>option.key))for(const labelMode of ['icons','short','full','none']){
+ const sample=samples.find(([key])=>key===template)[1],design={...sample,template,labelMode,finish,textThickness:12},svg=shareCardSvg(design);safe(svg,`${template}/${finish}/${labelMode}/12`);
+ if(labelMode==='short'||labelMode==='full')assertFinish(tree(svg),finish,`${template}/${finish}/${labelMode}/12`);
  await sharp(Buffer.from(svg)).resize(270).png().toBuffer();checks++;
 }
-const exported=await sharp(Buffer.from(shareCardSvg({...base,template:'approvedrecovery',accent:'#b7ddf2',labelMode:'full',finish:'iridescent',textThickness:4,height:1920}))).resize(2160,3840).png().toBuffer();
+const exported=await sharp(Buffer.from(shareCardSvg({...base,template:'approvedrecovery',accent:'#b7ddf2',labelMode:'full',finish:'iridescent',textThickness:12,height:1920}))).resize(2160,3840).png().toBuffer();
 const metadata=await sharp(exported).metadata();assert.equal(metadata.width,2160);assert.equal(metadata.height,3840);assert.ok(metadata.hasAlpha);
+const fullSize=await sharp(exported).ensureAlpha().raw().toBuffer({resolveWithObject:true});alphaPadding(fullSize.data,fullSize.info,'extra-bold iridescent recovery at 2160px');
 await sharp(exported).toFile(join(directory,'recovery-story-2160.png'));
-console.log('Passed: all eight finishes paint short/full annotations, including bold source artwork; transparent 2160px story exports remain self-contained.');
+console.log('Passed: all eight finishes support every annotation option at extra-bold 12; transparent 2160px story exports retain alpha padding and remain self-contained.');

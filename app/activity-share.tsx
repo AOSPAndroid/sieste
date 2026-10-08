@@ -3,6 +3,7 @@ import {useEffect,useLayoutEffect,useMemo,useCallback,useState,type ReactNode} f
 import {Share2,Download,Check} from 'lucide-react';
 import ShareCanvas,{type ShareTool} from './share-canvas';
 import type {ShareLabelMode} from './share-labels';
+import {SHARE_TEXT_THICKNESS_MAX} from './share-lettering';
 import {shareWeek} from './share-week';
 import {sportFamily,sportName} from './sports';
 import {lapPreview} from './calendar-preview';
@@ -74,7 +75,7 @@ export default function ActivityShare({activity,history=emptyHistory,loading=fal
   <fieldset><legend>Finish · {finish==='solid'?'Solid':shareFinishes.find(f=>f.key===finish)?.name}</legend><div className="share-swatch-row">{shareFinishes.map(f=><button type="button" key={f.key} aria-label={f.name} title={f.name} aria-pressed={finish===f.key} style={{background:finishSwatch(f.colors)}} onClick={()=>{setFinish(f.key);setColourCustomized(true)}}>{finish===f.key&&<Check size={16} color="#111"/>}</button>)}</div></fieldset>
  </div>;
  const traceThickness=(routeOnly||routeWithStats)?<label className="share-canvas-thickness"><span>Trace thickness <output>{routeWithStats?statRouteStroke:routeStroke}</output></span><input aria-label="Trace thickness" type="range" min={routeWithStats?12:4} max={routeWithStats?40:28} step="2" value={routeWithStats?statRouteStroke:routeStroke} onChange={e=>(routeWithStats?setStatRouteStroke:setRouteStroke)(Number(e.target.value))}/></label>:null;
- const thickness=<div className="share-writing-controls">{!routeOnly&&<label className="share-canvas-thickness"><span>Text thickness <output>{textThickness===0?'Original':textThickness<0?'Slim '+Math.abs(textThickness):'Bold +'+textThickness}</output></span><input aria-label="Text thickness" type="range" min="-2" max="4" step="1" value={textThickness} onChange={e=>setTextThickness(Number(e.target.value))}/><div className="share-thickness-scale"><span>Slim</span><button type="button" onClick={()=>setTextThickness(0)}>Reset</button><span>Bold</span></div></label>}{traceThickness}</div>;
+ const thickness=<div className="share-writing-controls">{!routeOnly&&<label className="share-canvas-thickness"><span>Text thickness <output>{textThickness===0?'Original':textThickness<0?'Slim '+Math.abs(textThickness):'Bold +'+textThickness}</output></span><input aria-label="Text thickness" type="range" min="-2" max={SHARE_TEXT_THICKNESS_MAX} step="1" value={textThickness} onChange={e=>setTextThickness(Number(e.target.value))}/><div className="share-thickness-scale"><span>Slim</span><button type="button" onClick={()=>setTextThickness(0)}>Reset</button><span>Bold</span></div></label>}{traceThickness}</div>;
  const details=<div className="share-editor share-canvas-details">
   {!routeOnly&&<label>Metric style<select aria-label="Metric style" value={labelMode} onChange={e=>setLabelMode(e.target.value as ShareLabelMode)}><option value="icons">Icons</option><option value="short">Short labels · HR, HRV</option><option value="full">Full metric names</option><option value="none">Numbers only</option></select></label>}
   {selectionControls}
