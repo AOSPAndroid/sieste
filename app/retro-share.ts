@@ -1,5 +1,6 @@
 import type {ShareDesign} from './share-card-design';
 import {cinematicText} from './cinematic-type';
+import {shareMetricLabel} from './share-labels';
 
 export const retroActivityDesigns=[
  {key:'retrohero',name:'Golden hour',description:'Café lettering · giant reading · red shadow',color:'#f4d35e'},
@@ -57,9 +58,19 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
   return `<g data-retro-shadow="true" aria-hidden="true" transform="translate(${depth*.8} ${depth})" fill="${shadow}">${silhouette}</g>`+glyph;
  };
  const line=(x:number,y:number,x2:number,y2:number,width=3,opacity=1)=>`<path d="M${x} ${y}L${x2} ${y2}" fill="none" stroke="${ink}" stroke-width="${width}" stroke-linecap="round" opacity="${opacity}"/>`;
+ const labelMode=o.labelMode??'icons';
+ const cueLabel=(key:string,fullName:string,x:number,y:number,size:number)=>{
+  if(labelMode==='none')return '';
+  const full=({sleep:'Sleep duration',score:'Sleep score',hrv:'Heart rate variability'} as Record<string,string>)[key]??fullName;
+  const label=shareMetricLabel(key,full,labelMode),width=Math.min(380,Math.max(170,size*7)),height=Math.min(28,size*.72);
+  return `<g data-share-label-key="${xml(key)}" data-share-label-mode="${labelMode}">${letter(label,x+size/2-width/2,y+(size-height)/2,width,height,{align:'middle',shadow:false})}</g>`;
+ };
+ const healthCue=(key:string,x:number,y:number,size:number,color=ink,fullName?:string)=>labelMode==='icons'?helpers.healthIcon(key,x,y,size,color):cueLabel(key,fullName??({sleep:'Sleep',score:'Sleep score',hrv:'Overnight HRV',heartrate:'Heart rate',calories:'Calories',steps:'Steps'} as Record<string,string>)[key]??key,x,y,size);
+ const sportCue=(family:string,x:number,y:number,size:number,color=ink)=>labelMode==='icons'?helpers.sportIcon(family,x,y,size,color):cueLabel(family,({running:'Running',cycling:'Cycling',strength_training:'Strength training',swimming:'Swimming',walking:'Walking',hiking:'Hiking',misc:'Activity'} as Record<string,string>)[family]??family,x,y,size);
  const metricIcon=(stat:Stat,x:number,y:number,size=28)=>{
   const health=({hr:'heartrate',heartrate:'heartrate',calories:'calories',sleep:'sleep',hrv:'hrv',score:'score',steps:'steps'} as Record<string,string>)[stat.key];
-  if(health)return helpers.healthIcon(health,x,y,size,ink);
+  if(labelMode!=='icons')return cueLabel(stat.key,stat.label,x,y,size);
+  if(health)return healthCue(health,x,y,size,ink,stat.label);
   const glyphs:Record<string,string>={
    distance:'<path d="M5 19 19 5M4 14l6 6M9 9l6 6M14 4l6 6"/>',
    duration:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 3"/>',
@@ -85,9 +96,13 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
    (suffix?letter(suffix,x,unitY,w,unitHeight,{align:center?'middle':'start'}):'')+'</g>';
  };
  const heading=(y:number,height=52,center=true,x=72,w=936)=>{
+  if(o.labelMode==='none'&&title.toLowerCase()===(caption(o.sport)||'Activity').toLowerCase())return '';
+  const displayedTitle=labelMode==='short'?shareMetricLabel(o.sportFamily??'misc',title,'short'):title;
+  if(o.labelMode==='short')return `<g data-share-label-key="${xml(o.sportFamily??'misc')}" data-share-label-mode="short">${letter(displayedTitle,x,y,w,height,{align:center?'middle':'start',depth:4})}</g>`;
   const words=title.split(' '),split=titleRows===2?words.reduce((best,_,i)=>i>0&&Math.abs(words.slice(0,i).join(' ').length-title.length/2)<Math.abs(words.slice(0,best).join(' ').length-title.length/2)?i:best,Math.max(1,Math.floor(words.length/2))):0;
   const lines=split?[words.slice(0,split).join(' '),words.slice(split).join(' ')]:[title];
-  const icon=helpers.sportIcon(o.sportFamily??'misc',center?524:x,y-50,32,ink);
+  if(o.labelMode==='full')return `<g data-share-label-key="${xml(o.sportFamily??'misc')}" data-share-label-mode="full">${lines.map((value,i)=>letter(value,x,y+i*(height+12),w,height,{align:center?'middle':'start',depth:4})).join('')}</g>`;
+  const icon=sportCue(o.sportFamily??'misc',center?524:x,y-50,32,ink);
   return icon+lines.map((value,i)=>letter(value,x,y+i*(height+12),w,height,{align:center?'middle':'start',depth:4})).join('');
  };
  const grid=(stats:Stat[],y:number,columns=3,rowHeight=100,valueHeight=46,x=72,w=936)=>{
@@ -115,7 +130,7 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
    {key:'hrv',label:'Overnight HRV',value:healthValid('hrv',health.hrv)?String(Math.round(health.hrv)):'—',unit:healthValid('hrv',health.hrv)?'ms':''}
   ];
   const reading=(stat:Stat,x:number,y:number,w:number,height:number,withIcon=true)=>`<g data-retro-health-key="${stat.key}" data-health-value="${healthValid(stat.key as HealthKey,health[stat.key as HealthKey])?health[stat.key as HealthKey]:''}">`+
-   (withIcon?helpers.healthIcon(stat.key,x+w/2-18,y,36,ink):'')+letter(compact(stat),x,y+(withIcon?58:0),w,height,{align:'middle'})+'</g>';
+   (withIcon?healthCue(stat.key,x+w/2-18,y,36,ink,stat.label):'')+letter(compact(stat),x,y+(withIcon?58:0),w,height,{align:'middle'})+'</g>';
   // dailyShareHistory exposes sleep in hours; the current-day sleep reading is seconds.
   const rangeNumber=(metricKey:HealthKey,value:number)=>metricKey==='sleep'?value.toFixed(1)+'h':String(Math.round(value))+(metricKey==='hrv'?' ms':'');
   const chart=(metricKey:HealthKey,x:number,y:number,w:number,height:number,bars=false)=>{
@@ -143,9 +158,9 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
   const extraTitle=caption(o.title);if(extraTitle)parts.push(letter(extraTitle,72,96,936,23,{align:'middle',shadow:false}));
   if(key==='retrorecovery'){
    const heroHeight=Math.min(206,healthBottom*.24),heroY=150,sideY=heroY+heroHeight+74,chartY=sideY+170,chartHeight=Math.max(68,healthBottom-chartY-88);
-   parts.push(reading(readings[0],72,heroY,936,heroHeight,false),helpers.healthIcon('sleep',518,heroY+heroHeight+27,44,ink));
+   parts.push(reading(readings[0],72,heroY,936,heroHeight,false),healthCue('sleep',518,heroY+heroHeight+27,44,ink));
    parts.push(reading(readings[1],116,sideY,400,75),reading(readings[2],564,sideY,400,75));
-   (['sleep','score','hrv'] as HealthKey[]).forEach((metricKey,i)=>{const x=72+i*320;parts.push(helpers.healthIcon(metricKey,x+130,chartY-42,26,ink),chart(metricKey,x,chartY,296,chartHeight))});
+   (['sleep','score','hrv'] as HealthKey[]).forEach((metricKey,i)=>{const x=72+i*320;parts.push(healthCue(metricKey,x+130,chartY-42,26,ink),chart(metricKey,x,chartY,296,chartHeight))});
    parts.push(dateSpan(chartY+chartHeight+56));
   }else{
    const metricY=168,chartY=366,chartHeight=Math.max(115,healthBottom-chartY-112);
@@ -154,7 +169,8 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
   }
   sessions.forEach((session,index)=>{
    const y=healthBottom+44+index*114;
-   parts.push(`<g data-retro-workout="true" data-workout-family="${xml(session.sportFamily!)}">`,line(72,y-20,1008,y-20,2,.45),helpers.sportIcon(session.sportFamily!,76,y,27,ink),letter(session.title,121,y,887,24,{shadow:false}));
+   const sessionTitle=labelMode==='none'?'':labelMode==='short'?shareMetricLabel(session.sportFamily!,session.title,'short'):session.title;
+   parts.push(`<g data-retro-workout="true" data-workout-family="${xml(session.sportFamily!)}">`,line(72,y-20,1008,y-20,2,.45),labelMode==='icons'?sportCue(session.sportFamily!,76,y,27,ink):'',sessionTitle?letter(sessionTitle,labelMode==='icons'?121:76,y,labelMode==='icons'?887:932,24,{shadow:false}):'');
    session.stats.slice(0,3).forEach((stat,j)=>parts.push(metric(stat,112+j*300,y+45,276,34,true,false)));
    parts.push('</g>');
   });
@@ -165,7 +181,7 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
   const supportY=bottom-(Math.ceil(others.length/3)-1)*110-80,heroY=Math.max(190,h*.17,112+titleRows*62+16),heroHeight=228*stretchY,routeY=heroY+heroHeight+(first&&unit(first)?112:52),routeHeight=supportY-routeY-45;
   parts.push(heading(112,50),hero(64,heroY,952,heroHeight));
   if(o.route)parts.push(trace(110,routeY,860,routeHeight,13));
-  else if(routeHeight>85)parts.push(helpers.sportIcon(o.sportFamily??'misc',540-Math.min(122,routeHeight*.38)/2,routeY+routeHeight*.2,Math.min(122,routeHeight*.38),ink));
+  else if(routeHeight>85)parts.push(sportCue(o.sportFamily??'misc',540-Math.min(122,routeHeight*.38)/2,routeY+routeHeight*.2,Math.min(122,routeHeight*.38),ink));
   parts.push(grid(others,supportY,3,110,48));
  }else if(key==='retroride'){
   const supportY=bottom-(Math.ceil(others.length/3)-1)*110-80,heroY=Math.max(190,h*.17,112+titleRows*60+18),heroHeight=202*stretchY,routeY=heroY+heroHeight+(first&&unit(first)?110:58),routeHeight=supportY-routeY-30;
@@ -173,7 +189,7 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
   if(routeHeight>70){
    const ovalY=routeY+10,ovalH=routeHeight-20;
    parts.push(`<ellipse cx="540" cy="${ovalY+ovalH/2}" rx="403" ry="${ovalH/2}" fill="none" stroke="${ink}" stroke-width="3"/>`);
-   parts.push(o.route?trace(180,ovalY+18,720,ovalH-36,13):helpers.sportIcon(o.sportFamily??'cycling',540-Math.min(132,ovalH*.65)/2,ovalY+(ovalH-Math.min(132,ovalH*.65))/2,Math.min(132,ovalH*.65),ink));
+   parts.push(o.route?trace(180,ovalY+18,720,ovalH-36,13):sportCue(o.sportFamily??'cycling',540-Math.min(132,ovalH*.65)/2,ovalY+(ovalH-Math.min(132,ovalH*.65))/2,Math.min(132,ovalH*.65),ink));
   }
   parts.push(grid(others,supportY,3,110,47));
  }else if(key==='retroswoop'){
@@ -201,12 +217,12 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
    });
    if((o.laps?.length??0)>12)parts.push(letter('First 12 recorded laps',72,lapY+laps.length*step+14,936,17,{align:'middle',shadow:false}));
   }else if(o.route)parts.push(trace(144,lapY,792,lapH,12));
-  else if(lapH>90)parts.push(helpers.sportIcon(o.sportFamily??'misc',475,lapY+Math.max(0,(lapH-130)/2),130,ink));
+  else if(lapH>90)parts.push(sportCue(o.sportFamily??'misc',475,lapY+Math.max(0,(lapH-130)/2),130,ink));
  }else if(key==='retroseal'){
   const supportY=bottom-(Math.ceil(others.length/3)-1)*100-72,diameter=Math.min(728,supportY-124),r=diameter/2,cy=90+r,cx=540,points=Array.from({length:64},(_,i)=>{const angle=-Math.PI/2+i*Math.PI/32,radius=r+(i%2?0:13);return `${(cx+Math.cos(angle)*radius).toFixed(2)},${(cy+Math.sin(angle)*radius).toFixed(2)}`}).join(' '),valueY=cy-r+174,valueH=Math.min(182,r*.55);
   parts.push(`<g data-retro-shadow="true" aria-hidden="true" transform="translate(7 9)" fill="none" stroke="${shadow}" stroke-width="8"><polygon points="${points}"/></g><polygon points="${points}" fill="none" stroke="${ink}" stroke-width="5" stroke-linejoin="round"/><circle cx="540" cy="${cy}" r="${r-27}" fill="none" stroke="${ink}" stroke-width="2"/>`);
   const sealTitle=caption(o.sport)||title;
-  parts.push(helpers.sportIcon(o.sportFamily??'misc',523,cy-r+52,34,ink),letter(sealTitle,540-r+50,cy-r+104,diameter-100,44,{align:'middle'}),hero(540-r+47,valueY,diameter-94,valueH));
+  parts.push(sportCue(o.sportFamily??'misc',523,cy-r+52,34,ink),labelMode==='none'?'':letter(labelMode==='short'?shareMetricLabel(o.sportFamily??'misc',sealTitle,'short'):sealTitle,540-r+50,cy-r+104,diameter-100,44,{align:'middle'}),hero(540-r+47,valueY,diameter-94,valueH));
   const traceY=valueY+valueH+(first&&unit(first)?118:42),traceH=cy+r-44-traceY;
   if(o.route&&traceH>30)parts.push(trace(540-r+91,traceY,diameter-182,traceH,10));
   else if(traceH>48)parts.push(letter(title,540-r+75,traceY+Math.max(0,(traceH-30)/2),diameter-150,30,{align:'middle',shadow:false}));

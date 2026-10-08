@@ -35,6 +35,9 @@
 .share-canvas-thickness>span{display:flex;justify-content:space-between;gap:10px}
 .share-canvas-thickness output{font-variant-numeric:tabular-nums;color:#5145cd;font-weight:650}
 .share-canvas-thickness input{display:block;width:100%;height:38px;margin:6px 0 0;accent-color:#5547c9;cursor:pointer}
+.share-writing-controls{display:grid;gap:16px;padding:4px 2px}
+.share-thickness-scale{display:flex;align-items:center;justify-content:space-between;color:#8c899a;font-size:11px}
+.share-thickness-scale button{padding:5px 12px;min-height:32px;border:1px solid #e4e2ef;border-radius:10px;background:#f7f6fc;color:#5547c9;font-size:11px}
 .share-canvas-tray .share-template-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0}
 .share-canvas-tray .share-template-art{height:120px}
 .share-canvas-tray .share-template-grid b{font-size:12px}

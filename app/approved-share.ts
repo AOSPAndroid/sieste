@@ -1,5 +1,6 @@
 import originalArt from './original-share-art.json';
 import type {ShareDesign,ShareStat} from './share-card-design';
+import {shareMetricLabel} from './share-labels';
 
 export const approvedActivityDesigns=[
  {key:'approvedrun',name:'Café run · original',description:'The original yellow running sticker',color:'#ffdf00'},
@@ -45,7 +46,17 @@ export function renderApprovedShare(o:ShareDesign,helpers:Helpers){
   }
   return `<g data-cinematic-face="approved" data-cinematic-text="${xml(value)}" data-original-reading="${xml(value)}" aria-label="${xml(value)}"><title>${xml(value)}</title>${body}</g>`;
  };
- const icon=(name:string,key:string,health=false)=>`<g ${health?'data-health-icon':'data-sport-icon'}="${key}" data-approved-filled-icon="true">${art(icons[name],undefined,undefined,undefined,undefined,`data-original-icon="${name}"`)}</g>`;
+ const icon=(name:string,key:string,health=false)=>{
+  const mode=o.labelMode??'icons';
+  if(mode==='none')return '';
+  if(mode==='icons')return `<g ${health?'data-health-icon':'data-sport-icon'}="${key}" data-approved-filled-icon="true">${art(icons[name],undefined,undefined,undefined,undefined,`data-original-icon="${name}"`)}</g>`;
+  const fullName=({running:'Running',cycling:'Cycling',sleep:'Sleep duration',hrv:'Heart rate variability',score:'Sleep score'} as Record<string,string>)[key]??key;
+  const label=shareMetricLabel(key,fullName,mode),box=front(icons[name]),width=Math.max(box[2],health?390:420),size=mode==='full'?48:40,cx=box[0]+box[2]/2,cy=box[1]+box[3]/2;
+  // Two lines keep the long HRV name legible at phone-preview size.
+  const lines=mode==='full'&&key==='hrv'?['Heart rate','variability']:[label],lineHeight=size*1.15;
+  const letters=lines.map((line,index)=>`<tspan x="${cx}" y="${cy+(index-(lines.length-1)/2)*lineHeight}"${line.length*size*.58>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(line)}</tspan>`).join('');
+  return `<g data-share-label-key="${xml(key)}" data-share-label-mode="${mode}"><text aria-label="${xml(label)}" x="${cx}" y="${cy}" fill="${original?o.accent:helpers.ink}" font-family="Arial,Helvetica,sans-serif" font-size="${size}" font-weight="700" text-anchor="middle" dominant-baseline="central">${letters}</text></g>`;
+ };
  const stat=(s:ShareStat,body:string)=>`<g data-share-stat-key="${xml(s.key)}" data-stat-value="${xml(s.value)}" data-stat-unit="${xml(s.unit)}">${body}</g>`;
  const signature=()=>o.brand?`<g data-approved-brand="true" data-cinematic-face="approved" data-cinematic-text="sieste" data-original-reading="sieste"><title>sieste</title>${art(icons.signature,undefined,undefined,undefined,undefined,'data-original-icon="signature"')}</g>`:'';
  if(!recovery){

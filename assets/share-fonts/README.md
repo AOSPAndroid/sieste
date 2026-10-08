@@ -26,4 +26,6 @@ the reference drafts are fetched at export time.
 
 Caprasimo (DocRepair), from `ofl/caprasimo` in the official Google Fonts
 repository, is redistributed under its included SIL Open Font License.
-The original-draft stickers use these vector outlines with a gentle italic shear.
+These outlines remain available for vector lettering. The original-draft
+stickers use the source artwork and glyph atlas documented in
+`assets/share-originals/README.md`.

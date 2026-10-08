@@ -3,6 +3,8 @@ import type {routeGeometry} from './route-geometry';
 import {retroActivityDesigns,retroRecoveryDesigns,renderRetroShare} from './retro-share';
 export {retroActivityDesigns,retroRecoveryDesigns} from './retro-share';
 import {approvedActivityDesigns,approvedRecoveryDesigns,renderApprovedShare} from './approved-share';
+import {shareMetricLabel,shareLabelMode,type ShareLabelMode} from './share-labels';
+import {finishShareLettering} from './share-lettering';
 export {approvedActivityDesigns,approvedRecoveryDesigns} from './approved-share';
 export const shareSolidColours=[
  {color:'#ef3340',name:'Route red'}, {color:'#990F16',name:'Blood red'},
@@ -44,7 +46,7 @@ export type ShareTemplate=typeof approvedActivityDesigns[number]['key']|typeof a
 export const routeStatTemplates:ShareTemplate[]=routeStatDesigns.map(design=>design.key);
 export const routeTemplates:ShareTemplate[]=[...routeStatTemplates,'routegiant','cinematrace','route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;showLabels?:boolean;routeStroke?:number;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;showLabels?:boolean;labelMode?:ShareLabelMode;textThickness?:number;routeStroke?:number;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 // Small vector pictograms remain crisp in PNG exports and need no emoji fonts.
 const sportGlyphs:Record<string,string>={
@@ -64,6 +66,20 @@ const healthGlyphs:Record<string,string>={
  calories:'<path d="M12 2c4 6-1 8 3 11l3-5c6 8 2 14-6 14S2 15 7 8c0 5 4 5 5-6Z"/>',
  steps:'<ellipse cx="8" cy="8" rx="3" ry="6"/><circle cx="7" cy="18" r="2"/><ellipse cx="17" cy="12" rx="3" ry="6"/><circle cx="16" cy="22" r="1"/>'
 };
+const metricGlyphs:Record<string,string>={
+ ...healthGlyphs,hr:healthGlyphs.heartrate,rhr:healthGlyphs.heartrate,
+ distance:'<path d="M3 19h18M5 19V5h14v14M5 8h4M5 12h6M5 16h4"/>',
+ duration:'<circle cx="12" cy="13" r="8"/><path d="M12 9v5l3 2M9 2h6M12 2v3M18 6l2-2"/>',
+ pace:'<path d="M3 18a9 9 0 1 1 18 0M12 13l5-5M4 18h16"/><circle cx="12" cy="13" r="1"/>',
+ speed:'<path d="M3 18a9 9 0 1 1 18 0M12 13l5-5M4 18h16"/><circle cx="12" cy="13" r="1"/>',
+ power:'<path d="m13 2-9 12h7l-1 8 10-13h-7Z"/>',
+ ascent:'<path d="m2 20 7-12 4 7 3-5 6 10ZM9 8l2-4 2 4"/>',
+ descent:'<path d="m2 20 7-12 4 7 3-5 6 10ZM16 2v5m-3-3 3 3 3-3"/>',
+ cadence:'<path d="M6 21h12L14 3h-4ZM12 17l7-10M7 21v-3h10v3"/>',
+ sessions:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6M17 2v6M3 11h18m-12 4 2 2 4-4"/>',
+ lap:'<path d="M4 22V3m0 1h15l-3 5 3 5H4"/>',
+ training:'<path d="m7 7 10 10M3 8l5-5M16 21l5-5M2 5l3-3M19 22l3-3M5 10l5-5M14 19l5-5"/>'
+};
 export function shareCardSvg(o:ShareDesign){
  const englishVersions:Partial<Record<ShareTemplate,ShareTemplate>>={metroen:'metro',sweatreceipten:'sweatreceipt',excuseen:'excuse'},english=!!englishVersions[o.template];
  if(english)o={...o,template:englishVersions[o.template]!};
@@ -72,7 +88,36 @@ export function shareCardSvg(o:ShareDesign){
  const isRetro=[...retroActivityDesigns,...retroRecoveryDesigns].some(design=>design.key===o.template);
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
  const compact=(s:ShareStat)=>s.value+(s.unit==='min:sec'||s.unit==='h:mm:ss'?'':s.unit==='/km'?'/km':' '+s.unit);
+ const mode=shareLabelMode(o),explicitMode=o.labelMode!==undefined,labelCues=explicitMode?mode!=='none':!!o.showLabels;
+ const allStats=[...o.stats,...(o.dayCards??[]).flatMap(card=>card.stats)];
+ const metricAliases:Record<string,string>={'sleep':'sleep','sleep today':'sleep','sleep score':'score','overnight hrv':'hrv','hrv':'hrv','resting hr':'rhr','heart rate':'hr','average heart rate':'hr','avg hr':'hr','steps':'steps','calories':'calories','workout calories':'calories','workout kcal':'calories','training time':'duration','time':'duration','duration':'duration','distance':'distance','pace':'pace','avg pace':'pace','average pace':'pace','speed':'speed','avg speed':'speed','average speed':'speed','power':'power','avg power':'power','average power':'power','elevation gain':'ascent','gain':'ascent','ascent':'ascent','cadence':'cadence','sessions':'sessions','activities today':'sessions','lap':'lap'};
+ const metricKey=(value:string)=>allStats.find(stat=>stat.label.toLocaleLowerCase()===value.toLocaleLowerCase())?.key??metricAliases[value.toLocaleLowerCase()];
+ const sportCue=(value:string)=>{
+  const normalized=value.toLocaleLowerCase(),session=o.dayCards?.find(card=>card.sportFamily&&(normalized===card.title.toLocaleLowerCase()||normalized.replace(/^\d+\s*(?:\/\s*)?/,'')===card.title.toLocaleLowerCase()));
+  if(session)return session.sportFamily;
+  if(!o.dayCards&&!o.recoveryOnly&&o.sportFamily&&[o.sport,o.title].filter(Boolean).some(label=>{const name=label.toLocaleLowerCase();return normalized===name||normalized.startsWith(name+' /')||normalized.startsWith(name+' ·')||['route / ','sieste / ','week totals · ','recorded / '].some(prefix=>normalized===prefix+name)}))return o.sportFamily;
+  return undefined;
+ };
+ const iconCue=(key:string,x:number,y:number,size:number,color:string,anchor='start',sport=false)=>{
+  const iconSize=Math.min(sport?44:32,Math.max(24,size*1.2)),left=anchor==='middle'?x-iconSize/2:anchor==='end'?x-iconSize:x;
+  const healthKey=key==='hr'||key==='rhr'?'heartrate':key,glyph=sport?sportGlyphs[key]??sportGlyphs.misc:metricGlyphs[key]??sportGlyphs.misc,kind=sport?'sport':healthGlyphs[healthKey]?'health':'metric';
+  return `<g data-${kind}-icon="${xml(kind==='health'?healthKey:key)}" data-share-cue-key="${xml(key)}" transform="translate(${left} ${y-iconSize*.85}) scale(${iconSize/24})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${glyph}</g>`;
+ };
  function text(value:string,x:number,y:number,size=24,weight=400,color=ink,width=936,serif=false,anchor='start'){
+ let labelKey:string|undefined,labelKind='';
+ if(explicitMode){
+  value=({'hours / minutes':'h / m','milliseconds':'ms','out of 100':'/100'} as Record<string,string>)[value.toLocaleLowerCase()]??value;
+  labelKey=metricKey(value);
+  const family=labelKey?undefined:sportCue(value);
+  if(labelKey||family){
+   if(mode==='none')return '';
+   if(mode==='icons')return iconCue(labelKey??family!,x,y,size,color,anchor,!!family);
+   labelKind=family?'sport':'metric';
+   if(family){labelKey=family;if(mode==='short')value=({running:'Run',cycling:'Ride',strength_training:'Strength',swimming:'Swim',walking:'Walk',hiking:'Hike'} as Record<string,string>)[family]??value;}
+   else value=shareMetricLabel(labelKey!,value,mode);
+  }
+ }
+ if(!explicitMode){
  const statLabel=o.stats.find(s=>s.label.toLowerCase()===value.toLowerCase());
  const healthKey=({'sleep':'sleep','sleep today':'sleep','sleep score':'score','overnight hrv':'hrv','hrv':'hrv','resting hr':'heartrate','heart rate':'heartrate','average heart rate':'heartrate','avg hr':'heartrate','steps':'steps','calories':'calories','workout calories':'calories','workout kcal':'calories'} as Record<string,string>)[value.toLowerCase()]??(statLabel&&healthGlyphs[statLabel.key]?statLabel.key:undefined);
  if(healthKey){
@@ -103,6 +148,15 @@ export function shareCardSvg(o:ShareDesign){
  const isActivity=[o.sport,o.title].some(label=>label.trim()&&value.toLocaleLowerCase().includes(label.toLocaleLowerCase()));
  return pictogram+`<text${isStat?' data-share-stat="true"':''}${isActivity?' data-share-activity="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
  }
+ const estimate=[...value].length*size*(serif?.48:.58);
+ const isStat=o.stats.some(stat=>[compact(stat),compact(stat).toUpperCase(),stat.value].includes(value)||value.toUpperCase().includes(compact(stat).toUpperCase()));
+ const isActivity=[o.sport,o.title].some(label=>label.trim()&&value.toLocaleLowerCase().includes(label.toLocaleLowerCase()));
+ return `<text${labelKey?` data-share-label-key="${xml(labelKey)}" data-share-label-mode="${mode}" data-share-label-kind="${labelKind}"`:''}${isStat?' data-share-stat="true"':''}${isActivity?' data-share-activity="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}"${estimate>width?` textLength="${width}" lengthAdjust="spacingAndGlyphs"`:''}>${xml(value)}</text>`;
+ }
+ const cinematicCue=(value:string,x:number,y:number,width:number,height:number,face:DisplayFace,color:string,center=false)=>{
+  if(explicitMode&&(metricKey(value)||sportCue(value)))return text(value,center?x+width/2:x,y+height*.85,Math.min(42,height),700,color,width,false,center?'middle':'start');
+  return cinematicText(value,{x,y,width,height,face,color,align:center?'middle':'start'});
+ };
  function route(x:number,y:number,w:number,hh:number,stroke=4,inset=15){if(!o.route)return '';const {points,segments,center}=o.route,minX=points.reduce((n,p)=>Math.min(n,p.x),Infinity),maxX=points.reduce((n,p)=>Math.max(n,p.x),-Infinity),minY=points.reduce((n,p)=>Math.min(n,p.y),Infinity),maxY=points.reduce((n,p)=>Math.max(n,p.y),-Infinity),scale=Math.min((w-inset*2)/Math.max(maxX-minX,1e-9),(hh-inset*2)/Math.max(maxY-minY,1e-9));return segments.filter(s=>s.length>1).map(s=>{const stride=Math.max(1,Math.ceil(s.length/3000)),p=s.filter((_,i)=>i%stride===0||i===s.length-1).map((p,i)=>`${i?'L':'M'}${(x+w/2+(p.x-center.x)*scale).toFixed(2)},${(y+hh/2+(p.y-center.y)*scale).toFixed(2)}`).join(' ');return `<path d="${p}" fill="none" stroke="${ink}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`}).join('')}
  const backdrop=o.finish&&o.finish!=='solid'?true:!o.template.startsWith('chrome')?shareColourContrast(ink)==='#111111':o.ink==='white';
  if(!o.transparent)parts.push(`<rect width="1080" height="${h}" fill="${backdrop?'#181818':'#fafafa'}"/>`);
@@ -130,8 +184,9 @@ export function shareCardSvg(o:ShareDesign){
  }else if(routeStatTemplates.includes(o.template)){
   const stroke=typeof o.routeStroke==='number'&&Number.isFinite(o.routeStroke)?Math.max(12,Math.min(40,o.routeStroke)):28;
   const paint=isChrome?'url(#metal)':ink,shown=o.stats.slice(0,6),support=shown.slice(1);
-  const bottom=h-(o.brand||o.demo?110:64)-(o.date?44:0),labelSpace=o.showLabels?30:0;
+  const bottom=h-(o.brand||o.demo?110:64)-(o.date?44:0),labelSpace=labelCues?30:0;
   const heading=(x:number,y:number,w:number,center=false)=>{
+   if(explicitMode&&sportCue(o.title||o.sport)){parts.push(cinematicCue(o.title||o.sport,x,y,w,34,'tall',paint,center));return y+(mode==='none'?0:34);}
    const lines=cinematicTitleLines(o.title||o.sport);
    lines.forEach((line,i)=>parts.push(cinematicText(line,{x,y:y+i*42,width:w,height:34,face:'tall',color:paint,align:center?'middle':'start'})));
    return y+lines.length*42-8;
@@ -145,7 +200,7 @@ export function shareCardSvg(o:ShareDesign){
    const value=cinematicText(compact(stat).toUpperCase(),{x,y,width:w,height:hh,face,color:paint,align:center?'middle':'start',stretch});
    const shortLabels:Record<string,string>={distance:'Distance',duration:'Time',pace:'Avg pace',speed:'Avg speed',power:'Avg power',hr:'Avg HR',ascent:'Gain',calories:'Calories',cadence:'Cadence',sessions:'Sessions',sleep:'Sleep',hrv:'HRV'};
    const labelText=o.template==='tracefooter'?shortLabels[stat.key]??stat.label:stat.label;
-   const label=o.showLabels?text(labelText.toUpperCase(),center?x+w/2:x,y+hh+26,17,600,secondary,w,false,center?'middle':'start'):'';
+   const label=labelCues?text(labelText.toUpperCase(),center?x+w/2:x,y+hh+26,17,600,secondary,w,false,center?'middle':'start'):'';
    parts.push(`<g data-share-stat-key="${xml(stat.key)}">${value}${label}</g>`);
   };
   const gridHeight=(count:number,columns:number,cellHeight:number)=>count?Math.ceil(count/columns)*cellHeight+(Math.ceil(count/columns)-1)*18:0;
@@ -161,17 +216,17 @@ export function shareCardSvg(o:ShareDesign){
    parts.push(`<path d="M682 ${statTop-20}h334" fill="none" stroke="${ink}" stroke-width="2"/>`);
    grid(support,682,statTop,334,1,cellHeight);
   }else if(o.template==='tracefooter'){
-   const cellHeight=o.showLabels?100:76,statsHeight=gridHeight(shown.length,2,cellHeight),titleHeight=cinematicTitleLines(o.title||o.sport).length*42-8;
+   const cellHeight=labelCues?100:76,statsHeight=gridHeight(shown.length,2,cellHeight),titleHeight=cinematicTitleLines(o.title||o.sport).length*42-8;
    const top=bottom-Math.max(410,titleHeight+36+statsHeight),contentTop=heading(64,top,952)+36;
    trace(64,contentTop,550,bottom-contentTop);
    grid(shown,680,contentTop,336,2,cellHeight,'tall',38);
   }else if(o.template==='tracescorecard'){
-   const top=heading(72,72,936)+32,cellHeight=o.showLabels?114:88,statTop=bottom-gridHeight(shown.length,3,cellHeight);
+   const top=heading(72,72,936)+32,cellHeight=labelCues?114:88,statTop=bottom-gridHeight(shown.length,3,cellHeight);
    trace(64,top,952,statTop-top-52);
    parts.push(`<path d="M72 ${statTop-26}h936" fill="none" stroke="${ink}" stroke-width="2"/>`);
    grid(shown,72,statTop,936,3,cellHeight,'wide',54);
   }else{
-   const top=heading(72,72,936,o.template==='tracestamp')+32,cellHeight=o.showLabels?84:64;
+   const top=heading(72,72,936,o.template==='tracestamp')+32,cellHeight=labelCues?84:64;
    const statTop=bottom-gridHeight(support.length,3,cellHeight);
    if(o.template==='traceheadline'){
     const heroHeight=170,routeTop=top+heroHeight+labelSpace+38;
@@ -194,11 +249,12 @@ export function shareCardSvg(o:ShareDesign){
   parts.push(route(24,24,1032,h-(o.brand||o.demo?108:48),stroke));
  }else if(['cinemamonolith','cinemaepic','cinemawide','cinemamission','cinemalens','cinemawave'].includes(o.template)){
   const paint=isChrome?'url(#metal)':ink,face:DisplayFace=o.template==='cinemaepic'?'serif':o.template==='cinemawide'?'wide':o.template==='cinemamission'?'slab':'bold';
-  const shown=others.slice(0,5),columns=Math.min(3,shown.length),rows=Math.ceil(shown.length/3),rowHeight=o.showLabels?90:70,supportHeight=rows?rows*rowHeight+(rows-1)*16:0;
+  const shown=others.slice(0,5),columns=Math.min(3,shown.length),rows=Math.ceil(shown.length/3),rowHeight=labelCues?90:70,supportHeight=rows?rows*rowHeight+(rows-1)*16:0;
   const bottom=h-(o.brand||o.demo?90:60)-(o.date?36:0),heroHeight=Math.min(1160,bottom-140-56-supportHeight),top=140+Math.max(0,bottom-140-56-supportHeight-heroHeight)/2;
   const box={x:64,y:top,width:952,height:heroHeight},unit=first?.unit.toUpperCase()??'',value=first?.value.toUpperCase()??'NO STATS';
   const titleLines=cinematicTitleLines((o.title||o.sport).normalize('NFC'));
-  titleLines.forEach((line,i)=>parts.push(cinematicText(line,{x:72,y:top-94+i*36,width:936,height:30,face:o.template==='cinemawide'?'wide':'tall',color:paint,align:'middle'})));
+  if(explicitMode&&sportCue(o.title||o.sport))parts.push(cinematicCue(o.title||o.sport,72,top-94,936,30,o.template==='cinemawide'?'wide':'tall',paint,true));
+  else titleLines.forEach((line,i)=>parts.push(cinematicText(line,{x:72,y:top-94+i*36,width:936,height:30,face:o.template==='cinemawide'?'wide':'tall',color:paint,align:'middle'})));
   if(o.template==='cinemawave')parts.push(cinematicText(first?compact(first).toUpperCase():value,{...box,face,color:paint,stretch:true,warp:'wave'}));
   else{
    const wide=o.template==='cinemawide',valueHeight=unit?heroHeight*(wide?.40:.61):heroHeight,unitHeight=heroHeight*(wide?.30:.34),unitTop=top+heroHeight-unitHeight;
@@ -210,13 +266,13 @@ export function shareCardSvg(o:ShareDesign){
   shown.forEach((stat,i)=>{
    const x=64+(i%3)*(columnWidth+24),y=supportTop+Math.floor(i/3)*(rowHeight+16);
    parts.push(cinematicText(compact(stat).toUpperCase(),{x,y,width:columnWidth,height:columns<3?54:46,face:o.template==='cinemamission'?'slab':o.template==='cinemawide'?'wide':'tall',color:paint,align:'middle'}));
-   if(o.showLabels)parts.push(text(stat.label.toUpperCase(),x+columnWidth/2,y+78,18,600,ink,columnWidth,false,'middle'));
+   if(labelCues)parts.push(text(stat.label.toUpperCase(),x+columnWidth/2,y+78,18,600,ink,columnWidth,false,'middle'));
   });
   if(o.date)parts.push(text(o.date,540,supportTop+supportHeight+24,22,500,ink,936,false,'middle'));
  }else if(o.template.startsWith('cinema')){
   const paint=isChrome?'url(#metal)':ink,primary=first?compact(first):'NO RECORDED STATS',headline=primary.toUpperCase();
-  const display=(value:string,x:number,y:number,width:number,height:number,face:'bold'|'tall'|'serif'='bold',center=false)=>cinematicText(value,{x,y,width,height,face,color:paint,align:center?'middle':'start'});
-  const supporting=(y:number)=>others.slice(0,3).map((stat,i)=>{const x=72+i*322;return display(compact(stat).toUpperCase(),x,y,292,56,'tall')+(o.showLabels?text(stat.label.toUpperCase(),x,y+87,18,600,secondary,292):'')}).join('');
+  const display=(value:string,x:number,y:number,width:number,height:number,face:'bold'|'tall'|'serif'='bold',center=false)=>cinematicCue(value,x,y,width,height,face,paint,center);
+  const supporting=(y:number)=>others.slice(0,3).map((stat,i)=>{const x=72+i*322;return display(compact(stat).toUpperCase(),x,y,292,56,'tall')+(labelCues?text(stat.label.toUpperCase(),x,y+87,18,600,secondary,292):'')}).join('');
   const title=o.title||o.sport,weekday=(o.weekday||o.sport).toUpperCase();
   if(o.template==='cinemabig'){
    parts.push(display(title.toUpperCase(),72,cy-312,936,56,'tall'),display(headline,60,cy-206,960,365),supporting(cy+222));
@@ -224,7 +280,8 @@ export function shareCardSvg(o:ShareDesign){
    parts.push(display(weekday,72,cy-325,936,108,'tall',true),display(headline,60,cy-161,960,335,'tall',true),supporting(cy+244));
   }else if(o.template==='cinematitle'){
    const lines=cinematicTitleLines(title),top=cy-315;
-   lines.forEach((line,i)=>parts.push(display(line,72,top+i*108,936,92,'bold')));
+   if(explicitMode&&sportCue(title))parts.push(display(title,72,top,936,92,'bold'));
+   else lines.forEach((line,i)=>parts.push(display(line,72,top+i*108,936,92,'bold')));
    parts.push(display(headline,60,cy-315+lines.length*108+50,960,240,'tall'),supporting(cy-315+lines.length*108+350));
   }else if(o.template==='cinematrace'){
    parts.push(display(weekday,72,cy-382,936,75,'bold',true),route(175,cy-263,730,395,7),display(headline,72,cy+206,936,125,'bold',true),supporting(cy+389));
@@ -460,7 +517,7 @@ export function shareCardSvg(o:ShareDesign){
   if(o.date)parts.push(mono(o.date,130,bottom+45,20));
  }else if(o.template==='hollow'){
   parts.push(text(o.title.toUpperCase(),72,cy-158,27,800));
-  if(first){parts.push(text(first.value,64,cy+48,218,900,ink,950).replace(`fill="${ink}"`,`fill="none" stroke="${ink}" stroke-width="2.5" stroke-linejoin="round"`));parts.push(text(first.label.toUpperCase()+' / '+first.unit,76,cy+109,25,700))}
+  if(first){parts.push(text(first.value,64,cy+48,218,900,ink,950).replace(`fill="${ink}"`,`fill="none" stroke="${ink}" stroke-width="2.5" stroke-linejoin="round"`));if(explicitMode){parts.push(text(first.label.toUpperCase(),76,cy+109,25,700));if(first.unit)parts.push(text(first.unit,mode==='none'?76:mode==='icons'?120:370,cy+109,25,700,ink,635));}else parts.push(text(first.label.toUpperCase()+' / '+first.unit,76,cy+109,25,700))}
   others.slice(0,3).forEach((s,i)=>{const x=76+i*320;parts.push(text(compact(s),x,cy+200,42,800,ink,292),text(s.label,x,cy+238,20,400,ink,292))});
  }else if(o.template==='scorecard'){
   parts.push(text(o.title.toUpperCase(),72,cy-235,29,800));
@@ -536,8 +593,9 @@ export function shareCardSvg(o:ShareDesign){
    const surface=cardSurface&&/^<(?:path|rect)\b/.test(tag)&&/fill="(?!none|transparent)[^"]+"/.test(tag);
    if(surface)tag=tag.replace(/fill="[^"]*"/,'fill="#151a22"');
    else tag=tag.replace(/fill="(?!none|transparent)[^"]*"/,(isText&&size>=64||(isRetro||isApproved)&&tag.includes('fill="url(#metal)"'))?'fill="url(#metal)"':'fill="url(#metalSoft)"');
-   return tag.replace(/stroke="(?!none|transparent)[^"]*"/,/data-(?:health|sport)-icon=/.test(tag)?'stroke="url(#iconFinish)"':'stroke="url(#finishStroke)"');
+   return tag.replace(/stroke="(?!none|transparent)[^"]*"/,/data-(?:health|sport|metric)-icon=/.test(tag)?'stroke="url(#iconFinish)"':'stroke="url(#finishStroke)"');
   });
  }
+ artwork=finishShareLettering(artwork,o.textThickness);
  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}">${artwork}</svg>`;
 }
