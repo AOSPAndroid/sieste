@@ -1,11 +1,17 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {mkdirSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import sharp from 'sharp';
 import {loadShareDesignModule} from './share-design-test-module.mjs';
 
-const {shareCardSvg,approvedActivityDesigns,approvedRecoveryDesigns}=await loadShareDesignModule();
+const {shareCardSvg,approvedActivityDesigns,approvedRecoveryDesigns,shareFinishes}=await loadShareDesignModule();
+const atlas=JSON.parse(readFileSync(new URL('../app/original-share-art.json',import.meta.url),'utf8'));
+const artEntries=['glyphs','icons','groups'].flatMap(section=>Object.entries(atlas[section]).flatMap(([kind,items])=>Object.entries(items).map(([key,item])=>({section,kind,key,item}))));
+const artByPng=new Map();
+for(const entry of artEntries){const entries=artByPng.get(entry.item.png)??[];entries.push(entry);artByPng.set(entry.item.png,entries);}
+const fingerprint=value=>createHash('sha256').update(value).digest('hex');
 const templates=['approvedrun','approvedride','approvedrecovery'];
 const artifactDirectory=process.env.SIESTE_TEST_ARTIFACTS??join(tmpdir(),'sieste-approved-share');
 mkdirSync(artifactDirectory,{recursive:true});
@@ -67,19 +73,68 @@ function matrix(node){
  return result;
 }
 function glyphBounds(tree,value){
- const groups=marked(tree,'data-cinematic-text',value);assert.equal(groups.length,1,`${value}: one readable outline group permits layout inspection`);
- const group=groups[0],glyphs=[...value].map(character=>faces[group.attrs['data-cinematic-face']].glyphs[character]).filter(glyph=>glyph[5]),seen=new Set();
- const paths=visible(group).filter(node=>{
-  if(node.tag!=='path'||inside(node,current=>Number(current.attrs.opacity??1)<1))return false;
-  const key=JSON.stringify([node.attrs.d,matrix(node)]);if(seen.has(key))return false;seen.add(key);return true;
- });
- assert.equal(paths.length,glyphs.length,`${value}: glyph geometry is self-contained`);
- const points=paths.flatMap((node,index)=>{
-  const m=matrix(node),glyph=glyphs[index];return [[glyph[1],glyph[2]],[glyph[1],glyph[4]],[glyph[3],glyph[2]],[glyph[3],glyph[4]]].map(([x,y])=>({x:m[0]*x+m[2]*y+m[4],y:m[1]*x+m[3]*y+m[5]}));
+ const groups=marked(tree,'data-cinematic-text',value);assert.equal(groups.length,1,`${value}: one readable artwork group permits layout inspection`);
+ const pictures=marked(groups[0],'data-original-art');assert.ok(pictures.length,`${value}: geometry comes from original PNG artwork`);
+ const points=pictures.flatMap(picture=>{
+  const {image,item}=sourceArtwork(picture,value),bounds=imageFrontBounds(image,item),m=matrix(image),[x,y,w,h]=bounds;
+  return [[x,y],[x,y+h],[x+w,y],[x+w,y+h]].map(([xx,yy])=>({x:m[0]*xx+m[2]*yy+m[4],y:m[1]*xx+m[3]*yy+m[5]}));
  });
  const left=Math.min(...points.map(point=>point.x)),right=Math.max(...points.map(point=>point.x)),top=Math.min(...points.map(point=>point.y)),bottom=Math.max(...points.map(point=>point.y));return {left,right,top,bottom,width:right-left,height:bottom-top,centerX:(left+right)/2};
 }
-function assertSafe(svg,context){assert.ok(!/NaN|Infinity|undefined|<script(?:\s|>)/i.test(svg),`${context}: SVG contains only valid numbers and safe markup`);}
+function designKind(node){
+ for(let current=node;current;current=current.parent)if('data-approved-design' in current.attrs)return {approvedrun:'running',approvedride:'cycling',approvedrecovery:'recovery'}[current.attrs['data-approved-design']];
+ assert.fail('Original artwork belongs to a declared approved design');
+}
+function sourceArtwork(picture,context){
+ const images=descendants(picture).filter(node=>node.tag==='image'),sourceImages=images.filter(node=>artByPng.has(imagePayload(node,context)));
+ assert.equal(sourceImages.length,1,`${context}: original artwork has one full source PNG`);
+ const image=sourceImages[0],kind=designKind(picture),character=picture.attrs['data-original-char'],group=picture.attrs['data-original-group'],icon=picture.attrs['data-original-icon'];
+ const candidates=artByPng.get(imagePayload(image,context)).filter(entry=>entry.kind===kind);
+ const entry=candidates.find(candidate=>character!==undefined?candidate.section==='glyphs'&&candidate.key===character:group!==undefined?candidate.key===group||group==='sieste'&&candidate.section==='icons'&&candidate.key==='signature':icon!==undefined?candidate.section==='icons'&&candidate.key===icon:true);
+ assert.ok(entry,`${context}: actual PNG payload matches its original ${character!==undefined?'glyph '+character:group!==undefined?'group '+group:'artwork'} entry`);
+ const {item}=entry,provenance=picture.attrs['data-original-source'];
+ assert.ok([JSON.stringify(item.source),`${item.source.kind}:${item.source.components.join(',')}`].includes(provenance),`${context}: original provenance identifies the PNG's actual source components`);
+ for(const node of images)assert.ok([item.png,item.faceMask].includes(imagePayload(node,context)),`${context}: artwork uses only its exact source PNG and front mask`);
+ return {...entry,image};
+}
+function imageFrontBounds(image,item){
+ const x=Number(image.attrs.x??0),y=Number(image.attrs.y??0),w=Number(image.attrs.width),h=Number(image.attrs.height);
+ assert.ok([x,y,w,h].every(Number.isFinite)&&w>0&&h>0,'Original image has finite, positive dimensions');
+ let sx=w/item.width,sy=h/item.height,dx=x,dy=y;
+ if((image.attrs.preserveAspectRatio??'xMidYMid meet')!=='none'){
+  const mode=image.attrs.preserveAspectRatio??'xMidYMid meet',s=mode.includes('slice')?Math.max(sx,sy):Math.min(sx,sy);sx=sy=s;
+  dx+=mode.includes('xMin')?0:mode.includes('xMax')?w-item.width*s:(w-item.width*s)/2;dy+=mode.includes('YMin')?0:mode.includes('YMax')?h-item.height*s:(h-item.height*s)/2;
+ }
+ const [fx,fy,fw,fh]=item.frontBBox;return [dx+fx*sx,dy+fy*sy,fw*sx,fh*sy];
+}
+function assertOriginalArtwork(tree,context){
+ const pictures=marked(tree,'data-original-art');assert.ok(pictures.length,`${context}: approved sticker contains its original PNG artwork`);
+ for(const picture of pictures){
+  const {image,item}=sourceArtwork(picture,context),declared=(picture.attrs['data-original-bounds']??'').trim().split(/\s+/).map(Number),actual=imageFrontBounds(image,item);
+  assert.ok(declared.length===4&&declared.every(Number.isFinite),`${context}: artwork declares finite front bounds`);
+  for(let index=0;index<4;index++)assert.ok(Math.abs(actual[index]-declared[index])<.06,`${context}: front bounds come from the rendered source image`);
+ }
+ for(const group of marked(tree,'data-original-reading')){
+  const value=group.attrs['data-original-reading'];assert.equal(group.attrs['data-cinematic-text'],value,`${context}: artwork and accessible reading agree`);
+  if(value==='—'){assert.equal(marked(group,'data-original-art').length,0,`${context}: unknown reading has no fabricated source artwork`);continue;}
+  const pieces=marked(group,'data-original-art').map(picture=>sourceArtwork(picture,context));
+  assert.ok(pieces.length,`${context}: ${value} has actual source artwork`);
+  const actual=pieces.map(piece=>piece.section==='glyphs'?piece.key:piece.section==='groups'?piece.key:piece.key==='signature'?'sieste':'').join('');
+  assert.equal(actual.replace(/\s/g,''),value.replace(/\s/g,''),`${context}: actual PNG glyph sequence displays ${value}`);
+  const exact=atlas.groups[designKind(group)][value];if(exact){assert.equal(pieces.length,1,`${context}: ${value} preserves its original whole reading`);assert.equal(fingerprint(pieces[0].item.png),fingerprint(exact.png),`${context}: ${value} uses the exact original source artwork`);}
+ }
+ for(const group of marked(tree,'data-cinematic-text'))if(group.attrs['data-cinematic-text']!=='—')assert.equal(group.attrs['data-original-reading'],group.attrs['data-cinematic-text'],`${context}: each readable value is backed by original artwork`);
+}
+function imagePayload(node,context){
+ const href=node.attrs.href??node.attrs['xlink:href'];assert.match(href??'',/^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/,`${context}: artwork embeds a self-contained PNG`);
+ const payload=href.slice('data:image/png;base64,'.length),bytes=Buffer.from(payload,'base64');assert.equal(bytes.toString('base64'),payload,`${context}: PNG payload has valid base64`);
+ assert.deepEqual([...bytes.subarray(0,8)],[137,80,78,71,13,10,26,10],`${context}: image contains PNG bytes`);return href;
+}
+function assertSafe(svg,context){
+ const markup=svg.replace(/\b(?:href|xlink:href)="(data:image\/png;base64,[^"]*)"/g,(_,href)=>{imagePayload({attrs:{href}},context);return 'href="embedded-png"';});
+ assert.ok(!/NaN|Infinity|undefined|<script(?:\s|>)/i.test(markup),`${context}: SVG contains only valid numbers and safe markup`);
+ const tree=svgTree(svg);for(const node of descendants(tree).filter(node=>node.tag==='image'))imagePayload(node,context);assertOriginalArtwork(tree,context);
+}
 function assertStat(tree,stat,expected,context){
  const groups=marked(tree,'data-share-stat-key',stat.key);assert.equal(groups.length,1,`${context}: ${stat.key} appears once`);
  assert.equal(groups[0].attrs['data-stat-value'],stat.value,`${context}: ${stat.key} preserves its recorded source value`);
@@ -92,14 +147,11 @@ function assertHealth(tree,key,value,expected,context){
  assert.ok(reading(groups[0]).replace(/\s/g,'').toLowerCase().includes(expected.replace(/\s/g,'').toLowerCase()),`${context}: ${key} displays ${expected}; got ${reading(groups[0])}`);return groups[0];
 }
 function assertFilledIcon(tree,attribute,key,context){
- const icons=marked(tree,attribute,key);assert.equal(icons.length,1,`${context}: ${key} has one vector icon`);
+ const icons=marked(tree,attribute,key);assert.equal(icons.length,1,`${context}: ${key} has one original icon`);
  assert.equal(icons[0].attrs['data-approved-filled-icon'],'true',`${context}: ${key} identifies its filled sticker artwork`);
- const shapes=visible(icons[0]).filter(node=>['path','circle','ellipse','polygon','rect'].includes(node.tag)&&!inside(node,current=>Number(current.attrs.opacity??1)<1));assert.ok(shapes.length,`${context}: ${key} icon has vector artwork`);
- for(const shape of shapes){
-  const filled=!['none','transparent'].includes(inherited(shape,'fill','black'));
-  const thick=!['none','transparent'].includes(inherited(shape,'stroke','none'))&&Number(inherited(shape,'stroke-width','0'))>=7;
-  assert.ok(filled||thick,`${context}: ${key} uses a filled shape or a solid, thick silhouette`);
- }
+ const pictures=marked(icons[0],'data-original-art');assert.equal(pictures.length,1,`${context}: ${key} icon uses one original source asset`);
+ const entry=sourceArtwork(pictures[0],context),expected={running:'runner',cycling:'bicycle',sleep:'moon',hrv:'pulse',score:'star'}[key];
+ assert.equal(entry.section,'icons',`${context}: ${key} uses original icon artwork`);assert.equal(entry.key,expected,`${context}: ${key} displays its actual original icon`);
 }
 function assertAlphaPadding(raw,width,height,context){
  let minX=width,minY=height,maxX=-1,maxY=-1;
@@ -108,16 +160,40 @@ function assertAlphaPadding(raw,width,height,context){
  assert.ok(minX>=16&&minY>=16&&maxX<width-16&&maxY<height-16,`${context}: full artwork retains transparent padding (${minX},${minY})–(${maxX},${maxY})`);
 }
 function shadowPaints(tree){
- const shadows=descendants(tree).filter(node=>'data-approved-shadow' in node.attrs);assert.ok(shadows.length,'Approved lettering has protected shadows');
- const paints=shadows.flatMap(group=>descendants(group).flatMap(node=>['fill','stroke'].flatMap(key=>node.attrs[key]&&!['none','transparent'].includes(node.attrs[key])?[`${key}:${node.attrs[key]}`]:[])));
- assert.ok(paints.length,'Approved shadows have visible paint');assert.ok(paints.every(paint=>!paint.includes('url(')),'Approved shadows keep solid paint');return paints;
+ const shapes=descendants(tree).filter(node=>['path','circle','ellipse','polygon','rect'].includes(node.tag)&&inside(node,ancestor=>'data-approved-shadow' in ancestor.attrs));
+ const paints=shapes.flatMap(node=>['fill','stroke'].flatMap(key=>{const paint=inherited(node,key,key==='fill'?'black':'none');return !['none','transparent'].includes(paint)?[`${key}:${paint}`]:[];}));
+ assert.ok(paints.every(paint=>!paint.includes('url(')),'Approved vector shadows keep solid paint');
+ const raster=marked(tree,'data-original-art').map(picture=>`png:${fingerprint(sourceArtwork(picture,'Approved shadow').item.png)}`);
+ assert.ok(paints.length+raster.length,'Approved artwork preserves visible original shadows');return [...paints,...raster];
 }
-function assertFinished(tree,context){
+function assertFinished(tree,context,finish){
+ const colours=shareFinishes.find(palette=>palette.key===finish)?.colors;assert.ok(colours,`${context}: finish has its selected palette`);
+ const expected={metal:colours,metalSoft:[colours[0],colours[1],colours[6],colours[7]],rim:[colours[0],colours[3],colours[7],colours[4]],finishStroke:colours,iconFinish:colours};
  let count=0;
  for(const node of visible(tree)){
+  assert.notEqual(node.tag,'image',`${context}: PNG foregrounds receive the selected finish through their masks`);
   if(!['text','path','circle','rect','line','polyline','polygon','ellipse'].includes(node.tag))continue;
   for(const [kind,paint] of [['fill',inherited(node,'fill','black')],['stroke',inherited(node,'stroke','none')]])if(!['none','transparent'].includes(paint)){
-   assert.match(paint,/^url\(#[\w-]+\)$/,`${context}: foreground ${node.tag} ${kind} receives the selected finish`);count++;
+   assert.match(paint,/^url\(#[\w-]+\)$/,`${context}: foreground ${node.tag} ${kind} receives the selected finish`);
+   const id=paint.slice(5,-1),gradients=descendants(tree).filter(node=>node.tag==='linearGradient'&&node.attrs.id===id);assert.equal(gradients.length,1,`${context}: foreground finish references one declared gradient`);
+   assert.ok(expected[id],`${context}: foreground uses a selected finish gradient`);assert.deepEqual(gradients[0].children.filter(node=>node.tag==='stop').map(node=>node.attrs['stop-color']),expected[id],`${context}: visible finish uses the selected ${finish} palette`);count++;
+  }
+ }
+ for(const picture of marked(tree,'data-original-art')){
+  const {item,image}=sourceArtwork(picture,context);assert.ok(inside(image,node=>'data-approved-shadow' in node.attrs),`${context}: selected finish protects the original PNG shadow`);
+  const fronts=visible(picture).filter(node=>node.tag==='rect'&&node.attrs.mask);assert.equal(fronts.length,1,`${context}: original PNG face has one finished front layer`);
+  const id=fronts[0].attrs.mask.match(/^url\(#([\w-]+)\)$/)?.[1];assert.ok(id,`${context}: finished face references a local mask`);
+  const masks=descendants(tree).filter(node=>node.tag==='mask'&&node.attrs.id===id);assert.equal(masks.length,1,`${context}: finished face has one self-contained mask`);
+  assert.equal(masks[0].attrs.maskUnits,'userSpaceOnUse',`${context}: finished face mask follows artwork coordinates`);
+  const images=descendants(masks[0]).filter(node=>node.tag==='image');assert.equal(images.length,1,`${context}: face mask contains original alpha artwork`);
+  assert.equal(fingerprint(imagePayload(images[0],context)),fingerprint(item.faceMask),`${context}: finish follows the exact original front face`);
+  assert.equal(images[0].attrs.preserveAspectRatio??'xMidYMid meet',image.attrs.preserveAspectRatio??'xMidYMid meet',`${context}: face mask preserves the original image's stretching`);
+  assert.deepEqual(matrix(images[0]),matrix(image),`${context}: face mask and original artwork share their effective transform`);
+  assert.deepEqual(matrix(fronts[0]),matrix(image),`${context}: finished paint and original artwork share their effective transform`);
+  for(const key of ['x','y','width','height']){
+   assert.equal(Number(images[0].attrs[key]??0),Number(image.attrs[key]??0),`${context}: face mask ${key} aligns with original artwork`);
+   assert.equal(Number(masks[0].attrs[key]??0),Number(image.attrs[key]??0),`${context}: face mask boundary ${key} covers original artwork`);
+   assert.equal(Number(fronts[0].attrs[key]??0),Number(image.attrs[key]??0),`${context}: finished front ${key} covers original artwork`);
   }
  }
  assert.ok(count,`${context}: finish paints visible foreground`);
@@ -141,14 +217,29 @@ function assertMinimalScope(tree,template,context){
 
 assert.deepEqual(approvedActivityDesigns.map(design=>design.key),['approvedrun','approvedride'],'The activity catalog has exactly the approved run and ride layouts');
 assert.deepEqual(approvedRecoveryDesigns.map(design=>design.key),['approvedrecovery'],'The recovery catalog has exactly the approved recovery layout');
-const faces=JSON.parse(readFileSync(new URL('../app/share-display-glyphs.json',import.meta.url),'utf8'));
-assert.ok(faces.approved,'Approved exports bundle their own outline glyphs');
-for(const character of '0123456789kmh/:sieste')assert.ok(faces.approved.glyphs[character],`Approved face includes ${character}`);
+const pngAnalysis=new Map();
+async function analyzePng(uri){
+ if(!pngAnalysis.has(uri))pngAnalysis.set(uri,(async()=>{
+  imagePayload({attrs:{href:uri}},'Original atlas');const input=Buffer.from(uri.slice('data:image/png;base64,'.length),'base64'),metadata=await sharp(input).metadata(),{data,info}=await sharp(input).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+  let left=info.width,top=info.height,right=-1,bottom=-1;
+  for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++)if(data[(y*info.width+x)*4+3]){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y);}
+  assert.ok(right>=left&&bottom>=top,'Original atlas PNG contains visible artwork');return {metadata,bounds:[left,top,right-left+1,bottom-top+1]};
+ })());return pngAnalysis.get(uri);
+}
+for(const kind of ['running','cycling','recovery']){
+ for(const character of '0123456789kmh/:s.')assert.ok(atlas.glyphs[kind][character],`${kind}: original atlas includes ${character}`);
+ assert.ok(atlas.icons[kind].signature,`${kind}: original atlas includes its actual signature`);
+}
+for(const {section,kind,key,item} of artEntries){
+ const context=`Atlas ${section}/${kind}/${key}`,full=await analyzePng(item.png),mask=await analyzePng(item.faceMask);
+ for(const image of [full,mask]){assert.equal(image.metadata.width,item.width,`${context}: recorded PNG width matches artwork`);assert.equal(image.metadata.height,item.height,`${context}: recorded PNG height matches artwork`);assert.ok(image.metadata.hasAlpha,`${context}: source PNG has transparent alpha`);}
+ assert.deepEqual(mask.bounds,item.frontBBox,`${context}: front bounds match the actual face mask alpha`);
+}
 
 for(const template of templates)for(const height of [1080,1350,1920]){
  const context=`${template}/${height}`,design=designFor(template,height),svg=shareCardSvg(design),tree=svgTree(svg);assertSafe(svg,context);
  const canvas=tree.children.find(node=>node.tag==='svg');assert.equal(Number(canvas.attrs.width),1080);assert.equal(Number(canvas.attrs.height),height);assert.equal(canvas.attrs.viewBox,`0 0 1080 ${height}`);
- assert.ok(marked(tree,'data-cinematic-face','approved').length,`${context}: headline uses self-contained approved vectors`);shadowPaints(tree);assertMinimalScope(tree,template,context);
+ assert.ok(marked(tree,'data-cinematic-face','approved').length,`${context}: headline uses self-contained approved artwork`);shadowPaints(tree);assertMinimalScope(tree,template,context);
  assert.equal((reading(tree).match(/sieste/gi)??[]).length,1,`${context}: enabled brand appears once`);
  assert.equal(marked(tree,'data-approved-brand').length,1,`${context}: enabled brand has one centered signature group`);
  assert.ok(Math.abs(glyphBounds(tree,'sieste').centerX-540)<=24,`${context}: signature is centered on the canvas`);
@@ -174,10 +265,29 @@ for(const template of templates)for(const height of [1080,1350,1920]){
 }
 console.log('Passed: three approved layouts, three shapes, exact source readings, filled icons, brand and 2160px PNG alpha padding.');
 
+const originalFixtures=[
+ {template:'approvedrun',kind:'running',stats:[{...runStats[0],value:'10.01'},{...runStats[1],value:'51:00',unit:'min:sec'},{...runStats[2],value:'5:06'}],readings:['10.01','km','51:00','5:06/km']},
+ {template:'approvedride',kind:'cycling',stats:[{...rideStats[0],value:'77.53'},{...rideStats[1],value:'3:22:00'},{...rideStats[2],value:'23'}],readings:['77.53','km','3h22','23km/h']},
+ {template:'approvedrecovery',kind:'recovery',dayHealth:{...dayHealth,sleep:28860,hrv:104,score:85},readings:['8h01','104ms','85/100']}
+];
+for(const fixture of originalFixtures){
+ const context=`${fixture.template}/original-readings`,design={...designFor(fixture.template),...(fixture.stats?{stats:fixture.stats}:{dayHealth:fixture.dayHealth})},svg=shareCardSvg(design),tree=svgTree(svg);assertSafe(svg,context);
+ for(const value of fixture.readings){
+  const groups=marked(tree,'data-original-reading',value);assert.equal(groups.length,1,`${context}: original ${value} appears once`);
+  const pictures=marked(groups[0],'data-original-art');assert.equal(pictures.length,1,`${context}: original ${value} retains its entire source group`);
+  const {item}=sourceArtwork(pictures[0],context);assert.equal(fingerprint(item.png),fingerprint(atlas.groups[fixture.kind][value].png),`${context}: actual image payload matches original ${value}`);
+ }
+ await sharp(Buffer.from(svg)).resize(2160).png().toFile(join(artifactDirectory,`${fixture.template}-source-2160.png`));
+}
+for(const template of ['approvedrun','approvedride']){
+ const design=designFor(template),stats=design.stats.map(stat=>stat.key==='distance'?{...stat,value:'90.25'}:stat),svg=shareCardSvg({...design,stats}),tree=svgTree(svg);assertSafe(svg,`${template}/new-numerals`);assertStat(tree,stats[0],'90.25km',`${template}/new-numerals`);await sharp(Buffer.from(svg)).resize(540).png().toBuffer();
+}
+console.log('Passed: exact original example PNG groups and dynamic numerals use their actual atlas artwork.');
+
 for(const template of templates){
  const design=designFor(template),baseline=shadowPaints(svgTree(shareCardSvg(design)));
  for(const finish of ['chrome','gold','rose','copper','titanium','midnight','rainbow','iridescent']){
-  const context=`${template}/${finish}`,svg=shareCardSvg({...design,finish}),tree=svgTree(svg);assertSafe(svg,context);assertFinished(tree,context);assertMinimalScope(tree,template,context);
+  const context=`${template}/${finish}`,svg=shareCardSvg({...design,finish}),tree=svgTree(svg);assertSafe(svg,context);assertFinished(tree,context,finish);assertMinimalScope(tree,template,context);
   assert.deepEqual(shadowPaints(tree),baseline,`${context}: finish preserves the approved shadow paint`);await sharp(Buffer.from(svg)).resize(540).png().toBuffer();
  }
  const unbranded=svgTree(shareCardSvg({...design,brand:false}));assert.ok(!/sieste/i.test(reading(unbranded)),`${template}: brand can be disabled`);
@@ -192,7 +302,14 @@ for(const key of ['hrv','score']){
  const expected=history.map((row,index)=>({...row,index})).filter(row=>row[key]!==null);assert.equal(samples.length,expected.length,`${key}: missing days do not invent samples`);
  const ordered=expected.map(row=>{
   const sample=samples.find(node=>node.attrs['data-history-date']===row.date);assert.ok(sample,`${key}: ${row.date} is preserved`);
-  const dot=visible(sample).find(node=>node.tag==='circle');assert.ok(dot,`${key}: history uses recorded dots`);
+  let dot=visible(sample).find(node=>node.tag==='circle');
+  if(!dot){
+   const pictures=marked(sample,'data-original-art');assert.equal(pictures.length,1,`${key}: history sample uses one actual source dot`);
+   const entry=sourceArtwork(pictures[0],`${key} history`);assert.equal(entry.section,'icons',`${key}: history uses original icon artwork`);assert.equal(entry.key,'dot',`${key}: history displays the actual source dot`);
+   assert.deepEqual(matrix(entry.image),matrix(chart),`${key}: PNG dot positions use the chart's coordinate plane`);
+   dot={attrs:{cx:String(Number(entry.image.attrs.x??0)+Number(entry.image.attrs.width)/2),cy:String(Number(entry.image.attrs.y??0)+Number(entry.image.attrs.height)/2)}};
+  }
+  assert.ok(dot,`${key}: history uses recorded dots`);
   assert.equal(Number(sample.attrs['data-history-value']),row[key],`${key}: raw sample value is unchanged`);assert.equal(Number(sample.attrs['data-history-index']),row.index,`${key}: sample index preserves gaps`);return {sample,dot};
  });
  let dayWidth=null;
@@ -230,8 +347,11 @@ for(const template of ['approvedrun','approvedride']){
  }
  const emptySvg=shareCardSvg({...design,stats:[],route:null}),empty=svgTree(emptySvg);assertSafe(emptySvg,`${template}/empty`);assert.ok(reading(empty).includes('—'),`${template}: absent distance is explicit`);assert.equal(marked(empty,'data-share-stat-key').length,0,`${template}: empty activity has no fabricated metrics`);await sharp(Buffer.from(emptySvg)).resize(540).png().toBuffer();
 }
-const ride=svgTree(shareCardSvg(designFor('approvedride'))),routeGroups=marked(ride,'data-share-route');assert.equal(routeGroups.length,1,'Cycling has one recorded route inset');
-const routePaths=visible(routeGroups[0]).filter(node=>node.tag==='path');assert.equal(routePaths.length,route.segments.length,'Cycling inset keeps distinct recorded GPS segments');
-for(const path of routePaths)assert.equal((path.attrs.d.match(/M/g)??[]).length,1,'GPS segments start independently');
-const noRoute=svgTree(shareCardSvg({...designFor('approvedride'),route:null}));assert.equal(marked(noRoute,'data-share-route').length,0,'Missing cycling route has no fabricated trace');
-console.log(`Passed: stat order, missing support metrics, empty activities and optional recorded cycling routes. Review PNGs: ${artifactDirectory}`);
+for(const recordedRoute of [route,null]){
+ const ride=svgTree(shareCardSvg({...designFor('approvedride'),route:recordedRoute})),ornaments=marked(ride,'data-approved-ornament');assert.equal(ornaments.length,1,'Cycling always displays one original decorative flourish');
+ assert.equal(marked(ride,'data-share-route').length,0,'Cycling decoration does not claim to display recorded GPS');
+ const pictures=marked(ornaments[0],'data-original-art');assert.equal(pictures.length,1,'Cycling flourish contains one actual source bitmap');
+ const entry=sourceArtwork(pictures[0],'Cycling decorative flourish');assert.equal(entry.section,'icons');assert.equal(entry.kind,'cycling');assert.equal(entry.key,'route');
+ assert.equal(fingerprint(entry.item.png),fingerprint(atlas.icons.cycling.route.png),'Cycling flourish preserves the exact original artwork with or without GPS data');
+}
+console.log(`Passed: stat order, missing support metrics, empty activities and exact decorative cycling flourish. Review PNGs: ${artifactDirectory}`);

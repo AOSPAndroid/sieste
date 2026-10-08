@@ -24,17 +24,16 @@ export default function ActivityShare({activity,history=emptyHistory,loading=fal
  const week=useMemo(()=>shareWeek(activity,history),[activity,history]);
  const chooseTemplate=(t:ShareTemplate)=>{
   setTemplate(t);setTool(null);
-  if(['approvedride','retroride','retroswoop','retroseal'].includes(t)&&hasDrawableRoute)setShowRoute(true);
+  if(['retroride','retroswoop','retroseal'].includes(t)&&hasDrawableRoute)setShowRoute(true);
   const original=[...approvedActivityDesigns,...approvedRecoveryDesigns].find(design=>design.key===t);
   if(original){
    setBrand(true);
-   if(!colourCustomized){setAccent(original.color);setFinish('solid')}
+   setAccent(original.color);setFinish('solid');setColourCustomized(false);
    if(t!=='approvedrecovery'){setSelected(model.stats.filter(s=>['distance','duration',t==='approvedride'?'speed':'pace'].includes(s.key)).map(s=>s.key));setFeatured('distance')}
   }
   const retro=[...retroActivityDesigns,...retroRecoveryDesigns].find(design=>design.key===t);
   if(retro&&finish==='solid'&&!colourCustomized)setAccent(retro.color);
  };
- useEffect(()=>{if(template==='approvedride'&&hasDrawableRoute)setShowRoute(true)},[template,hasDrawableRoute]);
  const weekly=(t:ShareTemplate)=>t==='weekbold'||t==='weekchart';
  const buildDesign=useCallback((t:ShareTemplate):ShareDesign=>({...design,template:t,routeStroke:routeStatTemplates.includes(t)?statRouteStroke:routeStroke,weekday:date.toLocaleDateString('en-GB',{weekday:'long'}),time:date.toLocaleTimeString('en-GB',{hour:'numeric',minute:'2-digit'}),...(weekly(t)?{stats:week.stats,date:week.label,title:model.sport,route:null,weekDays:week.days}:{route:routeTemplates.includes(t)?geometry:design.route})}),[design,statRouteStroke,routeStroke,date,week,model.sport,geometry]);
  const dayMix=useMemo(()=>{const groups=new Map<string,number>();for(const a of dayActivities??[]){const seconds=a.summary?.duration;if(typeof seconds==='number'&&Number.isFinite(seconds)&&seconds>0){const family=sportFamily(a);groups.set(family,(groups.get(family)??0)+seconds)}}const colors=['#818cf8','#38bdf8','#fb923c','#34d399','#f472b6','#facc15'];return [...groups].map(([family,seconds],i)=>({label:sportName(family),seconds,color:colors[i%colors.length]}))},[dayActivities]);
@@ -83,8 +82,8 @@ export default function ActivityShare({activity,history=emptyHistory,loading=fal
   <label className="share-check"><input type="checkbox" checked={transparent} onChange={e=>setTransparent(e.target.checked)}/>Transparent background <span className="share-alpha-badge">PNG α</span></label>
   {!recoveryOnly&&!routeOnly&&!approvedRecovery&&<fieldset><legend>Stats · choose up to {approvedActivity?'three':'six'}</legend>{availableStats.map(s=><label key={s.key}><input type="checkbox" checked={stats.some(v=>v.key===s.key)} disabled={stats.length>=statLimit&&!stats.some(v=>v.key===s.key)} onChange={()=>toggle(s.key)}/>{s.label}</label>)}</fieldset>}
   {!availableStats.length&&!routeOnly&&!approvedRecovery&&<p>No shareable stats supplied for this workout.</p>}
-  <div className="share-visibility">{!routeOnly&&!approved&&<label className="share-check"><input type="checkbox" checked={showDate} onChange={e=>setShowDate(e.target.checked)}/>Date</label>}<label className="share-check"><input type="checkbox" checked={brand} onChange={e=>setBrand(e.target.checked)}/>sieste signature</label>{!routeOnly&&(!approved||template==='approvedride')&&<label className="share-check"><input type="checkbox" checked={showRoute||routeTemplates.includes(template)} disabled={!geometry||routeTemplates.includes(template)} onChange={e=>setShowRoute(e.target.checked)}/>Route outline {!geometry&&<small>({loading?'loading…':'no GPS'})</small>}</label>}</div>
-  {design.route&&hasDrawableRoute&&(!approved||template==='approvedride')&&<p className="share-hint">The full route shape will be visible in the image.</p>}
+  <div className="share-visibility">{!routeOnly&&!approved&&<label className="share-check"><input type="checkbox" checked={showDate} onChange={e=>setShowDate(e.target.checked)}/>Date</label>}<label className="share-check"><input type="checkbox" checked={brand} onChange={e=>setBrand(e.target.checked)}/>sieste signature</label>{!routeOnly&&!approved&&<label className="share-check"><input type="checkbox" checked={showRoute||routeTemplates.includes(template)} disabled={!geometry||routeTemplates.includes(template)} onChange={e=>setShowRoute(e.target.checked)}/>Route outline {!geometry&&<small>({loading?'loading…':'no GPS'})</small>}</label>}</div>
+  {design.route&&hasDrawableRoute&&!approved&&<p className="share-hint">The full route shape will be visible in the image.</p>}
   <p className="share-hint">{1080*exportScale} × {height*exportScale} · {transparent?'Transparent PNG. The checkerboard is preview-only.':'PNG.'} Your private dashboard is never shared.</p>
   {!canExport&&<p>{approvedRecovery?'No sleep or recovery readings supplied for this day.':(routeOnly||routeWithStats)&&!hasDrawableRoute?'Choose an activity with a recorded GPS route.':'Select at least one stat to export.'}</p>}
  </div>;
