@@ -10,7 +10,7 @@ export function cinematicText(value:string,{x,y,width,height,face='bold',color='
  const font=faces[face] as unknown as {units:number;glyphs:Record<string,Glyph>};
  const letters=[...value],glyphs=letters.map(character=>font.glyphs[character]);
  if(!value.trim())return '';
- if(glyphs.some(glyph=>!glyph))return `<text x="${align==='middle'?x+width/2:x}" y="${y+height}"${align==='middle'?' text-anchor="middle"':''} font-family="Arial,Helvetica,sans-serif" font-size="${height}" textLength="${width}" lengthAdjust="spacingAndGlyphs" fill="${outline?'none':color}"${outline?` stroke="${color}" stroke-width="3"`:''}>${xml(value)}</text>`;
+ if(glyphs.some(glyph=>!glyph)){const fitted=Math.min(height,width/Math.max(1,letters.length*.6));return `<text x="${align==='middle'?x+width/2:x}" y="${y+(height+fitted)/2}"${align==='middle'?' text-anchor="middle"':''} font-family="Arial,Helvetica,sans-serif" font-size="${fitted}" fill="${outline?'none':color}"${outline?` stroke="${color}" stroke-width="3"`:''}>${xml(value)}</text>`;}
  const drawable=glyphs.filter(glyph=>glyph[5]);
  if(!drawable.length)return '';
  const minY=Math.min(...drawable.map(glyph=>glyph[2])),maxY=Math.max(...drawable.map(glyph=>glyph[4]));

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import sharp from 'sharp';
 process.env.TZ='UTC';
 const cache=new Map();
-function moduleUrl(name){if(cache.has(name))return cache.get(name);let s=ts.transpileModule(readFileSync(new URL('../app/'+name+'.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;s=s.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,dep)=>`from "${moduleUrl(dep)}"`);const u='data:text/javascript;base64,'+Buffer.from(s).toString('base64');cache.set(name,u);return u}
+function moduleUrl(name){if(cache.has(name))return cache.get(name);const json=name.endsWith('.json');let s=json?'export default '+readFileSync(new URL('../app/'+name,import.meta.url),'utf8'):ts.transpileModule(readFileSync(new URL('../app/'+name+'.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;s=s.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,dep)=>`from "${moduleUrl(dep)}"`);const u='data:text/javascript;base64,'+Buffer.from(s).toString('base64');cache.set(name,u);return u}
 const {monthlyBests,intervalConsistency}=await import(moduleUrl('training-coach-data'));
 const {editRoute,routeGpx}=await import(moduleUrl('route-tools-data'));
 const {monthRoutePoster}=await import(moduleUrl('month-route-poster-data'));

@@ -62,7 +62,7 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
  const cueLabel=(key:string,fullName:string,x:number,y:number,size:number)=>{
   if(labelMode==='none')return '';
   const full=({sleep:'Sleep duration',score:'Sleep score',hrv:'Heart rate variability'} as Record<string,string>)[key]??fullName;
-  const label=shareMetricLabel(key,full,labelMode),width=Math.min(380,Math.max(170,size*7)),height=Math.min(28,size*.72);
+  const label=shareMetricLabel(key,full,labelMode),width=labelMode==='full'?280:Math.min(380,Math.max(170,size*7)),height=Math.min(32,Math.max(26,size*.8));
   return `<g data-share-label-key="${xml(key)}" data-share-label-mode="${labelMode}">${letter(label,x+size/2-width/2,y+(size-height)/2,width,height,{align:'middle',shadow:false})}</g>`;
  };
  const healthCue=(key:string,x:number,y:number,size:number,color=ink,fullName?:string)=>labelMode==='icons'?helpers.healthIcon(key,x,y,size,color):cueLabel(key,fullName??({sleep:'Sleep',score:'Sleep score',hrv:'Overnight HRV',heartrate:'Heart rate',calories:'Calories',steps:'Steps'} as Record<string,string>)[key]??key,x,y,size);
@@ -96,13 +96,14 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
    (suffix?letter(suffix,x,unitY,w,unitHeight,{align:center?'middle':'start'}):'')+'</g>';
  };
  const heading=(y:number,height=52,center=true,x=72,w=936)=>{
-  if(o.labelMode==='none'&&title.toLowerCase()===(caption(o.sport)||'Activity').toLowerCase())return '';
-  const displayedTitle=labelMode==='short'?shareMetricLabel(o.sportFamily??'misc',title,'short'):title;
-  if(o.labelMode==='short')return `<g data-share-label-key="${xml(o.sportFamily??'misc')}" data-share-label-mode="short">${letter(displayedTitle,x,y,w,height,{align:center?'middle':'start',depth:4})}</g>`;
+  const isSportTitle=title.toLowerCase()===(caption(o.sport)||'Activity').toLowerCase();
+  if(o.labelMode==='none'&&isSportTitle)return '';
+  const displayedTitle=labelMode==='short'&&isSportTitle?shareMetricLabel(o.sportFamily??'misc',title,'short'):title;
+  if(o.labelMode==='short'&&isSportTitle)return `<g data-share-label-key="${xml(o.sportFamily??'misc')}" data-share-label-mode="short">${letter(displayedTitle,x,y,w,height,{align:center?'middle':'start',depth:4})}</g>`;
   const words=title.split(' '),split=titleRows===2?words.reduce((best,_,i)=>i>0&&Math.abs(words.slice(0,i).join(' ').length-title.length/2)<Math.abs(words.slice(0,best).join(' ').length-title.length/2)?i:best,Math.max(1,Math.floor(words.length/2))):0;
   const lines=split?[words.slice(0,split).join(' '),words.slice(split).join(' ')]:[title];
-  if(o.labelMode==='full')return `<g data-share-label-key="${xml(o.sportFamily??'misc')}" data-share-label-mode="full">${lines.map((value,i)=>letter(value,x,y+i*(height+12),w,height,{align:center?'middle':'start',depth:4})).join('')}</g>`;
-  const icon=sportCue(o.sportFamily??'misc',center?524:x,y-50,32,ink);
+  if(o.labelMode==='full'&&isSportTitle)return `<g data-share-label-key="${xml(o.sportFamily??'misc')}" data-share-label-mode="full">${lines.map((value,i)=>letter(value,x,y+i*(height+12),w,height,{align:center?'middle':'start',depth:4})).join('')}</g>`;
+  const icon=labelMode==='none'?'':sportCue(o.sportFamily??'misc',center?524:x,y-50,32,ink);
   return icon+lines.map((value,i)=>letter(value,x,y+i*(height+12),w,height,{align:center?'middle':'start',depth:4})).join('');
  };
  const grid=(stats:Stat[],y:number,columns=3,rowHeight=100,valueHeight=46,x=72,w=936)=>{
@@ -116,14 +117,14 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
  };
  const footer=()=>{
   const y=h-91;
-  if(o.brand)parts.push(letter('sieste',72,y,188,25,{depth:3}));
-  if(o.date)parts.push(letter(o.date,o.brand?344:72,y,o.brand?660:936,22,{align:o.brand?'start':'middle',shadow:false}));
-  if(o.demo)parts.push(letter('Illustrative data',72,h-52,936,17,{align:'middle',shadow:false}));
+  if(o.brand)parts.push(letter('sieste',72,y,188,28,{depth:3}));
+  if(o.date)parts.push(letter(o.date,o.brand?344:72,y,o.brand?660:936,26,{align:o.brand?'start':'middle',shadow:false}));
+  if(o.demo)parts.push(letter('Illustrative data',72,h-52,936,24,{align:'middle',shadow:false}));
  };
 
  if(key==='retrorecovery'||key==='retrotriptych'){
   const health=o.dayHealth??{},history=health.history??[],sessions=o.recoveryOnly?[]:(o.dayCards??[]).filter(card=>!!card.sportFamily);
-  const workoutHeight=sessions.length?sessions.length*114+46:0,localH=Math.max(h-172,780+workoutHeight),scale=Math.min(1,(h-172)/localH),healthBottom=localH-workoutHeight;
+  const workoutHeight=sessions.length?sessions.length*110+46:0,localH=Math.max(h-172,(key==='retrorecovery'?740:660)+workoutHeight),scale=Math.min(1,(h-172)/localH),healthBottom=localH-workoutHeight;
   const readings:Stat[]=[
    {key:'sleep',label:'Sleep',value:healthValid('sleep',health.sleep)?sleepTime(health.sleep):'—',unit:''},
    {key:'score',label:'Sleep score',value:healthValid('score',health.score)?String(Math.round(health.score)):'—',unit:healthValid('score',health.score)?'/100':''},
@@ -149,15 +150,15 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
     else{path+=(previous?'L':'M')+xx(index)+' '+yy(value)+' ';previous=true;chartSvg+=`<circle ${data} cx="${xx(index)}" cy="${yy(value)}" r="${index===values.length-1?6:4}" fill="${ink}"/>`;}
    });
    if(path)chartSvg+=`<path data-history-segment="true" d="${path.trim()}" fill="none" stroke="${ink}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
-   chartSvg+=letter(rangeNumber(metricKey,low)+(low===high?'':' — '+rangeNumber(metricKey,high)),x,base+24,w,18,{align:'middle',shadow:false});
+   chartSvg+=letter(rangeNumber(metricKey,low)+(low===high?'':' — '+rangeNumber(metricKey,high)),x,base+24,w,26,{align:'middle',shadow:false});
    return `<g data-retro-history-key="${metricKey}" data-history-min="${low}" data-history-max="${high}">${chartSvg}</g>`;
   };
-  const dateSpan=(y:number)=>{const start=history[0]?.date,end=history.at(-1)?.date;return start&&end?letter(start.slice(8)+'/'+start.slice(5,7)+' — '+end.slice(8)+'/'+end.slice(5,7),72,y,936,18,{align:'middle',shadow:false}):''};
+  const dateSpan=(y:number)=>{const start=history[0]?.date,end=history.at(-1)?.date;return start&&end?letter(start.slice(8)+'/'+start.slice(5,7)+' — '+end.slice(8)+'/'+end.slice(5,7),72,y,936,26,{align:'middle',shadow:false}):''};
   parts.push(`<g transform="translate(${540*(1-scale)} ${86}) scale(${scale})">`);
   parts.push(letter(key==='retrotriptych'?'Recovery club':'Recovery',72,0,936,key==='retrotriptych'?64:68,{align:'middle'}));
-  const extraTitle=caption(o.title);if(extraTitle)parts.push(letter(extraTitle,72,96,936,23,{align:'middle',shadow:false}));
+  const extraTitle=caption(o.title);if(extraTitle)parts.push(letter(extraTitle,72,96,936,30,{align:'middle',shadow:false}));
   if(key==='retrorecovery'){
-   const heroHeight=Math.min(206,healthBottom*.24),heroY=150,sideY=heroY+heroHeight+74,chartY=sideY+170,chartHeight=Math.max(68,healthBottom-chartY-88);
+   const heroHeight=Math.min(206,healthBottom*.24),heroY=150,sideY=heroY+heroHeight+54,chartY=sideY+191,chartHeight=Math.max(68,healthBottom-chartY-88);
    parts.push(reading(readings[0],72,heroY,936,heroHeight,false),healthCue('sleep',518,heroY+heroHeight+27,44,ink));
    parts.push(reading(readings[1],116,sideY,400,75),reading(readings[2],564,sideY,400,75));
    (['sleep','score','hrv'] as HealthKey[]).forEach((metricKey,i)=>{const x=72+i*320;parts.push(healthCue(metricKey,x+130,chartY-42,26,ink),chart(metricKey,x,chartY,296,chartHeight))});
@@ -168,10 +169,11 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
    parts.push(dateSpan(chartY+chartHeight+64));
   }
   sessions.forEach((session,index)=>{
-   const y=healthBottom+44+index*114;
-   const sessionTitle=labelMode==='none'?'':labelMode==='short'?shareMetricLabel(session.sportFamily!,session.title,'short'):session.title;
-   parts.push(`<g data-retro-workout="true" data-workout-family="${xml(session.sportFamily!)}">`,line(72,y-20,1008,y-20,2,.45),labelMode==='icons'?sportCue(session.sportFamily!,76,y,27,ink):'',sessionTitle?letter(sessionTitle,labelMode==='icons'?121:76,y,labelMode==='icons'?887:932,24,{shadow:false}):'');
-   session.stats.slice(0,3).forEach((stat,j)=>parts.push(metric(stat,112+j*300,y+45,276,34,true,false)));
+   const y=healthBottom+44+index*110;
+   const sportName=({running:'Running',cycling:'Cycling',strength_training:'Strength training',swimming:'Swimming',walking:'Walking',hiking:'Hiking'} as Record<string,string>)[session.sportFamily!]??session.sportFamily!,isSportTitle=caption(session.title).toLowerCase()===sportName.toLowerCase();
+   const sessionTitle=labelMode==='none'&&isSportTitle?'':labelMode==='short'&&isSportTitle?shareMetricLabel(session.sportFamily!,session.title,'short'):session.title;
+   parts.push(`<g data-retro-workout="true" data-workout-family="${xml(session.sportFamily!)}">`,line(72,y-10,1008,y-10,2,.45),labelMode==='icons'?sportCue(session.sportFamily!,76,y,32,ink):'',sessionTitle?letter(sessionTitle,labelMode==='icons'?126:76,y,labelMode==='icons'?882:932,32,{shadow:false}):'');
+   session.stats.slice(0,3).forEach((stat,j)=>parts.push(metric(stat,112+j*300,y+47,276,42,true,false)));
    parts.push('</g>');
   });
   parts.push('</g>');footer();return parts.join('');
@@ -206,16 +208,16 @@ export function renderRetroShare(o:ShareDesign,helpers:Helpers):string{
  }else if(key==='retrolaps'){
   const headerY=100,heroY=Math.max(182,h*.13,100+titleRows*56+26),heroHeight=176*stretchY,supportY=heroY+heroHeight+(first&&unit(first)?110:58),supportRows=Math.ceil(others.length/3),lapY=supportY+supportRows*86+46,lapH=bottom-lapY;
   parts.push(heading(headerY,44),hero(72,heroY,936,heroHeight),grid(others,supportY,3,86,37));
-  const laps=(o.laps??[]).slice(0,12),recorded=laps.map(lap=>o.cycling?lap.value:lap.pace).filter(valid),max=Math.max(1,...recorded),step=Math.min(48,lapH/Math.max(1,laps.length));
+  const allLaps=o.laps??[],initialCapacity=Math.max(1,Math.floor(lapH/42))*2,initialCount=Math.min(12,allLaps.length,initialCapacity),capacity=initialCount<allLaps.length?Math.max(1,Math.floor((lapH-42)/42))*2:initialCapacity,laps=allLaps.slice(0,Math.min(12,capacity)),cropped=laps.length<allLaps.length,columns=laps.length>4?2:1,rows=Math.ceil(laps.length/columns),step=Math.min(56,(lapH-(cropped?42:0))/Math.max(1,rows)),recorded=laps.map(lap=>o.cycling?lap.value:lap.pace).filter(valid),max=Math.max(1,...recorded);
   if(laps.length&&lapH>30){
    parts.push(line(72,lapY-19,1008,lapY-19,3,.65));
    laps.forEach((lap,index)=>{
-    const y=lapY+index*step,value=o.cycling?lap.value:lap.pace,known=valid(value),label=o.cycling?(known?(value*3.6).toFixed(1):'—'):known?`${Math.floor(Math.round(value)/60)}:${String(Math.round(value)%60).padStart(2,'0')}`:'—';
-    parts.push(`<g data-retro-lap-index="${lap.index}"${valid(lap.value)?` data-retro-lap-value="${lap.value}"`:''}${valid(lap.pace)?` data-retro-lap-pace="${lap.pace}"`:''}>`,letter(String(lap.index).padStart(2,'0'),72,y+2,74,Math.min(22,step*.52),{shadow:false}),letter(label,170,y+2,152,Math.min(25,step*.6),{shadow:false}));
-    if(known)parts.push(`<rect x="353" y="${y+4}" width="${Math.max(3,value/max*630)}" height="${Math.max(3,Math.min(21,step-12))}" rx="8" fill="${ink}"/>`);
+    const column=columns===2?Math.floor(index/rows):0,x=72+column*488,y=lapY+(index%rows)*step,value=o.cycling?lap.value:lap.pace,known=valid(value),label=o.cycling?(known?(value*3.6).toFixed(1):'—'):known?`${Math.floor(Math.round(value)/60)}:${String(Math.round(value)%60).padStart(2,'0')}`:'—',valueHeight=Math.min(36,Math.max(26,step-9)),barX=x+(columns===2?224:281),barWidth=columns===2?212:630;
+    parts.push(`<g data-retro-lap-index="${lap.index}"${valid(lap.value)?` data-retro-lap-value="${lap.value}"`:''}${valid(lap.pace)?` data-retro-lap-pace="${lap.pace}"`:''}>`,letter(String(lap.index).padStart(2,'0'),x,y+2,50,Math.min(26,valueHeight),{shadow:false}),letter(label,x+65,y+2,columns===2?145:170,valueHeight,{shadow:false}));
+    if(known)parts.push(`<rect x="${barX}" y="${y+valueHeight/2-3}" width="${Math.max(3,value/max*barWidth)}" height="10" rx="5" fill="${ink}"/>`);
     parts.push('</g>');
    });
-   if((o.laps?.length??0)>12)parts.push(letter('First 12 recorded laps',72,lapY+laps.length*step+14,936,17,{align:'middle',shadow:false}));
+   if(cropped)parts.push(letter('First '+laps.length+' recorded laps',72,lapY+rows*step+14,936,26,{align:'middle',shadow:false}));
   }else if(o.route)parts.push(trace(144,lapY,792,lapH,12));
   else if(lapH>90)parts.push(sportCue(o.sportFamily??'misc',475,lapY+Math.max(0,(lapH-130)/2),130,ink));
  }else if(key==='retroseal'){

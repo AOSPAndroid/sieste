@@ -85,6 +85,6 @@ export function renderApprovedShare(o:ShareDesign,helpers:Helpers){
   }
  }
  parts.push(signature());
- if(o.demo)parts.push(`<text data-approved-demo="true" x="640" y="1210" text-anchor="middle" fill="${original?o.accent:helpers.ink}" font-family="Arial,sans-serif" font-size="16">demo</text>`);
+ if(o.demo)parts.push(`<text data-approved-demo="true" x="640" y="1210" text-anchor="middle" fill="${original?o.accent:helpers.ink}" font-family="Arial,sans-serif" font-size="28" font-weight="600">demo</text>`);
  parts.push('</g>');return parts.join('');
 }
