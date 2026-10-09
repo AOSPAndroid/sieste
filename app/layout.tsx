@@ -1,31 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import "./sleep-page.css";
-import "./ui-refinement.css";
-import "./dashboard-theme.css";
-import "./weather-recon.css";
-import "./motion.css";
-import "./activity-detail.css";
-import "./athlete-glance.css";
-import "./training-coach.css";
-import "./compact-tabs.css";
-import "./sieste-v2.css";
-import "./sieste-v3.css";
-import "./weekly-volume.css";
-import "./load-overlays.css";
-import "./recovery-matrix.css";
-import "./share-canvas.css";
-import "./effort-analysis.css";
-import "./snapshot-ui.css";
-import "./snapshot-home.css";
-import "./snapshot-tabs.css";
-import "./snapshot-aux.css";
+import "./sieste-system.css";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f6f6f9",
+  themeColor: "#f7f8fc",
 };
 
 export const metadata: Metadata = {
@@ -66,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className="antialiased">{children}</body>
     </html>
   );

@@ -7,6 +7,7 @@ import {sportFamily} from './sports';
 import {LoadingState,FeatureBoundary} from './loading-state';
 import RouteMap from './route-map';
 import {ExpandButton} from './expansion';
+import {Tabs,TabsContent,TabsList,TabsTrigger} from '@/components/ui/tabs';
 import './workout-explorer.css';
 const Replay=lazy(()=>import('./workout-replay'));
 const Compare=lazy(()=>import('./workout-route-compare'));
@@ -30,7 +31,7 @@ export default function WorkoutExplorer({detail,history,healthData,token,storage
  const showMap=hasRoute&&mode!=='afterwards';
  function choose(next:Mode){setSelection(null);setCursor(null);setChosen(next)}
  const mapProps={detail,selection,cursorIndex:mode==='replay'||mode==='fingerprint'?cursor:null};
- return <section className="workout-explorer" aria-label="Explore this workout"><nav className="workout-explorer-nav" aria-label="Workout analysis views">{modes.map(({id,label,Icon})=><button type="button" key={id} aria-pressed={mode===id} onClick={()=>choose(id)}><Icon size={13}/><span>{label}</span></button>)}</nav>
+ return <Tabs value={mode} onValueChange={value=>choose(value as Mode)} asChild><section className="workout-explorer" aria-label="Explore this workout"><TabsList className="workout-explorer-nav" aria-label="Workout analysis views">{modes.map(({id,label,Icon})=><TabsTrigger key={id} value={id}><Icon data-icon="inline-start"/><span>{label}</span></TabsTrigger>)}</TabsList><TabsContent value={mode}>
  {showMap&&<div className="workout-explorer-map"><RouteMap {...mapProps} compact/><ExpandButton title="Workout route"><RouteMap {...mapProps}/></ExpandButton></div>}
  <FeatureBoundary key={mode}><Suspense fallback={<LoadingState compact label="Preparing workout analysis…"/>}>
  {(['replay','fingerprint','terrain','coasting'] as Mode[]).includes(mode)&&<Replay detail={detail} mode={mode as 'replay'|'fingerprint'|'terrain'|'coasting'} onSelection={setSelection} onCursor={setCursor}/>}
@@ -38,5 +39,5 @@ export default function WorkoutExplorer({detail,history,healthData,token,storage
  {mode==='laps'&&<Mosaic detail={detail} history={history} token={token} isDemo={isDemo} storageScope={storageScope} onSelection={setSelection}/>}
  {mode==='afterwards'&&<Afterwards detail={detail} history={history} healthData={healthData} now={isDemo?new Date('2026-09-17T23:59:59'):undefined}/>}
  </Suspense></FeatureBoundary>
- <small className="workout-explorer-foot"><Maximize2 size={10}/> Recorded data · tap sections to inspect · missing measurements stay blank</small></section>;
+ <small className="workout-explorer-foot"><Maximize2 size={10}/> Recorded data · tap sections to inspect · missing measurements stay blank</small></TabsContent></section></Tabs>;
 }
