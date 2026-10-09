@@ -25,10 +25,11 @@ export function finishShareLettering(artwork:string,value:unknown){
  const result=artwork.replace(/<\/g>|<g\b[^>]*>|<text\b[^>]*>/g,tag=>{
   if(tag==='</g>'){stack.pop();return tag;}
   const inherited=stack.some(item=>item.lettering),shadow=stack.some(item=>item.shadow)||/data-(?:retro|approved)-shadow="true"/.test(tag);
-  const lettering=/data-cinematic-face=/.test(tag)&&!shadow;
+  const reference=/data-reference-face=/.test(tag),lettering=(reference||/data-cinematic-face=/.test(tag))&&!shadow;
   if(tag.startsWith('<g')){
    if(!tag.endsWith('/>'))stack.push({lettering:inherited||lettering,shadow});
-   return lettering&&!inherited?tag.replace(/>$/,filter(100,true)+'>'):tag;
+   const height=reference?Number(tag.match(/data-reference-height="([^"]+)"/)?.[1]??100):100;
+   return lettering&&!inherited?tag.replace(/>$/,filter(Number.isFinite(height)?height:100,true)+'>'):tag;
   }
   if(inherited||shadow)return tag;
   const recordedSize=Number(tag.match(/font-size="([^"]+)"/)?.[1]??24);

@@ -1,3 +1,5 @@
+import {referenceActivityDesigns,referenceRouteTemplates,renderReferenceShare} from './reference-share';
+export {referenceActivityDesigns,referenceRouteTemplates,referenceStatLimit} from './reference-share';
 import {cinematicText,cinematicTitleLines,type DisplayFace} from './cinematic-type';
 import type {routeGeometry} from './route-geometry';
 import {retroActivityDesigns,retroRecoveryDesigns,renderRetroShare} from './retro-share';
@@ -43,12 +45,12 @@ export const routeStatDesigns=[
  {key:'tracescorecard',name:'Trace scorecard',description:'Thick route · six equally bold readings'},
  {key:'tracestamp',name:'Trace stamp',description:'Framed route · slab-serif headline · stats'}
 ] as const;
-export type ShareTemplate=typeof approvedActivityDesigns[number]['key']|typeof approvedRecoveryDesigns[number]['key']|typeof retroActivityDesigns[number]['key']|typeof retroRecoveryDesigns[number]['key']|typeof routeStatDesigns[number]['key']|'cinemamonolith'|'cinemaepic'|'cinemawide'|'cinemamission'|'cinemalens'|'cinemawave'|'routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export type ShareTemplate=typeof referenceActivityDesigns[number]['key']|typeof approvedActivityDesigns[number]['key']|typeof approvedRecoveryDesigns[number]['key']|typeof retroActivityDesigns[number]['key']|typeof retroRecoveryDesigns[number]['key']|typeof routeStatDesigns[number]['key']|'cinemamonolith'|'cinemaepic'|'cinemawide'|'cinemamission'|'cinemalens'|'cinemawave'|'routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeStatTemplates:ShareTemplate[]=routeStatDesigns.map(design=>design.key);
-export const routeTemplates:ShareTemplate[]=[...routeStatTemplates,'routegiant','cinematrace','route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
+export const routeTemplates:ShareTemplate[]=[...referenceRouteTemplates,...routeStatTemplates,'routegiant','cinematrace','route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 // dayHealth.sleep uses seconds; history.sleep uses hours from dailyShareHistory.
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;legibility?:ShareLegibility;showLabels?:boolean;labelMode?:ShareLabelMode;textThickness?:number;routeStroke?:number;finish?:ShareFinish;ink:'white'|'black';accent:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;legibility?:ShareLegibility;showLabels?:boolean;labelMode?:ShareLabelMode;textThickness?:number;routeStroke?:number;finish?:ShareFinish;ink:'white'|'black';accent:string;bubbleColor?:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;displayDay?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 // Small vector pictograms remain crisp in PNG exports and need no emoji fonts.
 const sportGlyphs:Record<string,string>={
@@ -86,6 +88,7 @@ export function shareCardSvg(o:ShareDesign){
  const englishVersions:Partial<Record<ShareTemplate,ShareTemplate>>={metroen:'metro',sweatreceipten:'sweatreceipt',excuseen:'excuse'},english=!!englishVersions[o.template];
  if(english)o={...o,template:englishVersions[o.template]!};
  const copy=(fr:string,en:string)=>english?en:fr;
+ const isReference=referenceActivityDesigns.some(design=>design.key===o.template);
  const isApproved=[...approvedActivityDesigns,...approvedRecoveryDesigns].some(design=>design.key===o.template);
  const isRetro=[...retroActivityDesigns,...retroRecoveryDesigns].some(design=>design.key===o.template);
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
@@ -188,7 +191,8 @@ export function shareCardSvg(o:ShareDesign){
   return (outline?'':`<g transform="translate(0 5)">${glyph.replace('fill="url(#metal)"','fill="#252b37" stroke="#252b37" stroke-width="3"')}</g>`)+
    glyph.replace('fill="url(#metal)"',`fill="${outline?'none':'url(#metal)'}" stroke="url(#rim)" stroke-width="${outline?6:1.8}" paint-order="stroke fill"`);
  };
- if(isApproved){parts.push(renderApprovedShare(o,{ink:isChrome?'url(#metal)':ink,route}));}
+ if(isReference){parts.push(renderReferenceShare(o,{ink:isChrome?'url(#metal)':ink}));}
+ else if(isApproved){parts.push(renderApprovedShare(o,{ink:isChrome?'url(#metal)':ink,route}));}
  else if(isRetro){
   const icon=(glyph:string,kind:string,key:string,x:number,y:number,size:number,color:string)=>`<g data-${kind}-icon="${xml(key)}" transform="translate(${x} ${y}) scale(${size/24})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${glyph}</g>`;
   parts.push(renderRetroShare(o,{ink:isChrome?'url(#metal)':ink,route,
@@ -617,14 +621,14 @@ export function shareCardSvg(o:ShareDesign){
   if(first)parts.push(text(compact(first),72,top+laps.length*step+66,43,800));
   if((o.laps?.length??0)>16)parts.push(text('FIRST 16 RECORDED LAPS',72,top+laps.length*step+110,28));
  }
- if(!isRetro&&!isApproved&&o.route&&o.template!=='laps'&&!routeTemplates.includes(o.template))parts.push(route(840,100,165,165,3));
- if(o.brand&&!isRetro&&!isApproved)parts.push(text('sieste',72,h-48,23,700));
- if(o.demo&&!isRetro&&!isApproved)parts.push(text('ILLUSTRATIVE DATA',730,h-48,18,600,ink,280));
+ if(!isReference&&!isRetro&&!isApproved&&o.route&&o.template!=='laps'&&!routeTemplates.includes(o.template))parts.push(route(840,100,165,165,3));
+ if(o.brand&&!isReference&&!isRetro&&!isApproved)parts.push(text('sieste',72,h-48,23,700));
+ if(o.demo&&!isReference&&!isRetro&&!isApproved)parts.push(text('ILLUSTRATIVE DATA',730,h-48,18,600,ink,280));
  // Finish every foreground element, including metadata, chart axes and icons.
  // Stroke gradients use canvas coordinates so horizontal/vertical paths render.
  let artwork=parts.join('');
  if(o.finish&&o.finish!=='solid'){
-  const cardSurface=['ticket','metro','sweatreceipt','glass','daystack','bubble'].includes(o.template);
+  const cardSurface=['refbubble','refcard','refsportcard','ticket','metro','sweatreceipt','glass','daystack','bubble'].includes(o.template);
   const stops=c.map((color,i)=>`<stop offset="${i/(c.length-1)}" stop-color="${color}"/>`).join('');
   artwork='<defs><linearGradient id="finishStroke" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1080" y2="'+h+'">'+stops+'</linearGradient><linearGradient id="iconFinish" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="5" y2="24">'+stops+'</linearGradient></defs>'+artwork;
   const shadowGroups:boolean[]=[];
@@ -642,6 +646,6 @@ export function shareCardSvg(o:ShareDesign){
   });
  }
  artwork=finishShareLettering(artwork,o.textThickness);
- artwork=finishShareLegibility(artwork,{height:h,mode:o.legibility??(o.transparent?'auto':'none'),ink:isChrome?'#ffffff':ink});
+ artwork=finishShareLegibility(artwork,{height:h,mode:o.legibility??(o.transparent&&!isReference?'auto':'none'),ink:isChrome?'#ffffff':ink});
  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}">${artwork}</svg>`;
 }

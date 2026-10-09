@@ -464,3 +464,14 @@ body:has(.sieste-v3) .home-snapshot-actions button:not([data-slot]) { border-col
   .sieste-v3 :is(button,summary,a),
   body:has(.sieste-v3) :is(.athena-launcher,.athena-chat button) { transition: none; }
 }
+/* The reference collection uses its artwork as the tile, without repeated copy. */
+body:has(.sieste-v3) .share-reference-gallery .share-curated-grid { gap: 10px; }
+body:has(.sieste-v3) .share-reference-gallery .share-curated-grid>button { position: relative; padding: 0; border: 1px solid #363636; border-radius: 14px; background: #202020; color: #fff; overflow: hidden; box-shadow: none; }
+body:has(.sieste-v3) .share-reference-gallery .share-curated-grid>button[aria-pressed=true] { border-color: #8177dd; outline: 1px solid #8177dd; outline-offset: -1px; }
+body:has(.sieste-v3) .share-reference-gallery .share-curated-grid .share-template-art { height: auto; aspect-ratio: 1; border-radius: 0; }
+body:has(.sieste-v3) .share-reference-gallery .share-curated-grid b { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+body:has(.sieste-v3) .share-reference-gallery .share-curated-grid small { display: none; }
+body:has(.sieste-v3) .share-reference-gallery .share-curated-grid>button:disabled small { display: block; position: absolute; bottom: 8px; left: 0; right: 0; margin: 0; text-align: center; color: #e2e2e2; font-size: 10px; }
+.share-additional-designs { margin-top: 16px; }
+.share-additional-designs>summary { padding: 10px 2px; color: var(--muted-foreground); font-size: 12px; cursor: pointer; }
+.share-additional-designs[open]>summary { margin-bottom: 6px; }
