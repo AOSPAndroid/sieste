@@ -83,3 +83,20 @@
 @media(max-width:600px){.activity-analysis-layout{--effort-chart-height:clamp(112px,18dvh,144px)}}
 @media(max-width:350px){.activity-analysis-layout{--effort-chart-height:clamp(104px,16dvh,128px)}}
 @media(max-height:500px){.sieste-v3 .workout-modal .activity-analysis-layout>.activity-mini-map:has(>.route-panel){position:relative;top:auto}}
+
+/* Keep comparison sharing visible before the table, with actions above the message. */
+.segment-share-preview .segment-share-actions{display:flex;gap:6px;margin-bottom:8px}
+.segment-share-preview .segment-share-actions button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:7px 10px;border:1px solid #dce3ef;border-radius:7px;background:#fff;color:#526477;font-size:11px}
+.segment-share-preview .segment-share-actions button:first-child{background:#6353b7;color:#fff;border-color:#6353b7}
+.segment-share-preview .segment-share-actions button:disabled{opacity:.45;cursor:default}
+.segment-share-preview .segment-share-actions .segment-share-close{margin-left:auto;padding:7px;min-width:36px;background:transparent}
+.segment-share-preview .segment-share-status{font-size:11px;line-height:1.4;color:#526477;margin:7px 0}
+.segment-share-preview .segment-share-status:empty{display:none}
+.segment-share-preview pre,.segment-share-preview textarea{box-sizing:border-box;max-height:200px;margin:8px 0 0;line-height:1.5;font-size:12px;overscroll-behavior:contain}
+.segment-share-preview textarea{display:block;min-height:160px;height:200px;padding:10px;border:1px solid #dce3ef;border-radius:8px;background:#fff;resize:vertical}
+
+.segment-share-preview .segment-share-options{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}
+.segment-share-preview .segment-share-options label{display:flex;align-items:center;flex-direction:row;gap:5px;min-width:0;margin:0;font-size:11px;line-height:1.4}
+.segment-share-preview .segment-share-options select{max-width:190px;min-height:30px;padding:4px 6px;font-size:11px}
+.segment-share-preview .segment-share-options .segment-share-timing{white-space:nowrap}
+.segment-share-preview .segment-share-options input[type=checkbox]{width:14px;height:14px;min-width:14px;padding:0;margin:0;flex:none}
