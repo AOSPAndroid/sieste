@@ -129,3 +129,12 @@ function scenario(handler){
  assert.equal(s.cache.cachedWorkout('athlete-a','run','preview'),null,'Cleared generation rejects old network response');assert.equal(s.h.output.run.elevationPreview.tag,'current-b');s.h.unmount();
 }
 console.log('Live preview regressions passed: subscribed renders, sync retry/TTL, complete-profile preservation, both response races, cache clear and athlete isolation.');
+
+{
+ const s=scenario(({id})=>profile(id,'power'));
+ s.render();await settle();const powerStats={average:210,normalized:238,averageSource:'recorded',normalizedSource:'recorded'};
+ s.cache.rememberWorkoutPreview('athlete-a','run',{...profile('run','new-power'),powerStats});await settle();
+ assert.deepEqual(s.h.output.run.powerStats,powerStats,'Home preview enrichment retains derived watts without full sensor streams');
+ assert.equal(s.h.output.run.seriesSampled,undefined);s.h.unmount();
+}
+console.log('Compact power metadata persists through subscribed Home enrichment.');

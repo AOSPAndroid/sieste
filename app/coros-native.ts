@@ -2,7 +2,7 @@
 // invalidates details/analyses which previously spread an archived summary.
 export const COROS_NATIVE_VERSION=3;
 const recordKeys=['duration','durationTotal','distance','heartrate','calories','sets','pace','speed','trainingLoad','aerobicTrainingEffect','anaerobicTrainingEffect'];
-const nativeKeys=[...recordKeys,'cadence','stepLength','power','heartrateMax','powerMax','speedMax','temperature','groundContactTime','verticalRatio','verticalOscillation','altitude','hrBands','zonesDistribution'];
+const nativeKeys=[...recordKeys,'cadence','stepLength','power','normalizedPower','heartrateMax','powerMax','speedMax','temperature','groundContactTime','verticalRatio','verticalOscillation','altitude','hrBands','zonesDistribution'];
 export function corosNativeSummary(summary:any,verified=false){return Object.fromEntries((verified?nativeKeys:recordKeys).filter(k=>summary?.[k]!==undefined).map(k=>[k,summary[k]]))}
 export function corosNativeActivity(a:any){
  const verified=a.nativeVersion===COROS_NATIVE_VERSION;

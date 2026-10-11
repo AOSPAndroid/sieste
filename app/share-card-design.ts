@@ -77,6 +77,7 @@ const metricGlyphs:Record<string,string>={
  pace:'<path d="M3 18a9 9 0 1 1 18 0M12 13l5-5M4 18h16"/><circle cx="12" cy="13" r="1"/>',
  speed:'<path d="M3 18a9 9 0 1 1 18 0M12 13l5-5M4 18h16"/><circle cx="12" cy="13" r="1"/>',
  power:'<path d="m13 2-9 12h7l-1 8 10-13h-7Z"/>',
+ normalizedPower:'<path d="m13 2-9 12h7l-1 8 10-13h-7Z"/>',
  ascent:'<path d="m2 20 7-12 4 7 3-5 6 10ZM9 8l2-4 2 4"/>',
  descent:'<path d="m2 20 7-12 4 7 3-5 6 10ZM16 2v5m-3-3 3 3 3-3"/>',
  cadence:'<path d="M6 21h12L14 3h-4ZM12 17l7-10M7 21v-3h10v3"/>',
@@ -215,7 +216,7 @@ export function shareCardSvg(o:ShareDesign){
   const metric=(stat:ShareStat|undefined,x:number,y:number,w:number,hh:number,face:DisplayFace='tall',center=false,stretch=false)=>{
    if(!stat)return;
    const value=cinematicText(compact(stat).toUpperCase(),{x,y,width:w,height:hh,face,color:paint,align:center?'middle':'start',stretch});
-   const shortLabels:Record<string,string>={distance:'Distance',duration:'Time',pace:'Avg pace',speed:'Avg speed',power:'Avg power',hr:'Avg HR',ascent:'Gain',calories:'Calories',cadence:'Cadence',sessions:'Sessions',sleep:'Sleep',hrv:'HRV'};
+   const shortLabels:Record<string,string>={distance:'Distance',duration:'Time',pace:'Avg pace',speed:'Avg speed',power:'Avg power',normalizedPower:'Norm power',hr:'Avg HR',ascent:'Gain',calories:'Calories',cadence:'Cadence',sessions:'Sessions',sleep:'Sleep',hrv:'HRV'};
    const labelText=o.template==='tracefooter'?shortLabels[stat.key]??stat.label:stat.label;
    const label=labelCues?text(labelText.toUpperCase(),center?x+w/2:x,y+hh+34,28,600,secondary,w,false,center?'middle':'start'):'';
    parts.push(`<g data-share-stat-key="${xml(stat.key)}">${value}${label}</g>`);

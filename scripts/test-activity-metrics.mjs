@@ -13,3 +13,10 @@ result=activityMetrics({sportType:'cycling',summary:{distance:30000,duration:360
 result=activityMetrics({sportType:'misc',subSportType:'strength_training',summary:{duration:60,calories:0}});assert.equal(find('speed'),undefined);assert.equal(find('calories').value,'0');
 assert.equal(durationLabel(3590),'59m 50s');assert.equal(durationLabel(3600),'1h 0m 0s');assert.equal(paceLabel(0),'—');
 console.log('Activity metrics: correct distance totals, pace weighting, summary precedence, sport units, gaps, zero values and unknown sensors passed.');
+
+result=activityMetrics({sportType:'cycling',summary:{power:210,normalizedPower:238}});assert.equal(find('power').title,'Avg power');assert.equal(find('power').value,'210');assert.equal(find('normalizedPower').title,'Norm power');assert.equal(find('normalizedPower').value,'238');assert.equal(find('normalizedPower').unit,'W');assert.equal(find('normalizedPower').note,'Recorded NP');assert.deepEqual(find('normalizedPower').values,[],'NP must not reuse the raw power trace');
+result=activityMetrics({sportType:'cycling',summary:{durationTotal:300},seriesSampled:{sampleSize:5,data:{power:Array(60).fill(200)}}});assert.equal(find('normalizedPower').value,'200');assert.match(find('normalizedPower').note,/Estimated/);
+result=activityMetrics({sportType:'cycling',summary:{power:0,normalizedPower:0}});assert.equal(find('power').value,'0');assert.equal(find('normalizedPower').value,'0');
+result=activityMetrics({sportType:'cycling',summary:{power:210}});assert.equal(find('normalizedPower').value,'—');assert.equal(find('normalizedPower').note,'Not available');
+result=activityMetrics({sportType:'running',summary:{power:200,normalizedPower:238}});assert.equal(find('normalizedPower'),undefined,'Cycling changes must not add NP to running cards');
+console.log('Cycling metric cards: recorded/estimated watts, provenance, zero watts, honest unavailable NP and no fake NP trace passed.');

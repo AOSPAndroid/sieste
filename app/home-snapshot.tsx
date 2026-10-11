@@ -7,6 +7,7 @@ import {sportFamily,sportName,runningPace,workoutSpeed} from './sports';
 import {useCalendarDetails} from './calendar-details';
 import {lapPreview} from './calendar-preview';
 import {lapElevation} from './lap-elevation';
+import {cyclingPowerStats} from './cycling-power-data';
 
 // Vector strokes stay crisp in the exported PNG without emoji/font dependencies.
 const icons:Record<string,string>={
@@ -37,8 +38,8 @@ export default function HomeSnapshot({data,dates,now,token,isDemo}:{data:Athlete
   const detail=JSON.parse(detailJson);
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(!ctx){setMessage('Image creation is unavailable in this browser.');return}
   const groups=dates.map(day=>({day,items:data.activities.filter(a=>localDate(new Date(a.date))===localDate(day)&&new Date(a.date)<=now).sort((a,b)=>a.date.localeCompare(b.date)).map(a=>{
-   const recorded=detail[a.id],s={...a.summary,...recorded?.summary},family=sportFamily(a),cycling=family==='cycling',speed=workoutSpeed({summary:s}),pace=s.pace>0?s.pace:s.distance>0&&s.duration>0?s.duration/s.distance*1000:null;
-   const stats=[{label:'Duration',value:workoutDuration(s.duration)},...(valid(s.distance)?[{label:'Distance',value:`${(s.distance/1000).toFixed(2)} km`}]:[]),...(family!=='strength_training'?[{label:cycling?'Avg speed':'Avg pace',value:cycling?(speed===null?'—':speed.toFixed(1)+' km/h'):runningPace(pace)}]:[]),{label:'Avg HR',value:valid(s.heartrate)?Math.round(s.heartrate)+' bpm':'—'},...(valid(s.calories)?[{label:'Calories',value:Math.round(s.calories)+' kcal'}]:[])];
+   const recorded=detail[a.id],s={...a.summary,...recorded?.summary},family=sportFamily(a),cycling=family==='cycling',power=cycling?cyclingPowerStats({...a,...recorded,summary:s}):null,speed=workoutSpeed({summary:s}),pace=s.pace>0?s.pace:s.distance>0&&s.duration>0?s.duration/s.distance*1000:null;
+   const stats=[{label:'Duration',value:workoutDuration(s.duration)},...(valid(s.distance)?[{label:'Distance',value:`${(s.distance/1000).toFixed(2)} km`}]:[]),...(family!=='strength_training'?[{label:cycling?'Avg speed':'Avg pace',value:cycling?(speed===null?'—':speed.toFixed(1)+' km/h'):runningPace(pace)}]:[]),{label:'Avg HR',value:valid(s.heartrate)?Math.round(s.heartrate)+' bpm':'—'},...(power?[{label:'Avg power',value:power.average===null?'—':Math.round(power.average)+' W'},{label:power.normalizedSource==='estimated'?'Est. NP':'NP',value:power.normalized===null?'—':Math.round(power.normalized)+' W'}]:[]),...(valid(s.calories)?[{label:'Calories',value:Math.round(s.calories)+' kcal'}]:[])];
    const laps=family==='strength_training'?[]:lapPreview(recorded?.laps??[],cycling),elevation=recorded?.elevationPreview??lapElevation(recorded),lapTop=43+Math.ceil(stats.length/2)*31,showLap=family!=='strength_training'&&(laps.length>0||family==='running'||cycling);
    return {a,family,cycling,recorded,stats,laps,elevation,lapTop,height:lapTop+(showLap?60:8)};
   })}));

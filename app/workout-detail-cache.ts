@@ -18,7 +18,7 @@ export function rememberWorkoutPreview(token:string,id:string,detail:any){
  const existing=cache.get(key(token,id,'preview'));
  // A late response without sensors must not erase a profile already retrieved.
  if(existing?.data.elevationPreview&&!detail.elevationPreview)return;
- save(key(token,id,'preview'),{id,summary:detail.summary,laps:detail.laps,elevationPreview:detail.elevationPreview,previewVersion:detail.previewVersion??1});changed(token,id);
+ save(key(token,id,'preview'),{id,summary:detail.summary,powerStats:detail.powerStats,laps:detail.laps,elevationPreview:detail.elevationPreview,previewVersion:detail.previewVersion??1});changed(token,id);
 }
 export async function loadWorkout(token:string,id:string,action='detail',force=false){
  const k=key(token,id,action),full=action==='preview'?cache.get(key(token,id,'detail')):null,entry=cache.get(k)??full;

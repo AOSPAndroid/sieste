@@ -8,3 +8,10 @@ r=activityShareData({sportType:'misc',subSportType:'strength_training',summary:{
 r=activityShareData({sportType:'cycling',summary:{distance:30000,duration:3600,power:220,cadence:90}});assert.equal(r.stats.find(s=>s.key==='speed').value,'30');assert.equal(r.stats.find(s=>s.key==='power').unit,'W');assert.equal(r.stats.find(s=>s.key==='cadence').unit,'rpm');
 r=activityShareData({sportType:'running',summary:{duration:-1,distance:NaN,calories:null,heartrate:Infinity}});assert.equal(r.stats.length,0);assert.equal(activityShareData({sportType:'yoga',summary:{duration:1800}}).stats.length,1);
 console.log('Passed: running pace/distance, exact duration, cycling power/speed units, strength labels, other sports and omitted missing values.');
+
+r=activityShareData({sportType:'cycling',summary:{power:210,normalizedPower:238}});assert.equal(r.stats.find(s=>s.key==='power').value,'210');assert.equal(r.stats.find(s=>s.key==='normalizedPower').value,'238');assert.equal(r.stats.find(s=>s.key==='normalizedPower').unit,'W');
+r=activityShareData({sportType:'cycling',summary:{durationTotal:300},seriesSampled:{sampleSize:5,data:{power:Array(60).fill(200)}}});assert.equal(r.stats.find(s=>s.key==='normalizedPower').value,'200');assert.equal(r.stats.find(s=>s.key==='normalizedPower').label,'Estimated normalized power');
+r=activityShareData({sportType:'cycling',summary:{power:0,normalizedPower:0}});assert.equal(r.stats.find(s=>s.key==='normalizedPower').value,'0');
+r=activityShareData({sportType:'cycling',summary:{power:210}});assert.ok(!r.stats.some(s=>s.key==='normalizedPower'),'Missing NP must not become a shareable fake reading');
+r=activityShareData({sportType:'running',summary:{normalizedPower:238}});assert.ok(!r.stats.some(s=>s.key==='normalizedPower'));
+console.log('Cycling sharing: recorded NP, sample estimate labels, zero watts and omitted unavailable values passed.');

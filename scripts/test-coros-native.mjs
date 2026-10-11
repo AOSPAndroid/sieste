@@ -14,7 +14,7 @@ const {decodedFit}=new Function('sportFamily','workoutEvidence',nativeSource+sou
 const details=decodedFit({sessionMesgs:[{startTime:'2026-09-19T10:00:00Z',timestamp:'2026-09-19T10:00:02Z',totalTimerTime:2,totalDistance:10,avgHeartRate:145,avgCadence:90,avgStanceTime:206}],recordMesgs:[]},dirty);
 assert.equal(details.nativeVersion,3);assert.equal(details.summary.heartrate,145);assert.equal(details.summary.cadence,180);assert.equal(details.summary.groundContactTime,206);assert.equal(details.summary.vo2max,undefined);assert.equal(details.summary.steps,undefined);assert.equal(details.summary.trainingLoad,102);
 assert.equal(corosNativeActivity(details).summary.groundContactTime,206);
-const {activityMetrics}=new Function('sportFamily','cadenceUnit',nativeSource+source('app/activity-metrics.ts')+';return {activityMetrics}')(a=>a.sportType,()=> 'steps/min');
+const {activityMetrics}=new Function('sportFamily','cadenceUnit',nativeSource+source('app/cycling-power-data.ts')+source('app/activity-metrics.ts')+';return {activityMetrics}')(a=>a.sportType,()=> 'steps/min');
 assert.ok(!activityMetrics(dirty).cards.some(c=>['vo2max','steps','effort'].includes(c.id)));
 let row={activity_id:dirty.id,signature:JSON.stringify([dirty.date,dirty.sportType,null,clean.summary]),data:JSON.stringify({summary:dirty.summary,evidence:{version:1},analysisSource:'COROS FIT'})};
 const storage=()=>({db:{prepare:sql=>({bind:()=>({all:async()=>({results:sql.includes('athlete_analyses')?[row]:[]})})})}});

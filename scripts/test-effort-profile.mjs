@@ -8,7 +8,7 @@ assert.equal(profile({...detail,laps:[{duration:100}]}).laps.length,0);
 assert.equal(profile({...detail,seriesSampled:{data:{power}}}).rows.length,0);
 assert.equal(profile({...detail,seriesSampled:{sampleSize:5,data:{power:power.map(()=>100),altitude}}}).efforts.length,0);
 const gaps=profile({...detail,seriesSampled:{sampleSize:5,data:{power:power.map((v,i)=>i>=60&&i<90?null:v),altitude}}});assert.ok(gaps.efforts.every(e=>e.end<=5||e.start>=7.5));
-const metrics=new Function(source('app/sports.ts')+source('app/activity-metrics.ts')+';return activityMetrics')();
+const metrics=new Function(source('app/sports.ts')+source('app/cycling-power-data.ts')+source('app/activity-metrics.ts')+';return activityMetrics')();
 const summary={steps:9000,stepLength:100,groundContactTime:210,calories:400,cadence:80,power:150};
 let cards=metrics({sportType:'cycling',summary}).cards;assert.ok(!cards.some(c=>['steps','stepLength','groundContactTime'].includes(c.id)));assert.equal(cards.find(c=>c.id==='cadence').unit,'rpm');assert.ok(cards.some(c=>c.id==='power'));
 cards=metrics({sportType:'running',summary}).cards;assert.ok(cards.some(c=>c.id==='steps'));assert.ok(cards.some(c=>c.id==='stepLength'));console.log('Sport filtering, aligned laps, gaps and sustained effort detection passed.');

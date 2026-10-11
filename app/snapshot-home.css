@@ -493,6 +493,15 @@
 
 /* Week columns respond to their card width, including the desktop split view. */
 .sieste-v3 .snapshot-home-focus { container-type: inline-size; }
+@media (max-width: 650px) {
+  .sieste-v3 .focus-calendar .calendar-session-stats > span.calendar-power-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+  }
+}
 @container (max-width: 800px) {
   .sieste-v3 .snapshot-home-focus .focus-calendar.mode-7 .home-week-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;

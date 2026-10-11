@@ -29,13 +29,22 @@ const compact=lapElevation(large);assert.ok(compact.segments.flat().length<=384)
 // Exercise the real provider preview branch: request samples upstream, return
 // only the compact profile rather than the athlete's full sensor/GPS arrays.
 const route=compile('app/api/sync/tredict.ts').replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
-const {POST}=new Function('lapElevation','workoutEvidence',route+';return {POST}') (lapElevation,()=>({version:1}));
+const {sportFamily}=new Function(compile('app/sports.ts').replaceAll('export ','')+';return {sportFamily}')();
+const {cyclingPowerStats}=new Function('sportFamily',compile('app/cycling-power-data.ts').replace(/^import .*;\s*$/gm,'').replaceAll('export ','')+';return {cyclingPowerStats}')(sportFamily);
+const {POST}=new Function('lapElevation','workoutEvidence','cyclingPowerStats',route+';return {POST}') (lapElevation,()=>({version:1}),cyclingPowerStats);
 const originalFetch=globalThis.fetch;
 try{
  globalThis.fetch=async url=>{assert.equal(new URL(url).searchParams.get('allSeries'),'1');return Response.json({...fixture,seriesSampled:{...fixture.seriesSampled,data:{...fixture.seriesSampled.data,positionLat:[48,49]}}})};
  for(const action of ['preview','enrich']){
   const result=await POST(new Request('https://sieste.test/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:'synthetic-only',action,id:'run',ids:['run']})}));
   assert.equal(result.status,200);const preview=(await result.json()).details[0];assert.equal(preview.previewVersion,1);assert.ok(preview.elevationPreview);assert.deepEqual(preview.laps,fixture.laps);assert.equal(preview.seriesSampled,undefined);assert.ok(!JSON.stringify(preview).includes('positionLat'));
+ }
+ const ride={sportType:'cycling',summary:{durationTotal:300,power:210},laps:[{duration:300}],seriesSampled:{sampleSize:5,data:{power:Array(60).fill(200),positionLat:[48,49]}}};
+ globalThis.fetch=async()=>Response.json(ride);
+ for(const action of ['preview','enrich','detail']){
+  const response=await POST(new Request('https://sieste.test/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:'synthetic-only',action,id:'ride',ids:['ride']})}));assert.equal(response.status,200);
+  const result=(await response.json()).details[0];assert.deepEqual(result.powerStats,{average:210,normalized:200,averageSource:'recorded',normalizedSource:'estimated'});
+  if(action!=='detail'){assert.equal(result.seriesSampled,undefined);assert.ok(!JSON.stringify(result).includes('positionLat'));assert.equal(cyclingPowerStats({sportType:'cycling',...result}).normalized,200,'Home can recover NP from compact metadata');}
  }
 }finally{globalThis.fetch=originalFetch}
 console.log('Lap elevation: recorded boundaries, paused timing, gaps, flat/negative altitude, missing data, distance reconciliation, bounded extrema and compact Tredict preview passed.');

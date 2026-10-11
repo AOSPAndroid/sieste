@@ -35,8 +35,8 @@ const statLimits:Record<ReferenceTemplate,number>={refsingle:1,refpair:2,reftrip
 export function referenceStatLimit(template:string){return statLimits[template as ReferenceTemplate]??6;}
 const xml=(value:string)=>value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 const safe=(value:string)=>value&&!/^\s*(?:NaN|Infinity|undefined|null)\s*$/i.test(value)?value:'—';
-const priority=['distance','pace','speed','duration','ascent','calories','hr','power','cadence'];
-const labels:Record<string,string>={distance:'DISTANCE',pace:'PACE',speed:'SPEED',duration:'TIME',ascent:'ELEVATION',calories:'CALORIES',hr:'HEART RATE',power:'POWER',cadence:'CADENCE',sleep:'SLEEP',hrv:'HRV',score:'SLEEP SCORE',steps:'STEPS'};
+const priority=['distance','pace','speed','duration','ascent','calories','hr','power','normalizedPower','cadence'];
+const labels:Record<string,string>={distance:'DISTANCE',pace:'PACE',speed:'SPEED',duration:'TIME',ascent:'ELEVATION',calories:'CALORIES',hr:'HEART RATE',power:'POWER',normalizedPower:'NP',cadence:'CADENCE',sleep:'SLEEP',hrv:'HRV',score:'SLEEP SCORE',steps:'STEPS'};
 const sportGlyphs:Record<string,string>={
  running:'<circle cx="16" cy="4" r="2"/><path d="m5 9 4-2 4 3 4 2 3-2M13 10l-3 5 5 3-1 4M10 15l-4 5H2"/>',
  cycling:'<circle cx="5" cy="17" r="4"/><circle cx="19" cy="17" r="4"/><circle cx="15" cy="3" r="2"/><path d="m12 7-4 5 6 2v7M12 7l4 4h4M5 17l3-5"/>',
@@ -86,7 +86,7 @@ export function renderReferenceShare(o:ShareDesign,{ink:oInk}:{ink?:string}={}){
  const display=(value:string,x:number,y:number,width:number,height:number,face:ReferenceFace='wide',center=false,color=ink)=>referenceText(value,{x,y,width,height,face,color,align:center?'middle':'start'});
  const caption=(stat:ShareStat,x:number,y:number,width:number,color=ink)=>{
   if(labelMode==='none'||labelMode==='icons')return '';
-  const label=labelMode==='short'?labels[stat.key]??stat.label.toUpperCase():shareMetricLabel(stat.key,stat.label,'full').toUpperCase();
+  const label=labelMode==='short'?stat.key==='normalizedPower'&&stat.label.startsWith('Estimated')?'EST. NP':labels[stat.key]??stat.label.toUpperCase():shareMetricLabel(stat.key,stat.label,'full').toUpperCase();
   return `<g data-share-caption="${xml(stat.key)}" data-share-label-key="${xml(stat.key)}" data-share-label-mode="${labelMode}" data-share-label-kind="metric">${plain(label,x,y,19,width,{anchor:'middle',weight:700,color})}</g>`;
  };
  const reading=(stat:ShareStat|undefined,x:number,y:number,width:number,height:number,face:ReferenceFace='wide',center=false,options:{compactClock?:boolean;upper?:boolean;distanceDecimals?:number;color?:string}={})=>stat?tag(stat,display(attachedDistance(stat,referenceStatValue(stat,options)),x,y,width,height,face,center,options.color??ink)):'';

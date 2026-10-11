@@ -1,6 +1,7 @@
 import {sampledBest} from './training-coach-data';
 import {sportFamily} from './sports';
 import {activityClimbs} from './activity-terrain-data';
+import {cyclingPowerStats} from './cycling-power-data';
 const valid=(x:any):x is number=>typeof x==='number'&&Number.isFinite(x);
 const mean=(xs:any[])=>{const a=xs.filter(valid);return a.length?a.reduce((s,v)=>s+v,0)/a.length:null};
 export function cyclingReference(detail:any){const c=detail.cyclingContext??{},manual=c.manualReference,when=Date.parse(detail.date),historic=Object.entries(c.fitnessHistory??{}).filter(([d,v]:any)=>valid(v.ftp)&&Date.parse(d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8)+'T00:00:00Z')<=when).sort(([a],[b])=>b.localeCompare(a))[0] as [string,any]|undefined;const recorded=detail.summary?.ftp,manualFtp=valid(manual?.ftp)&&manual.ftp>0?manual.ftp:null;const ftp=valid(recorded)&&recorded>0?recorded:historic?.[1].ftp??manualFtp??c.fitness?.ftp;const weight=valid(manual?.weight)&&manual.weight>0?manual.weight:c.profile?.weight;return {ftp:valid(ftp)&&ftp>0?ftp:null,label:valid(recorded)&&recorded>0?'Workout FTP':historic?`COROS FTP recorded ${historic[0].slice(0,4)}-${historic[0].slice(4,6)}-${historic[0].slice(6,8)}`:manualFtp?`Athlete-reported FTP · ${manual.savedAt?.slice(0,10)??'current'} · current reference` :valid(ftp)?`Current COROS FTP${c.fitness?.observedAt?' · '+c.fitness.observedAt.slice(0,10):''} · historical fallback`:'FTP not supplied by this connection',weight:valid(weight)&&weight>0?weight:null,weightLabel:valid(manual?.weight)?'athlete-reported current weight':'current COROS weight'};}
@@ -9,9 +10,7 @@ export function effortBadges(efforts:any[],i:number){const e=efforts[i];if(!e)re
 export function cyclingAdvanced(detail:any,history:any[],efforts:any[]){
  const ref=cyclingReference(detail),s=detail.seriesSampled?.data??{},step=detail.seriesSampled?.sampleSize,p=s.power??[],cap=Math.min(valid(detail.summary?.durationTotal)?detail.summary.durationTotal:Infinity,p.length*(step??0));const timed=valid(step)&&step>0&&step<=30&&cap>0;
  const curve=[5,15,30,60,300,1200,3600].map(seconds=>{const current=timed?sampledBest(p,step,seconds,cap):null;const baseline=(days:number)=>{const eligible=history.filter(a=>a.id!==detail.id&&sportFamily(a)==='cycling'&&Date.parse(a.date)<Date.parse(detail.date)&&Date.parse(a.date)>=Date.parse(detail.date)-days*86400000),loaded=eligible.filter(a=>a.evidence?.best?.power?.some((b:any)=>b.seconds===seconds));const values=loaded.flatMap(a=>a.evidence.best.power.filter((b:any)=>b.seconds===seconds&&valid(b.value)).map((b:any)=>b.value));return {value:values.length?Math.max(...values):null,loaded:loaded.length,total:eligible.length}};return {seconds,current:current?.value??null,at:current?.start??null,month:baseline(30),quarter:baseline(90)}});
- let np:number|null=null,vi:number|null=null;const n=timed?Math.floor(cap/step):0,values=p.slice(0,n),average=mean(values);
- // NP estimate only with complete recording, >=5 minutes and <=5s samples.
- if(timed&&step<=5&&cap>=300&&values.every((v:any)=>valid(v)&&v>=0)){const w=Math.ceil(30/step);let sum=0,fourth=0,count=0;for(let i=0;i<values.length;i++){sum+=values[i];if(i>=w)sum-=values[i-w];if(i>=w-1){fourth+=(sum/w)**4;count++}}if(count){np=(fourth/count)**.25;vi=average&&average>0?np/average:null}}
+ const powerStats=cyclingPowerStats(detail),np=powerStats.normalized,average=powerStats.average,n=timed?Math.floor(cap/step):0,vi=np!==null&&average!==null&&average>0?np/average:null;
  const zones=[{label:'Recovery',low:0,high:55},{label:'Endurance',low:55,high:75},{label:'Tempo',low:75,high:90},{label:'Threshold',low:90,high:105},{label:'VO₂ effort',low:105,high:120},{label:'Anaerobic',low:120,high:150},{label:'Sprint',low:150,high:Infinity}].map(z=>({...z,seconds:0}));let validSeconds=0;
  if(timed&&ref.ftp)for(let i=0;i<p.length&&i*step<cap;i++){if(!valid(p[i])||p[i]<0)continue;const seconds=Math.min(step,cap-i*step),percent=p[i]/ref.ftp*100;const z=zones.find(z=>percent<=z.high)!;z.seconds+=seconds;validSeconds+=seconds}
  const repeats=efforts.filter(e=>efforts[0]&&Math.abs((e.end-e.start)/(efforts[0].end-efforts[0].start)-1)<=.2),repeatChange=repeats.length>=3&&repeats[0].mean>0?(repeats.at(-1).mean/repeats[0].mean-1)*100:null;
@@ -21,5 +20,5 @@ export function cyclingAdvanced(detail:any,history:any[],efforts:any[]){
   const from=Math.ceil(climb.start/step),to=Math.floor(climb.end/step);
   return {...climb,power:mean(p.slice(from,to)),hr:mean((s.heartrate??[]).slice(from,to)),cadence:mean((s.cadence??[]).slice(from,to))};
  });
- return {ref,curve,np,vi,ifactor:np&&ref.ftp?np/ref.ftp:null,averagePct:average!==null&&ref.ftp?average/ref.ftp*100:null,zones,validSeconds,repeatChange,repeats:repeats.length,durability,climbs};
+ return {ref,curve,np,npSource:powerStats.normalizedSource,vi,ifactor:np!==null&&ref.ftp?np/ref.ftp:null,averagePct:average!==null&&ref.ftp?average/ref.ftp*100:null,zones,validSeconds,repeatChange,repeats:repeats.length,durability,climbs};
 }
