@@ -3,9 +3,9 @@ import {readFileSync,mkdirSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import sharp from 'sharp';
-import {loadShareDesignModule} from './share-design-test-module.mjs';
+import {loadShareDesignModule,shareFontFixtures} from './share-design-test-module.mjs';
 const {shareCardSvg}=await loadShareDesignModule();
-const glyphs=JSON.parse(readFileSync(new URL('../app/share-display-glyphs.json',import.meta.url),'utf8'));
+const glyphs=shareFontFixtures();
 for(const face of Object.values(glyphs))for(const glyph of Object.values(face.glyphs)){
  assert.equal(glyph.length,6);
  assert.ok(glyph.slice(0,5).every(Number.isFinite));

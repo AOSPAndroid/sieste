@@ -1,13 +1,13 @@
-import faces from './share-display-glyphs.json';
+import {shareFont,type ShareGlyph} from './share-assets';
 import {cinemaWarp,warpedGlyph,type CinemaWarp} from './cinematic-warp';
-type Glyph=[number,number,number,number,number,string];
+type Glyph=ShareGlyph;
 export type DisplayFace='bold'|'tall'|'serif'|'wide'|'slab'|'retro'|'approved';
 const xml=(text:string)=>text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 
 /** Top-aligned, self-contained outlined letters; no font downloads during export. */
 export function cinematicText(value:string,{x,y,width,height,face='bold',color='#fff',outline=false,align='start',stretch=false,warp,warpBox}:{x:number;y:number;width:number;height:number;face?:DisplayFace;color?:string;outline?:boolean;align?:'start'|'middle';stretch?:boolean;warp?:CinemaWarp;warpBox?:{x:number;y:number;width:number;height:number}}){
  value=value.normalize('NFC');
- const font=faces[face] as unknown as {units:number;glyphs:Record<string,Glyph>};
+ const font=shareFont('display',face) as {units:number;glyphs:Record<string,Glyph>};
  const letters=[...value],glyphs=letters.map(character=>font.glyphs[character]);
  if(!value.trim())return '';
  if(glyphs.some(glyph=>!glyph)){const fitted=Math.min(height,width/Math.max(1,letters.length*.6));return `<text x="${align==='middle'?x+width/2:x}" y="${y+(height+fitted)/2}"${align==='middle'?' text-anchor="middle"':''} font-family="Arial,Helvetica,sans-serif" font-size="${fitted}" fill="${outline?'none':color}"${outline?` stroke="${color}" stroke-width="3"`:''}>${xml(value)}</text>`;}

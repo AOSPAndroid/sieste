@@ -45,6 +45,10 @@ const deferred = () => {
 };
 function harness({
   metadata = account,
+  metadataGate=null,
+  previous,
+  etag,
+  notModified=false,
   metadataStatus = 200,
   state = { ...account, data: saved },
   serverStatus = 200,
@@ -70,18 +74,18 @@ function harness({
   };
   const request = async (url, options) => {
     calls.push([url, options]);
-    if (url === "/api/account")
-      return Response.json(metadata, { status: metadataStatus });
+    if (url === "/api/account") {if(metadataGate)await metadataGate.promise;return Response.json(metadata,{status:metadataStatus})}
     if (options.method !== "POST") {
       if (serverGate) await serverGate.promise;
       if (failServer) throw Error("Offline");
-      return Response.json(state, { status: serverStatus });
+      return notModified?new Response(null,{status:304,headers:{ETag:etag,'X-Sieste-User':metadata.userId}}):Response.json(state,{status:serverStatus,headers:etag?{ETag:etag}:{}});
     }
     if (failRefresh)
       return Response.json({ error: "Provider unavailable" }, { status: 503 });
     return Response.json(fresh);
   };
   const options = {
+    previous,
     cache,
     request,
     current,
@@ -185,7 +189,7 @@ assert.ok(
 );
 s = harness({ metadata: { signedIn: false, connected: false } });
 await s.task;
-assert.equal(s.calls.length, 1);
+assert.equal(s.calls.length, 2, 'Metadata and saved data requests start together; anonymous data is discarded');
 assert.ok(s.events.some(([key]) => key === "clear"));
 assert.ok(!s.events.some(([key]) => key === "read"));
 s = harness({ state: { signedIn: false, connected: false } });
@@ -236,6 +240,16 @@ assert.ok(
     ([key, value]) => key === "onData" && value?.activities[0]?.id === "server",
   ),
 );
+gate=deferred();s=harness({metadataGate:gate,cachedData:null});
+await settle();
+assert.equal(s.calls.length,2,'Account and snapshot requests start in parallel');
+assert.ok(!s.events.some(([key,value])=>key==='onData'&&value),'No data appears before identity is verified');
+gate.resolve();await s.task;
+s=harness({previous:{scope:'scope-a',data:{...saved,syncRevision:'"rev"'}},etag:'"rev"',notModified:true,cachedData:null});
+await s.task;
+assert.equal(s.calls[1][1].headers['If-None-Match'],'"rev"');
+assert.equal(s.calls.length,2,'304 reuses verified recent dashboard without POST');
+assert.ok(s.events.some(([key,value])=>key==='onData'&&value?.activities[0].id==='server'));
 console.log(
   "Passed account restore: cached first paint, five-minute freshness, background refresh, failures, slow/blocked storage, account checks, sign-out/disconnect cleanup and stale request cancellation.",
 );

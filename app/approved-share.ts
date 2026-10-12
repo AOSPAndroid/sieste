@@ -1,18 +1,12 @@
-import originalArt from './original-share-art.json';
+import {approvedArt,shareImage,type ApprovedKind,type ApprovedArt} from './share-assets';
 import type {ShareDesign,ShareStat} from './share-card-design';
 import {shareMetricLabel} from './share-labels';
 
-export const approvedActivityDesigns=[
- {key:'approvedrun',name:'Café run · original',description:'The original yellow running sticker',color:'#ffdf00'},
- {key:'approvedride',name:'Club ride · original',description:'The original ivory cycling sticker',color:'#fff4d5'}
-] as const;
-export const approvedRecoveryDesigns=[
- {key:'approvedrecovery',name:'Blue recovery · original',description:'The original glossy blue recovery sticker',color:'#b7ddf2'}
-] as const;
+export {approvedActivityDesigns,approvedRecoveryDesigns} from './share-design-catalog';
+
 type Helpers={ink:string;route:(x:number,y:number,w:number,h:number,stroke?:number,inset?:number)=>string};
-type Kind='running'|'cycling'|'recovery';
-type Art={png:string;faceMask:string;width:number;height:number;originalBBox:number[];frontBBox:number[];source:{kind:string;components:number[]}};
-const atlas=originalArt as unknown as {glyphs:Record<Kind,Record<string,Art>>;groups:Record<Kind,Record<string,Art>>;icons:Record<Kind,Record<string,Art>>};
+type Kind=ApprovedKind;
+type Art=ApprovedArt;
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 const known=(n:unknown):n is number=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
 const clock=(stat:ShareStat)=>{const n=stat.value.split(':').map(Number);return n.length===3&&n.every(Number.isFinite)?`${n[0]}h${String(n[1]).padStart(2,'0')}`:stat.value;};
@@ -21,15 +15,15 @@ const clock=(stat:ShareStat)=>{const n=stat.value.split(':').map(Number);return 
 export function renderApprovedShare(o:ShareDesign,helpers:Helpers){
  const recovery=o.template==='approvedrecovery',ride=o.template==='approvedride',kind:Kind=recovery?'recovery':ride?'cycling':'running';
  const original=(!o.finish||o.finish==='solid')&&o.accent.toLowerCase()===(recovery?'#b7ddf2':ride?'#fff4d5':'#ffdf00');
- const parts:string[]=[],groups=atlas.groups[kind],icons=atlas.icons[kind];let sequence=0;
+ const atlas=approvedArt(kind),parts:string[]=[],groups=atlas.groups,icons=atlas.icons;let sequence=0;
  const shadow=recovery?'#0647ec':ride?'#080655':'#d70000';
  parts.push('<defs><linearGradient id="originalSignal"><stop stop-color="#ddffff"/><stop offset=".5" stop-color="#63ccfa"/><stop offset="1" stop-color="#b9f5ff"/></linearGradient></defs>');
  // The drafts were 1280px. Keeping their source positions preserves their composition.
  parts.push(`<g data-approved-design="${o.template}" transform="translate(0 ${(o.height-1080)/2}) scale(.84375)">`);
  const art=(item:Art,x=item.originalBBox[0],y=item.originalBBox[1],w=item.width,h=item.height,attributes='')=>{
   const sx=w/item.width,sy=h/item.height,b=item.frontBBox,id='originalFace'+sequence++;
-  const picture=`<image href="${item.png}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"/>`;
-  const content=original?picture:`<g data-approved-shadow="true" fill="${shadow}">${picture}</g><defs><mask id="${id}" maskUnits="userSpaceOnUse" x="${x}" y="${y}" width="${w}" height="${h}" style="mask-type:alpha"><image href="${item.faceMask}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"/></mask></defs><rect x="${x}" y="${y}" width="${w}" height="${h}" mask="url(#${id})" fill="${helpers.ink}"/>`;
+  const picture=`<image href="${shareImage(item.png)}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"/>`;
+  const content=original?picture:`<g data-approved-shadow="true" fill="${shadow}">${picture}</g><defs><mask id="${id}" maskUnits="userSpaceOnUse" x="${x}" y="${y}" width="${w}" height="${h}" style="mask-type:alpha"><image href="${shareImage(item.faceMask)}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"/></mask></defs><rect x="${x}" y="${y}" width="${w}" height="${h}" mask="url(#${id})" fill="${helpers.ink}"/>`;
   return `<g data-original-art="true"${original?' data-approved-material="true"':''} data-original-kind="${kind}" data-original-source="${xml(item.source.kind+':'+item.source.components.join(','))}" data-original-bounds="${x+b[0]*sx} ${y+b[1]*sy} ${b[2]*sx} ${b[3]*sy}" ${attributes}>${content}</g>`;
  };
  const front=(item:Art)=>[item.originalBBox[0]+item.frontBBox[0],item.originalBBox[1]+item.frontBBox[1],item.frontBBox[2],item.frontBBox[3]];
@@ -38,7 +32,7 @@ export function renderApprovedShare(o:ShareDesign,helpers:Helpers){
   if(groups[value])body=art(groups[value],undefined,undefined,undefined,undefined,`data-original-group="${xml(value)}"`);
   else if(value==='—')body=`<path d="M${box[0]+box[2]/2-25} ${box[1]+box[3]/2}h50" fill="none" stroke="${original?o.accent:helpers.ink}" stroke-width="5" stroke-linecap="round"/>`;
   else{
-   const glyphs=[...value].map(character=>({character,item:atlas.glyphs[kind][character]}));
+   const glyphs=[...value].map(character=>({character,item:atlas.glyphs[character]}));
    const height=box[3],gap=-height*.025;
    const layout=glyphs.map(({character,item})=>{const factor=character==='.'?.25:character===':'?.65:character==='m'||character==='s'?.72:1;const gh=height*factor;return {character,item,gh,gw:item?item.frontBBox[2]/item.frontBBox[3]*gh:height*.3};});
    const natural=layout.reduce((sum,g)=>sum+g.gw,0)+gap*Math.max(0,layout.length-1),sx=Math.min(1,box[2]/Math.max(1,natural));let cursor=box[0]+(box[2]-natural*sx)/2;

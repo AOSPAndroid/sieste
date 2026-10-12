@@ -1,4 +1,5 @@
 "use client";
+import './metric-styles.css';
 import {useState,type ReactNode} from 'react';
 import {ResponsiveContainer,ComposedChart,Line,Bar,CartesianGrid,XAxis,YAxis,Tooltip,ReferenceLine,ReferenceArea} from 'recharts';
 import type {AthleteData} from './analytics';

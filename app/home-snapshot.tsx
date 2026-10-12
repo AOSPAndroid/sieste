@@ -1,4 +1,5 @@
 "use client";
+import './share-styles.css';
 import {useEffect,useState} from 'react';
 import {Copy,Download,Share2} from 'lucide-react';
 import type {AthleteData} from './analytics';

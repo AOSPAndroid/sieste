@@ -196,8 +196,8 @@ function pruneReceipts() {
     .sort((a, b) => b[1].at - a[1].at).slice(0, 1000));
 }
 
-async function acknowledge(config, job, statusCode) {
-  await callServer(config, { op: 'delivered', id: job.id, claim: job.claim, statusCode }, 30_000);
+function acknowledgement(job, statusCode) {
+  return { id: job.id, claim: job.claim, statusCode };
 }
 
 async function deliver(config, job) {
@@ -207,14 +207,13 @@ async function deliver(config, job) {
     state.failedNotifications++;
     if (job && typeof job.id === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(job.id)
         && typeof job.claim === 'string' && /^[A-Za-z0-9_-]{1,256}$/.test(job.claim)) {
-      await acknowledge(config, job, 400);
+      return acknowledgement(job, 400);
     }
     return;
   }
   const previous = Object.hasOwn(receipts, job.id) ? receipts[job.id] : null;
   if (previous) {
-    await acknowledge(config, job, previous.statusCode);
-    return;
+    return acknowledgement(job, previous.statusCode);
   }
   let statusCode = 0;
   try {
@@ -245,7 +244,7 @@ async function deliver(config, job) {
     state.notifications++;
     state.lastPushAt = new Date().toISOString();
   } else state.failedNotifications++;
-  await acknowledge(config, job, statusCode);
+  return acknowledgement(job, statusCode);
 }
 
 async function tick() {
@@ -261,16 +260,22 @@ async function tick() {
   state.lastSuccessAt = new Date().toISOString();
   state.error = null;
   if (result.synced === true) {
-    state.syncs++;
+    state.syncs += Array.isArray(result.results)
+      ? result.results.slice(0, 4).filter(item => item?.synced === true).length : 1;
     state.lastSyncAt = state.lastSuccessAt;
   }
   if (result.notificationJobs !== undefined && !Array.isArray(result.notificationJobs)) {
     throw new WorkerError('WORKER_RESPONSE');
   }
   // Keep claims bounded even if the server accidentally returns an oversized batch.
+  const acknowledgements = [];
   for (const job of (result.notificationJobs || []).slice(0, 20)) {
     if (stopping) break;
-    await deliver(config, job);
+    const receipt = await deliver(config, job);
+    if (receipt) acknowledgements.push(receipt);
+  }
+  for (let offset = 0; offset < acknowledgements.length; offset += 8) {
+    await callServer(config, { op: 'delivered-many', jobs: acknowledgements.slice(offset, offset + 8) }, 30_000);
   }
   await saveState();
 }

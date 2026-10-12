@@ -1,4 +1,5 @@
 "use client";
+import './share-styles.css';
 import {useEffect,useLayoutEffect,useId,useRef,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {ArrowLeft,Palette,SlidersHorizontal,LayoutGrid,Settings2,X} from 'lucide-react';

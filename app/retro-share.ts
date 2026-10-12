@@ -2,18 +2,7 @@ import type {ShareDesign} from './share-card-design';
 import {cinematicText} from './cinematic-type';
 import {shareMetricLabel} from './share-labels';
 
-export const retroActivityDesigns=[
- {key:'retrohero',name:'Golden hour',description:'Café lettering · giant reading · red shadow',color:'#f4d35e'},
- {key:'retroride',name:'Sunday club',description:'Ivory lettering · indigo shadow · sweeping route',color:'#f3e8d0'},
- {key:'retroswoop',name:'Slow curve',description:'Flowing serif numbers · curved underline · real stats',color:'#f4d35e'},
- {key:'retrostack',name:'The stat stack',description:'Six bold readings · tiny icons · hard shadows',color:'#f3e8d0'},
- {key:'retrolaps',name:'Lap café',description:'Big headline · recorded splits · compact readings',color:'#f4d35e'},
- {key:'retroseal',name:'Club stamp',description:'Scalloped seal · chunky serif · your route',color:'#f3e8d0'}
-] as const;
-export const retroRecoveryDesigns=[
- {key:'retrorecovery',name:'Blue morning',description:'Ice blue sleep · cobalt shadow · recovery history',color:'#b7ddf2'},
- {key:'retrotriptych',name:'Recovery club',description:'Three serif readings · history with gaps · day workouts',color:'#b7ddf2'}
-] as const;
+export {retroActivityDesigns,retroRecoveryDesigns} from './share-design-catalog';
 
 type Helpers={ink:string;route:(x:number,y:number,w:number,h:number,stroke?:number,inset?:number)=>string;sportIcon:(family:string,x:number,y:number,size:number,color:string)=>string;healthIcon:(key:string,x:number,y:number,size:number,color:string)=>string};
 type Stat=ShareDesign['stats'][number];

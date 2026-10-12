@@ -1,4 +1,5 @@
-import {readFileSync} from 'node:fs';
+import {readFileSync,readdirSync} from 'node:fs';
+import {DatabaseSync} from 'node:sqlite';
 
 import assert from 'node:assert/strict';
 
@@ -10,7 +11,7 @@ function moduleUrl(name){if(cache.has(name))return cache.get(name);let s=ts.tran
 
 const {athenaContext}=await import(moduleUrl('app/athena-context'));
 
-const {prune,visible,updateQueue}=await import(moduleUrl('db/athena-queue'));
+const {prune,visible,ensureAthenaQueue,enqueueAthena,athenaWorker,clearAthena}=await import(moduleUrl('db/athena-queue'));
 
 const data={activities:[{id:'a',date:'2026-09-27T23:30:00Z',sportType:'cycling',title:'SECRET ROUTE',summary:{duration:3600,distance:25000,power:150,positionLat:[48],token:'SECRET'}},{id:'old',date:'2020-01-01',sportType:'running'}],sleep:{20260928:[28800]},hrv:{20260928:[99]},extra:{bodyvalues:{bodyvalues:[{timestamp:'2026-09-27T23:30:00Z',hrRestDynamic:50}]},coros:{fitness:{ftp:247,observedAt:'2026-09-28'},token:'SECRET'}},syncedAt:'2026-09-28T10:00:00Z'};
 
@@ -18,15 +19,23 @@ const c=athenaContext(data,'2026-09-28','a','Europe/Paris');assert.equal(c.daily
 
 const now=Date.now(),q={heartbeat:now,jobs:[{id:'old',created:now-8*86400000,owner:'a',status:'done'},{id:'pending',created:now-190000,owner:'a',status:'working',context:{private:1},claim:'secret'},{id:'other',owner:'b',created:now,status:'done',answer:'private'}]};prune(q,now);assert.equal(q.jobs.length,2);assert.equal(q.jobs[0].status,'failed');assert.equal(q.jobs[0].context,undefined);assert.equal(q.jobs[0].claim,undefined);assert.equal(visible(q,'a').length,1);assert.ok(!JSON.stringify(visible(q,'a')).includes('private'));
 
-let value=null,revision=0,conflict=true;
+const database=new DatabaseSync(':memory:');
+for(const file of readdirSync(new URL('../drizzle/',import.meta.url)).filter(file=>file.endsWith('.sql')).sort())database.exec(readFileSync(new URL('../drizzle/'+file,import.meta.url),'utf8').replaceAll('--> statement-breakpoint',''));
+const bound=(sql,args=[])=>({sql,args,bind:(...values)=>bound(sql,values),first:async()=>database.prepare(sql).get(...args)??null,all:async()=>({results:database.prepare(sql).all(...args)}),run:()=>{if(/RETURNING|^SELECT/i.test(sql))return {results:database.prepare(sql).all(...args),meta:{changes:0}};return {results:[],meta:{changes:database.prepare(sql).run(...args).changes}}}});
+const db={prepare:sql=>bound(sql),batch:async statements=>{database.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(statement.run());database.exec('COMMIT');return results}catch(error){database.exec('ROLLBACK');throw error}}};
+let reads=0,writes=0,deletes=0;
+const legacy={heartbeat:0,jobs:[{id:'legacy-done',owner:'athletes/legacy/',thread:'legacy-thread',message:'Previous question',created:now-10000,status:'done',answer:'Previous answer'}]};
+const bucket={async get(){reads++;return {json:async()=>structuredClone(legacy)}},async put(){writes++;throw new Error('The new queue must never rewrite R2')},async delete(key){assert.equal(key,'athena/queue-v1');assert.equal(database.prepare("SELECT legacy_migrated FROM athena_queue_state WHERE id='main'").get().legacy_migrated,1);deletes++;}};
+await ensureAthenaQueue(db,bucket);assert.equal(reads,1);assert.equal(database.prepare('SELECT COUNT(*) AS n FROM athena_jobs').get().n,1);
+await ensureAthenaQueue(db,bucket);assert.equal(reads,1,'Legacy queue import runs once');assert.equal(deletes,1,'Legacy data is removed only after its D1 marker commits');
+const cleanupDb={...db};let cleanupAttempts=0;
+const cleanupBucket={get:async()=>{throw new Error('Committed migrations must never reimport R2');},delete:async()=>{cleanupAttempts++;if(cleanupAttempts===1)throw new Error('Temporary cleanup failure');}};
+await assert.rejects(()=>ensureAthenaQueue(cleanupDb,cleanupBucket),/Temporary cleanup failure/);
+assert.equal(database.prepare('SELECT COUNT(*) AS n FROM athena_jobs').get().n,1,'A cleanup failure preserves imported history');
+await ensureAthenaQueue(cleanupDb,cleanupBucket);assert.equal(cleanupAttempts,2,'Later requests retry cleanup through the committed marker');
+console.log('Athena: private context, units, dates, account isolation, expiry and one-time D1 migration passed');
 
-const bucket={async get(){return value?{etag:String(revision),async json(){return structuredClone(value)}}:null},async put(key,body,options){if(conflict){conflict=false;return null}assert.ok(options.onlyIf);value=JSON.parse(body);revision++;return {etag:String(revision)}}};
-
-await updateQueue(bucket,q=>{q.jobs.push({id:'once'});return {body:{ok:true}}});assert.equal(value.jobs.length,1);
-
-console.log('Athena: private context, units, dates, account isolation, expiry and CAS retry passed');
-
-globalThis.athenaTest={user:null,bucket,snapshot:data,env:{ATHENA_BRIDGE_TOKEN:'test-secret'}};
+globalThis.athenaTest={user:null,bucket,db,snapshot:data,env:{ATHENA_BRIDGE_TOKEN:'test-secret'}};
 
 const stub=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
 
@@ -34,11 +43,11 @@ const modules={
 
  '../../chatgpt-auth':stub('export async function getChatGPTUser(){return globalThis.athenaTest.user}'),
 
- '../../../db/storage':stub('export const storage=()=>({bucket:globalThis.athenaTest.bucket});export const privateJson=(b,s=200)=>Response.json(b,{status:s});export const sameOrigin=r=>r.headers.get("origin")===new URL(r.url).origin;export const ownerPrefix=async id=>"athletes/"+id+"/";'),
+ '../../../db/storage':stub('export const storage=()=>({bucket:globalThis.athenaTest.bucket,db:globalThis.athenaTest.db});export const privateJson=(b,s=200)=>Response.json(b,{status:s});export const sameOrigin=r=>r.headers.get("origin")===new URL(r.url).origin;export const ownerPrefix=async id=>"athletes/"+id+"/";'),
 
  '../../../db/athena-queue':moduleUrl('db/athena-queue'),
 
- '../sync/route':stub('export async function GET(){return Response.json({data:globalThis.athenaTest.snapshot})}'),
+ '../sync/route':stub('export async function GET(request){const url=new URL(request.url);if(url.pathname!=="/api/sync"||url.search||request.method!=="GET"||request.headers.get("Accept-Encoding")!=="identity"||request.headers.has("If-None-Match"))throw new Error("Internal snapshot must request full uncompressed JSON");if(request.headers.get("Cookie")!=="signed-in-session")throw new Error("Internal snapshot must preserve auth");return Response.json({data:globalThis.athenaTest.snapshot})}'),
 
  '../../athena-context':moduleUrl('app/athena-context'),
 
@@ -60,7 +69,7 @@ globalThis.athenaTest.user={userId:'a'};
 
 const body={message:'Review my sleep',screen:'Sleep · Widget / Overnight HRV',thread:crypto.randomUUID(),requestId:crypto.randomUUID(),timeZone:'Europe/Paris'};
 
-const post=(b=body,origin='https://test')=>userApi.POST(new Request('https://test/api/athena',{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify(b)}));
+const post=(b=body,origin='https://test')=>userApi.POST(new Request('https://test/api/athena?changedOnly=1',{method:'POST',headers:{origin,'Content-Type':'application/json','Accept-Encoding':'gzip, br','If-None-Match':'"cached-data"',Cookie:'signed-in-session'},body:JSON.stringify(b)}));
 
 assert.equal((await post(body,'https://evil')).status,403);assert.equal((await post()).status,200);assert.equal((await post()).status,200);
 
@@ -75,6 +84,31 @@ globalThis.athenaTest.user={userId:'b'};assert.equal((await (await userApi.GET()
 globalThis.athenaTest.user={userId:'a'};assert.equal((await (await userApi.GET()).json()).messages[0].answer,'Test answer');
 
 console.log('Athena API: auth, origin, idempotency, worker claims and account isolation passed');
+
+const waiting={...body,requestId:crypto.randomUUID(),message:'Another question'};assert.equal((await post(waiting)).status,200);
+const cancelled=(await (await worker({op:'claim'})).json()).job;
+assert.equal((await userApi.DELETE(new Request('https://test/api/athena',{method:'DELETE',headers:{origin:'https://test'}}))).status,200);
+assert.equal((await worker({op:'finish',id:cancelled.id,claim:cancelled.claim,answer:'Late answer'})).status,409,'Cleared jobs cannot be completed');
+assert.equal((await (await userApi.GET()).json()).messages.length,0);
+assert.equal(reads,1,'Read-only chat polling and worker heartbeats no longer read R2');assert.equal(writes,0);
+await worker({op:'heartbeat',model:'new-model'});
+const jobFor=(id,owner,created=Date.now())=>({id,owner,thread:'thread',message:'Question',created,status:'queued',context:{private:'bounded'}});
+const [first,second]=await Promise.all([enqueueAthena(db,bucket,jobFor('first','parallel')),enqueueAthena(db,bucket,jobFor('second','parallel'))]);
+assert.deepEqual([first.status??200,second.status??200].sort(),[200,409],'Concurrent asks for one owner cannot enqueue two active jobs');
+await enqueueAthena(db,bucket,jobFor('different-owner','another'));
+const claimed=await Promise.all([athenaWorker(db,bucket,{op:'claim'}),athenaWorker(db,bucket,{op:'claim'})]);assert.ok(claimed.every(result=>result.body.job));assert.notEqual(claimed[0].body.job.id,claimed[1].body.job.id,'Atomic worker claims cannot duplicate a question');
+assert.equal((await athenaWorker(db,bucket,{op:'finish',id:claimed[0].body.job.id,claim:claimed[0].body.job.claim,answer:'Done'})).status??200,200);
+await clearAthena(db,bucket,'parallel');await clearAthena(db,bucket,'another');
+await enqueueAthena(db,bucket,jobFor('expired','expiry',Date.now()-190000));await athenaWorker(db,bucket,{op:'heartbeat'});
+const expired=database.prepare('SELECT * FROM athena_jobs WHERE id=?').get('expired');assert.equal(expired.status,'failed');assert.equal(expired.context,null);assert.equal(expired.claim,null);
+await clearAthena(db,bucket,'expiry');
+for(let index=0;index<40;index++)database.prepare('INSERT INTO athena_jobs(id,owner,thread,message,created,status) VALUES(?,?,?,?,?,?)').run('limit'+index,'limited','thread','Question',Date.now()-index,'done');
+assert.equal((await enqueueAthena(db,bucket,jobFor('over-limit','limited'))).status,429,'Per-owner daily cost cap remains enforced');
+await clearAthena(db,bucket,'limited');
+for(let index=0;index<100;index++)database.prepare('INSERT INTO athena_jobs(id,owner,thread,message,created,status) VALUES(?,?,?,?,?,?)').run('global-limit'+index,'owner'+index,'thread','Question',Date.now()-index,'done');
+assert.equal((await enqueueAthena(db,bucket,jobFor('global-over-limit','new-owner'))).status,429,'Global daily cost cap remains enforced');
+console.log('Athena D1: atomic enqueue/claim, retained limits, cancellation, expiry, context erasure and no repeated R2 reads/writes passed');
+
 
 
 

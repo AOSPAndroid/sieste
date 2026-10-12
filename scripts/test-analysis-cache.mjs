@@ -9,7 +9,7 @@ db.exec(readFileSync(new URL('../drizzle/0002_narrow_randall.sql',import.meta.ur
 db.prepare('INSERT INTO athlete_connections VALUES (?,?,?,?,?)').run('alice','rev1','encrypted','snapshot','now');
 db.prepare('INSERT INTO athlete_connections VALUES (?,?,?,?,?)').run('bob','rev2','encrypted','snapshot','now');
 let s=ts.transpileModule(readFileSync(new URL('../db/activity-analysis.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
-const storage=()=>({db:{prepare:sql=>({bind:(...args)=>({run:async()=>db.prepare(sql).run(...args),all:async()=>({results:db.prepare(sql).all(...args)})})})}});
+const storage=()=>({db:{prepare:sql=>({bind:(...args)=>({run:async()=>db.prepare(sql).run(...args),all:async()=>({results:db.prepare(sql).all(...args)})})}),batch:async statements=>Promise.all(statements.map(statement=>statement.all()))}});
 const native=ts.transpileModule(readFileSync('app/coros-native.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replaceAll('export ','');
 const {saveAnalysis,restoreAnalyses,analysisIdentity}=new Function('storage',native+s+';return {saveAnalysis,restoreAnalyses,analysisIdentity}')(storage);
 const activity={id:'same-id',date:'2026-09-18',sportType:'running',summary:{duration:60}},snapshot={activities:[activity]},detail={summary:{power:210},evidence:{version:1,best:{}},hrHistogram:null};

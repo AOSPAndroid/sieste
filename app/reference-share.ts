@@ -2,37 +2,8 @@ import {referenceText,referenceTextSize,type ReferenceFace} from './share-refere
 import {shareMetricLabel,shareLabelMode} from './share-labels';
 import type {ShareDesign,ShareStat} from './share-card-design';
 
-/** A small, reference-led collection of photo overlays. The canvas is never the card. */
-export const referenceActivityDesigns=[
- {key:'refhero',name:'Headline',description:'Bold distance · three small readings'},
- {key:'refstack',name:'Three lines',description:'Distance, pace and exact time'},
- {key:'refweekday',name:'Day headline',description:'Weekday · compact bold distance'},
- {key:'refroute',name:'Route',description:'Just a fine trace of your route'},
- {key:'refdayroute',name:'Day & route',description:'Weekday · red trace · distance'},
- {key:'refroutehero',name:'Route headline',description:'Fine route above a compact stat footer'},
- {key:'reftall',name:'Tall distance',description:'Condensed distance · pace and time'},
- {key:'reftallday',name:'Tall day',description:'Two strong lines · weekday and distance'},
- {key:'refivory',name:'Ivory stack',description:'Six readings in a quiet centred column'},
- {key:'reftoday',name:'Today',description:'A day and a single activity line'},
- {key:'refserif',name:'Serif',description:'Distance in serif type · fine pace'},
- {key:'refschedule',name:'Date & stats',description:'Day and start time beside your readings'},
- {key:'refcard',name:'Activity card',description:'Soft grey card · title and six readings'},
- {key:'refsportcard',name:'Sport card',description:'Sport icon · distance · pace and time'},
- {key:'refcaption',name:'Title & distance',description:'A simple caption with handwritten distance'},
- {key:'refsingle',name:'One reading',description:'A small caption above one stat'},
- {key:'refpair',name:'Two readings',description:'Two aligned readings and quiet captions'},
- {key:'refpairroute',name:'Readings & route',description:'Two quiet readings beside a fine route'},
- {key:'reftriple',name:'Three readings',description:'Distance, pace and time on one line'},
- {key:'refquad',name:'Four readings',description:'A balanced two by two grid'},
- {key:'refsix',name:'Six readings',description:'Three columns · two rows'},
- {key:'reflaps',name:'Splits',description:'Recorded lap paces · simple bars'},
- {key:'refbubble',name:'Message',description:'Blue activity message · recorded start time'},
- {key:'refsummary',name:'Activity sentence',description:'A quiet gold header above your activity'}
-] as const;
-export type ReferenceTemplate=typeof referenceActivityDesigns[number]['key'];
-export const referenceRouteTemplates:ReferenceTemplate[]=['refroute','refdayroute','refroutehero','refpairroute'];
-const statLimits:Record<ReferenceTemplate,number>={refsingle:1,refpair:2,reftriple:3,refquad:4,refsix:6,refhero:4,refstack:3,refweekday:1,refroute:0,refdayroute:1,refroutehero:4,reftall:3,reftallday:1,refivory:6,reftoday:1,refserif:2,refschedule:3,refcard:6,refsportcard:3,refcaption:1,reflaps:0,refpairroute:2,refbubble:2,refsummary:2};
-export function referenceStatLimit(template:string){return statLimits[template as ReferenceTemplate]??6;}
+import {type ReferenceTemplate} from './share-design-catalog';
+export {referenceActivityDesigns,referenceRouteTemplates,referenceStatLimit} from './share-design-catalog';
 const xml=(value:string)=>value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 const safe=(value:string)=>value&&!/^\s*(?:NaN|Infinity|undefined|null)\s*$/i.test(value)?value:'—';
 const priority=['distance','pace','speed','duration','ascent','calories','hr','power','normalizedPower','cadence'];

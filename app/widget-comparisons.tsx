@@ -1,4 +1,5 @@
 'use client';
+import './metric-styles.css';
 import {useState} from 'react';
 import MetricHistory from './metric-history';
 import {metricStatus} from './metric-status';

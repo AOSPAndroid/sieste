@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 import assert from "node:assert/strict";
-import { indexedDB, IDBDatabase } from "fake-indexeddb";
+import { indexedDB, IDBDatabase, IDBObjectStore } from "fake-indexeddb";
 const urls = new Map();
 function moduleUrl(name) {
   if (urls.has(name)) return urls.get(name);
@@ -226,6 +226,21 @@ assert.ok(
   compact.data.activities.every((a) => a.seriesSampled === undefined),
   "Raw sensor streams stay out of dashboard snapshots",
 );
+const put=IDBObjectStore.prototype.put,clear=IDBObjectStore.prototype.clear,rows=[];
+let cleared=0;
+IDBObjectStore.prototype.put=function(value,...args){if(this.name==='activities')rows.push(value.id);return put.call(this,value,...args)};
+IDBObjectStore.prototype.clear=function(...args){cleared++;return clear.call(this,...args)};
+try{
+ await writeDeviceSnapshot('owner-a-connection-2',streamed,now);
+ assert.equal(rows.length,0,'Unchanged rows are not rewritten');
+ const changed={...streamed,activities:[{...streamed.activities[0],summary:{distance:5000}},streamed.activities[1]]};
+ await writeDeviceSnapshot('owner-a-connection-2',changed,now);
+ assert.deepEqual(rows,['old-run'],'Only changed workout is written');
+ await writeDeviceSnapshot('owner-a-connection-2',{...changed,activities:[changed.activities[0]]},now);
+ const hit=await readDeviceSnapshot('owner-a-connection-2',now);
+ assert.equal(hit.data.activities.length,1);assert.equal(hit.data.activities[0].id,'old-run');
+ assert.equal(cleared,0,'Updates never clear the activity store');
+}finally{IDBObjectStore.prototype.put=put;IDBObjectStore.prototype.clear=clear}
 console.log(
   "Passed device cache: IndexedDB transactions, 14-day expiry, complete history, credential stripping, account/reconnect/sign-out isolation, stale writes, size/quota limits, unavailable storage and stable scopes.",
 );

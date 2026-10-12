@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import "./sieste-system.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 

@@ -1,4 +1,3 @@
-import {Decoder,Stream} from '@garmin/fitsdk';
 import {decodedFit} from './api/coros/fit';
 import {sportFamily,sportName} from './sports';
 import {lapElevation} from './lap-elevation';
@@ -40,10 +39,6 @@ export function importedFitMessages(messages:any,name:string,id:string){
 export async function importFitFile(file:File){
  if(!/\.fit$/i.test(file.name))throw Error(/\.zip$/i.test(file.name)?'Unzip the Garmin export first, then choose the .fit file inside.':'Choose a .fit activity file exported from Garmin or another watch.');
  if(file.size<14||file.size>maxImportBytes)throw Error('Choose a FIT file up to 16 MB.');
- const bytes=new Uint8Array(await file.arrayBuffer()),decoder=new Decoder(Stream.fromByteArray(bytes));
- if(!decoder.isFIT()||!decoder.checkIntegrity())throw Error('This FIT file is damaged or incomplete. Export it again.');
- const {messages,errors}=decoder.read();
- if(errors.length)throw Error('This FIT file could not be read completely. Export it again.');
- const hash=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
- return importedFitMessages(messages,file.name,'import_'+Array.from(hash.slice(0,16),n=>n.toString(16).padStart(2,'0')).join(''));
+ const {decodeImportedFit}=await import('./import-fit-worker-client');
+ return decodeImportedFit(await file.arrayBuffer(),file.name);
 }

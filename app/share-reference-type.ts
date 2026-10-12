@@ -1,12 +1,11 @@
-import originals from './share-display-glyphs.json';
-import referenceFaces from './share-reference-glyphs.json';
+import {shareFont} from './share-assets';
 
 type Glyph=[number,number,number,number,number,string];
 type Face={units:number;glyphs:Record<string,Glyph>};
 export type ReferenceFace='wide'|'tall'|'serif'|'hand';
 const names:Record<ReferenceFace,string>={wide:'Archivo Black',tall:'Anton',serif:'Caprasimo',hand:'Kalam Light'};
 const escape=(value:string)=>value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
-const referenceFont=(face:ReferenceFace)=>(face==='tall'?originals.bold:face==='serif'?originals.approved:referenceFaces[face]) as unknown as Face;
+const referenceFont=(face:ReferenceFace)=>(face==='tall'?shareFont('display','bold'):face==='serif'?shareFont('display','approved'):shareFont('reference',face)) as Face;
 
 /** Tight painted dimensions for positioning an adjacent unit or caption. */
 export function referenceTextSize(value:string,{width,height,face='wide'}:{width:number;height:number;face?:ReferenceFace}){

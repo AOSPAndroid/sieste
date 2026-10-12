@@ -17,7 +17,7 @@ assert.equal(corosNativeActivity(details).summary.groundContactTime,206);
 const {activityMetrics}=new Function('sportFamily','cadenceUnit',nativeSource+source('app/cycling-power-data.ts')+source('app/activity-metrics.ts')+';return {activityMetrics}')(a=>a.sportType,()=> 'steps/min');
 assert.ok(!activityMetrics(dirty).cards.some(c=>['vo2max','steps','effort'].includes(c.id)));
 let row={activity_id:dirty.id,signature:JSON.stringify([dirty.date,dirty.sportType,null,clean.summary]),data:JSON.stringify({summary:dirty.summary,evidence:{version:1},analysisSource:'COROS FIT'})};
-const storage=()=>({db:{prepare:sql=>({bind:()=>({all:async()=>({results:sql.includes('athlete_analyses')?[row]:[]})})})}});
+const storage=()=>({db:{prepare:sql=>({bind:()=>({all:async()=>({results:sql.includes('athlete_analyses')?[row]:[]})})}),batch:async statements=>Promise.all(statements.map(statement=>statement.all()))}});
 const {restoreAnalyses}=new Function('storage',nativeSource+source('db/activity-analysis.ts')+';return {restoreAnalyses}')(storage);
 const restored=await restoreAnalyses('owner','coros:rev',{provider:'coros',activities:[clean]});assert.equal(restored.activities[0].evidence,undefined);assert.equal(restored.activities[0].summary.vo2max,undefined);
 row={...row,data:JSON.stringify({...details,analysisSource:'COROS FIT'})};

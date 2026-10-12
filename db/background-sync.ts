@@ -1,5 +1,6 @@
 import {env} from 'cloudflare:workers';
 import {storage,connection} from './storage';
+import {savedSnapshot} from './snapshot-data';
 import {seal,unseal} from './token-crypto';
 import {corosConnection} from './coros';
 import {corosSnapshot,syncCoros} from '../app/api/coros/sync';
@@ -11,7 +12,7 @@ type Settings={owner:string;enabled:number;time_zone:string;interval_minutes:num
 export const pushKey=()=>(env as unknown as {SYNC_VAPID_PUBLIC_KEY?:string}).SYNC_VAPID_PUBLIC_KEY??'';
 export async function endpointId(endpoint:string){const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(endpoint));return Array.from(new Uint8Array(hash),v=>v.toString(16).padStart(2,'0')).join('')}
 export async function settings(owner:string){return storage().db.prepare('SELECT * FROM background_sync WHERE owner=?').bind(owner).first<Settings>()}
-export async function status(owner:string){const {db}=storage(),row=await settings(owner),subscriptions=await db.prepare('SELECT id FROM sync_push_subscriptions WHERE owner=?').bind(owner).all<{id:string}>(),heartbeat=await db.prepare("SELECT updated_at FROM sync_worker_health WHERE id='pc'").first<{updated_at:number}>();return {enabled:!!row?.enabled,timeZone:row?.time_zone??'Europe/Paris',intervalMinutes:row?.interval_minutes??30,lastCompletedAt:row?.last_completed??null,lastStatus:row?.last_status??null,lastError:row?.last_error??null,nextRunAt:row?.enabled?new Date(row.next_run).toISOString():null,workerOnline:!!heartbeat&&Date.now()-heartbeat.updated_at<240000,publicKey:pushKey(),subscriptions:subscriptions.results.length,subscriptionIds:subscriptions.results.map(r=>r.id)}}
+export async function status(owner:string){const {db}=storage();const results=await db.batch([db.prepare('SELECT * FROM background_sync WHERE owner=?').bind(owner),db.prepare('SELECT id FROM sync_push_subscriptions WHERE owner=?').bind(owner),db.prepare("SELECT updated_at FROM sync_worker_health WHERE id='pc'")]);const row=results[0].results[0] as Settings|undefined,subscriptions=results[1].results as {id:string}[],heartbeat=results[2].results[0] as {updated_at:number}|undefined;return {enabled:!!row?.enabled,timeZone:row?.time_zone??'Europe/Paris',intervalMinutes:row?.interval_minutes??30,lastCompletedAt:row?.last_completed??null,lastStatus:row?.last_status??null,lastError:row?.last_error??null,nextRunAt:row?.enabled?new Date(row.next_run).toISOString():null,workerOnline:!!heartbeat&&Date.now()-heartbeat.updated_at<240000,publicKey:pushKey(),subscriptions:subscriptions.length,subscriptionIds:subscriptions.map(r=>r.id)}}
 export async function setSettings(owner:string,payload:any){const {db,key}=storage(),prior=await settings(owner),enabled=payload.enabled===undefined?!!prior?.enabled:payload.enabled;
  if(typeof enabled!=='boolean')throw Error('Invalid background sync setting.');
  const interval=payload.intervalMinutes??prior?.interval_minutes??30;if(![15,30,60].includes(interval))throw Error('Choose a 15, 30 or 60 minute interval.');
@@ -25,12 +26,17 @@ export async function setSettings(owner:string,payload:any){const {db,key}=stora
  return status(owner);
 }
 export async function queuePush(owner:string,payload:any,test=false){const {db}=storage();const rows=await db.prepare('SELECT id FROM sync_push_subscriptions WHERE owner=?').bind(owner).all<{id:string}>();if(test&&!rows.results.length)throw Error('Enable notifications on a device first.');
- for(const row of rows.results){const sql=test?'INSERT INTO sync_notification_jobs(id,owner,subscription_id,payload,created_at,attempts,lease_until) VALUES(?,?,?,?,?,0,0)':'INSERT INTO sync_notification_jobs(id,owner,subscription_id,payload,created_at,attempts,lease_until) SELECT ?,?,?,?,?,0,0 WHERE EXISTS(SELECT 1 FROM background_sync WHERE owner=? AND enabled=1)';const args=[crypto.randomUUID(),owner,row.id,JSON.stringify(payload),Date.now(),...test?[]:[owner]];await db.prepare(sql).bind(...args).run();}
+ const writes=rows.results.map(row=>{const sql=test?'INSERT INTO sync_notification_jobs(id,owner,subscription_id,payload,created_at,attempts,lease_until) VALUES(?,?,?,?,?,0,0)':'INSERT INTO sync_notification_jobs(id,owner,subscription_id,payload,created_at,attempts,lease_until) SELECT ?,?,?,?,?,0,0 WHERE EXISTS(SELECT 1 FROM background_sync WHERE owner=? AND enabled=1)';const args=[crypto.randomUUID(),owner,row.id,JSON.stringify(payload),Date.now(),...test?[]:[owner]];return db.prepare(sql).bind(...args);});if(writes.length)await db.batch(writes);
 }
-async function storedTraining(owner:string){const row=await connection(owner);if(!row)return null;const o=await storage().bucket.get(row.snapshot_key);return o?await o.json():null}
-export async function runDueSync(origin:string){const {db}=storage(),now=Date.now();await db.prepare("INSERT INTO sync_worker_health(id,updated_at) VALUES('pc',?) ON CONFLICT(id) DO UPDATE SET updated_at=excluded.updated_at").bind(now).run();
- const claim=crypto.randomUUID();const row=await db.prepare('UPDATE background_sync SET lease=?,lease_until=? WHERE owner=(SELECT owner FROM background_sync WHERE enabled=1 AND next_run<=? AND lease_until<? ORDER BY next_run LIMIT 1) AND enabled=1 AND lease_until<? RETURNING *').bind(claim,now+600000,now,now,now).first<Settings>();
- if(!row)return {synced:false};
+async function storedTraining(owner:string){const row=await connection(owner);if(!row)return null;return savedSnapshot(owner,row.snapshot_key)}
+export async function runDueSync(origin:string,limit=1){const {db}=storage(),now=Date.now();await db.prepare("INSERT INTO sync_worker_health(id,updated_at) VALUES('pc',?) ON CONFLICT(id) DO UPDATE SET updated_at=excluded.updated_at").bind(now).run();
+ const count=Math.max(1,Math.min(4,Math.floor(limit)||1)),claim=crypto.randomUUID();const rows=await db.prepare('UPDATE background_sync SET lease=?,lease_until=? WHERE owner IN (SELECT owner FROM background_sync WHERE enabled=1 AND next_run<=? AND lease_until<? ORDER BY next_run LIMIT ?) AND enabled=1 AND lease_until<? RETURNING *').bind(claim,now+600000,now,now,count,now).all<Settings>();
+ if(!rows.results.length)return {synced:false};
+ const results=await Promise.all(rows.results.map(row=>runClaimedSync(origin,row,claim)));
+ if(count===1)return results[0];
+ return {synced:results.some(result=>result.synced),status:results.some(result=>result.status==='failed')?'partial':results.some(result=>result.status==='partial')?'partial':results.some(result=>result.status==='completed')?'completed':'unchanged',processed:results.length,results};
+}
+async function runClaimedSync(origin:string,row:Settings,claim:string){const {db}=storage();
  let resultStatus='failed',fingerprint=row.last_fingerprint??'',error:string|null=null,fresh=false;
  try{
   const [trainingBefore,coros]=await Promise.all([storedTraining(row.owner),corosConnection(row.owner)]),healthBefore=coros?await corosSnapshot(coros):null,before=combineProviders(trainingBefore,healthBefore);
@@ -52,11 +58,17 @@ export async function runDueSync(origin:string){const {db}=storage(),now=Date.no
  await db.prepare('UPDATE background_sync SET lease=NULL,lease_until=0 WHERE owner=? AND lease=?').bind(row.owner,claim).run();
  return {synced:fresh,status:resultStatus};
 }
-export async function notificationJobs(){const {db,key}=storage(),now=Date.now();await db.prepare('DELETE FROM sync_notification_jobs WHERE created_at<? OR attempts>=4').bind(now-86400000).run();const rows=await db.prepare('SELECT j.*,s.subscription FROM sync_notification_jobs j JOIN sync_push_subscriptions s ON s.owner=j.owner AND s.id=j.subscription_id WHERE j.lease_until<? ORDER BY j.created_at LIMIT 8').bind(now).all<any>();const jobs=[];
- for(const row of rows.results){const claim=crypto.randomUUID(),r=await db.prepare('UPDATE sync_notification_jobs SET claim=?,lease_until=?,attempts=attempts+1 WHERE id=? AND lease_until<?').bind(claim,now+180000,row.id,now).run();if(!r.meta.changes)continue;try{jobs.push({id:row.id,claim,subscription:JSON.parse(await unseal(row.subscription,key,row.owner+':push')),payload:JSON.parse(row.payload)})}catch{await db.prepare('DELETE FROM sync_notification_jobs WHERE id=?').bind(row.id).run();}}
- return jobs;
+export async function notificationJobs(){const {db,key}=storage(),now=Date.now();await db.prepare('DELETE FROM sync_notification_jobs WHERE created_at<? OR attempts>=4').bind(now-86400000).run();const rows=await db.prepare('SELECT j.*,s.subscription FROM sync_notification_jobs j JOIN sync_push_subscriptions s ON s.owner=j.owner AND s.id=j.subscription_id WHERE j.lease_until<? ORDER BY j.created_at LIMIT 8').bind(now).all<any>();
+ const selected=rows.results.map(row=>({...row,claim:crypto.randomUUID()}));if(!selected.length)return [];
+ const claims=await db.batch(selected.map(row=>db.prepare('UPDATE sync_notification_jobs SET claim=?,lease_until=?,attempts=attempts+1 WHERE id=? AND lease_until<?').bind(row.claim,now+180000,row.id,now)));
+ const broken:D1PreparedStatement[]=[];const jobs=await Promise.all(selected.map(async(row,i)=>{if(!claims[i].meta.changes)return null;try{return {id:row.id,claim:row.claim,subscription:JSON.parse(await unseal(row.subscription,key,row.owner+':push')),payload:JSON.parse(row.payload)}}catch{broken.push(db.prepare('DELETE FROM sync_notification_jobs WHERE id=? AND claim=?').bind(row.id,row.claim));return null;}}));if(broken.length)await db.batch(broken);
+ return jobs.filter((job):job is NonNullable<typeof job>=>job!==null);
 }
-export async function delivered(id:string,claim:string,statusCode:number){const {db}=storage();const row=await db.prepare('SELECT owner,subscription_id FROM sync_notification_jobs WHERE id=? AND claim=?').bind(id,claim).first<{owner:string;subscription_id:string}>();if(!row)return;
- if(statusCode===404||statusCode===410)await db.prepare('DELETE FROM sync_push_subscriptions WHERE owner=? AND id=?').bind(row.owner,row.subscription_id).run();
- if(statusCode>=200&&statusCode<300||statusCode===404||statusCode===410)await db.prepare('DELETE FROM sync_notification_jobs WHERE id=? AND claim=?').bind(id,claim).run();else await db.prepare('UPDATE sync_notification_jobs SET lease_until=? WHERE id=? AND claim=?').bind(Date.now()+300000,id,claim).run();
+export async function deliveredBatch(items:{id:string;claim:string;statusCode:number}[]){if(!items.length)return;const {db}=storage();const selected=await db.batch(items.map(item=>db.prepare('SELECT owner,subscription_id FROM sync_notification_jobs WHERE id=? AND claim=?').bind(item.id,item.claim)));const writes:D1PreparedStatement[]=[];
+ for(let i=0;i<items.length;i++){const {id,claim,statusCode}=items[i],row=selected[i].results[0] as {owner:string;subscription_id:string}|undefined;if(!row)continue;
+  if(statusCode===404||statusCode===410)writes.push(db.prepare('DELETE FROM sync_push_subscriptions WHERE owner=? AND id=? AND EXISTS(SELECT 1 FROM sync_notification_jobs WHERE id=? AND claim=?)').bind(row.owner,row.subscription_id,id,claim));
+  writes.push(statusCode>=200&&statusCode<300||statusCode===404||statusCode===410?db.prepare('DELETE FROM sync_notification_jobs WHERE id=? AND claim=?').bind(id,claim):db.prepare('UPDATE sync_notification_jobs SET lease_until=? WHERE id=? AND claim=?').bind(Date.now()+300000,id,claim));
+ }
+ if(writes.length)await db.batch(writes);
 }
+export async function delivered(id:string,claim:string,statusCode:number){return deliveredBatch([{id,claim,statusCode}]);}

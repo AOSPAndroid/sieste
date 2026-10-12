@@ -64,6 +64,13 @@
       "when": 1791306891927,
       "tag": "0008_gorgeous_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1791785301259,
+      "tag": "0009_chief_amphibian",
+      "breakpoints": true
     }
   ]
 }

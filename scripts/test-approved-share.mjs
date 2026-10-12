@@ -4,10 +4,10 @@ import {mkdirSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import sharp from 'sharp';
-import {loadShareDesignModule} from './share-design-test-module.mjs';
+import {loadShareDesignModule,approvedArtFixtures} from './share-design-test-module.mjs';
 
 const {shareCardSvg,approvedActivityDesigns,approvedRecoveryDesigns,shareFinishes}=await loadShareDesignModule();
-const atlas=JSON.parse(readFileSync(new URL('../app/original-share-art.json',import.meta.url),'utf8'));
+const atlas=await approvedArtFixtures();
 const artEntries=['glyphs','icons','groups'].flatMap(section=>Object.entries(atlas[section]).flatMap(([kind,items])=>Object.entries(items).map(([key,item])=>({section,kind,key,item}))));
 const artByPng=new Map();
 for(const entry of artEntries){const entries=artByPng.get(entry.item.png)??[];entries.push(entry);artByPng.set(entry.item.png,entries);}

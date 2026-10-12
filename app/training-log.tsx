@@ -1,4 +1,5 @@
 "use client";
+import './journal-styles.css';
 import {validateMerge,applyMerges} from './activity-merge-data';
 import {clearWorkoutCache} from './workout-detail-cache';
 import WeeklyZones from './weekly-zones';

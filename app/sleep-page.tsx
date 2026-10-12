@@ -1,4 +1,5 @@
 'use client';
+import './sleep-styles.css';
 const SleepNightMatrix=lazy(()=>import('./sleep-night-matrix'));
 import SleepTraining from './sleep-training';
 import SleepVitals from './sleep-vitals';

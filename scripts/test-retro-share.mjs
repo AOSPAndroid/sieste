@@ -3,7 +3,7 @@ import {mkdirSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import sharp from 'sharp';
-import {loadShareDesignModule} from './share-design-test-module.mjs';
+import {loadShareDesignModule,shareFontFixtures} from './share-design-test-module.mjs';
 
 const {shareCardSvg}=await loadShareDesignModule();
 const templates=['retrohero','retroride','retroswoop','retrostack','retrolaps','retroseal','retrorecovery','retrotriptych'];
@@ -102,7 +102,7 @@ function assertFinished(tree,context){
 }
 function designFor(template,height=1080){return {...base,template,height,...(recoveryTemplates.has(template)?{title:'Today',dayHealth,dayCards,recoveryOnly:false}:{})};}
 
-const faces=JSON.parse(readFileSync(new URL('../app/share-display-glyphs.json',import.meta.url),'utf8'));
+const faces=shareFontFixtures();
 assert.ok(faces.retro,'Retro exports include their own outline glyphs');assert.ok(Number.isFinite(faces.retro.units)&&faces.retro.units>0);
 for(const [character,glyph] of Object.entries(faces.retro.glyphs)){
  assert.equal(glyph.length,6,`Retro glyph ${character} has complete metrics`);assert.ok(glyph.slice(0,5).every(Number.isFinite));assert.ok(glyph[0]>0);assert.equal(typeof glyph[5],'string');

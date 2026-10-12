@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import {readFileSync,statSync} from 'node:fs';
+import {gzipSync} from 'node:zlib';
+import {loadShareDesignModule,readShareAsset} from './share-design-test-module.mjs';
+
+const requests=[];
+const module=await loadShareDesignModule({preload:false,reader:async path=>{requests.push(path);return readShareAsset(path);}});
+const stats=[{key:'distance',label:'Distance',value:'13.47',unit:'km'},{key:'duration',label:'Time',value:'1:02:18',unit:'h:mm:ss'},{key:'pace',label:'Pace',value:'4:37',unit:'/km'}];
+const base={height:1080,transparent:true,ink:'white',accent:'#fff',title:'Run',sport:'Running',sportFamily:'running',stats,route:null,brand:true,demo:false};
+assert.equal(requests.length,0,'Opening the light API loads no artwork/font data');
+await module.renderShareCardSvg({...base,template:'refroute'});
+assert.equal(requests.length,0,'A route-only design loads no display fonts or original artwork');
+const initial=await Promise.all([module.renderShareCardSvg({...base,template:'refhero'}),module.renderShareCardSvg({...base,template:'refhero',finish:'chrome'})]);
+assert.ok(initial.every(svg=>svg.includes('data-reference-share="refhero"')));
+assert.equal(requests.length,1,'Concurrent selected designs deduplicate their single face download');
+assert.match(requests[0],/\/fonts\/reference-wide\.json\?v=[\da-f]+$/);
+assert.ok(!requests.some(path=>/art\/|display-|reference-hand/.test(path)),'Default headline avoids every unrelated family and face');
+await module.renderShareCardSvg({...base,template:'refhero',accent:'#ef3340',textThickness:12});
+assert.equal(requests.length,1,'Changing colour, thickness and finish reuses loaded assets');
+const original=await module.renderShareCardSvg({...base,template:'approvedrun',accent:'#ffdf00'});
+assert.match(original,/data-original-kind="running"/);
+assert.ok(!original.includes('href=""')&&!original.includes('href="/share-assets/'),'Prepared SVG contains only embedded export images');
+assert.ok(requests.some(path=>/\/art\/running\.json/.test(path)));
+assert.ok(!requests.some(path=>/\/art\/(?:cycling|recovery)\.json/.test(path)),'Run artwork does not load cycling or recovery atlases');
+assert.equal(requests.length,new Set(requests).size,'Used glyph and icon downloads are deduplicated');
+const pngRequests=requests.filter(path=>path.endsWith('.webp'));
+assert.ok(pngRequests.length>0&&pngRequests.length<35,'Only used original glyphs/icons are fetched');
+assert.ok(!original.includes('data:image/webp'),'Embedded PNG is portable across SVG rasterizers');
+const before=requests.length;
+await module.renderShareCardSvg({...base,template:'approvedrun',accent:'#ffdf00'});
+assert.equal(requests.length,before,'Returning to a design performs no repeated downloads');
+let failed=true;
+const retry=await loadShareDesignModule({preload:false,reader:async path=>{if(failed){failed=false;throw new Error('Temporary asset failure');}return readShareAsset(path);}});
+await assert.rejects(()=>retry.renderShareCardSvg({...base,template:'refhero'}),/Temporary asset failure/);
+assert.match(await retry.renderShareCardSvg({...base,template:'refhero'}),/data-reference-share="refhero"/,'Failed loads are evicted and can retry');
+for(const file of ['share-card-design.ts','share-card-renderer.ts','approved-share.ts','cinematic-type.ts','share-reference-type.ts']){
+ assert.ok(!/import .*\.json/.test(readFileSync(new URL('../app/'+file,import.meta.url),'utf8')),file+' has no bundled artwork or font JSON');
+}
+const font=readFileSync(new URL('../public/share-assets/fonts/reference-wide.json',import.meta.url));
+const artBytes=pngRequests.reduce((bytes,path)=>bytes+statSync(new URL('../public'+path,import.meta.url)).size,0);
+console.log(`Share assets passed: zero startup data, selected face only (${gzipSync(font).length} B gzipped), ${pngRequests.length} used lossless originals (${artBytes} B), concurrent cache, safe self-contained PNG export and retry.`);

@@ -21,19 +21,21 @@ class Clock extends Date { constructor(...args) { super(...(args.length ? args :
 const objects = new Map();
 const encryptionKey = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');
 let afterWrite;
+let batching=Promise.resolve();
 const db = {prepare: sql => {
   const bound = (args = []) => ({
     sql, args,
     first: async () => database.prepare(sql).get(...args) ?? null,
     all: async () => ({results: database.prepare(sql).all(...args)}),
     run: async () => {
-      const result = {meta: {changes: database.prepare(sql).run(...args).changes}};
+      const query=/^SELECT|RETURNING/i.test(sql)||sql.includes(' RETURNING ');const result=query?{results:database.prepare(sql).all(...args),meta:{changes:0}}:{results:[],meta: {changes: database.prepare(sql).run(...args).changes}};
       if (afterWrite) await afterWrite(sql, args, result);
       return result;
     }
   });
   return {...bound(), bind: (...args) => bound(args)};
-}, batch: async statements => {
+}, batch: statements => {
+ const task=batching.then(async()=>{
   database.exec('BEGIN');
   try {
     const results = [];
@@ -44,6 +46,7 @@ const db = {prepare: sql => {
     database.exec('ROLLBACK');
     throw error;
   }
+ });batching=task.catch(()=>{});return task;
 }};
 const bucket = {
   get: async key => objects.has(key) ? {json: async () => structuredClone(objects.get(key))} : null,
@@ -57,10 +60,10 @@ const corosSnapshot = async row => row.snapshot_key && objects.get(row.snapshot_
 let trainingHandler;
 let healthHandler;
 const env = {SYNC_VAPID_PUBLIC_KEY: 'public-test-key', SYNC_BRIDGE_TOKEN: 'private-test-worker-token'};
-const apiNames = ['endpointId', 'settings', 'status', 'setSettings', 'queuePush', 'runDueSync', 'notificationJobs', 'delivered'];
+const apiNames = ['endpointId', 'settings', 'status', 'setSettings', 'queuePush', 'runDueSync', 'notificationJobs', 'delivered', 'deliveredBatch'];
 const api = load('db/background-sync.ts', apiNames, {
   env, storage, connection, corosConnection, corosSnapshot, seal, unseal, combineProviders,
-  syncFingerprint: policy.syncFingerprint, Date: Clock,
+  syncFingerprint: policy.syncFingerprint, Date: Clock, savedSnapshot:async(owner,key)=>structuredClone(objects.get(key)),
   syncStoredAccount: async (...args) => trainingHandler(...args),
   syncCoros: async (...args) => healthHandler(...args)
 });
@@ -74,7 +77,7 @@ const route = load('app/api/background-sync/route.ts', ['GET', 'POST'], {
   allowedPushEndpoint: policy.allowedPushEndpoint, validPushSubscription: policy.validPushSubscription
 });
 const worker = load('app/api/background-sync/worker/route.ts', ['POST'], {
-  env, privateJson, runDueSync: api.runDueSync, notificationJobs: api.notificationJobs, delivered: api.delivered
+  env, privateJson, runDueSync: api.runDueSync, notificationJobs: api.notificationJobs, delivered: api.delivered, deliveredBatch:api.deliveredBatch, runCorosBackfills:async()=>({processed:0,completed:0})
 });
 const post = (body, headers = {Origin: origin}) => new Request(origin + '/api/background-sync', {method: 'POST', headers: {'Content-Type': 'application/json', ...headers}, body: JSON.stringify(body)});
 const workerPost = (body, token = env.SYNC_BRIDGE_TOKEN) => new Request(origin + '/api/background-sync/worker', {method: 'POST', headers: {Authorization: 'Bearer ' + token}, body: JSON.stringify(body)});
@@ -282,5 +285,9 @@ assert.equal((await api.settings('alice')).lease, 'successor');
 assert.equal((await api.settings('alice')).last_completed, null);
 assert.equal(jobRows().length, 0);
 
+// A tick can claim several accounts and keep all notifications owner-scoped.
+reset();await connectTraining('alice');await connectTraining('bob');await connectTraining('carol');await enable('alice');await enable('bob');await enable('carol');trainingHandler=refreshedTraining(snapshot(18));
+const several=await api.runDueSync(origin,3);assert.equal(several.processed,3);assert.equal(several.synced,true);assert.equal(several.status,'completed');assert.equal(jobRows().length,3);assert.deepEqual(new Set(jobRows().map(row=>row.owner)),new Set(['alice','bob','carol']));
+const deliveries=await api.notificationJobs();await api.deliveredBatch(deliveries.map(job=>({id:job.id,claim:job.claim,statusCode:201})));assert.equal(jobRows().length,0,'Batched acknowledgements consume only their claimed jobs');
 database.close();
 console.log('Background sync passed: endpoint safety, SQLite migrations, owner encryption/auth/isolation, changed-only alerts, cache truthfulness, initial COROS/partial outcomes, disconnected settings, atomic enqueue rollback/retry, disable/takeover fencing, delivery claims and expired-device cleanup.');

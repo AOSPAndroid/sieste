@@ -1,0 +1,62 @@
+@layer sieste-legacy{
+@media(prefers-reduced-motion:no-preference){
+ .athena-question,.athena-answer{animation:sieste-page-fade .2s ease-out}
+ .athena-compose button{transition:transform .18s cubic-bezier(.2,.75,.25,1),background-color .18s,border-color .18s,box-shadow .18s}
+ .athena-compose button:active:not(:disabled){transform:scale(.98)}
+}
+@media(prefers-reduced-motion:reduce){
+ .athena-question,.athena-answer{animation:none!important}
+ .athena-compose button{transition:none!important;animation:none!important}
+ .athena-compose button:active{transform:none}
+}
+body:has(.sieste-v3) .athena-messages{padding:12px 14px;font-size:14px;line-height:1.5}
+body:has(.sieste-v3) .athena-question{margin:0 0 16px 24px;padding:8px 11px;border-radius:11px;background:#f5f5f8;color:var(--s-ink);font-size:13px}
+body:has(.sieste-v3) .athena-prose .athena-takeaway{font-size:15px;line-height:1.45;font-weight:650;margin-bottom:12px}
+body:has(.sieste-v3) .athena-prose .athena-evidence{font-size:13px;line-height:1.5;margin-bottom:7px}
+body:has(.sieste-v3) .athena-prose>p{margin-bottom:10px}
+body:has(.sieste-v3) .athena-next{padding:9px 10px;background:#f8f7fe;border-left:2px solid var(--s-accent);border-radius:0 8px 8px 0;margin:10px 0}
+body:has(.sieste-v3) .athena-next p{font-size:13px;line-height:1.5}
+body:has(.sieste-v3) .athena-empty>strong{font-size:14px;font-weight:650}
+body:has(.sieste-v3) .athena-empty p{font-size:12px;line-height:1.5;margin:6px 0 10px}
+body:has(.sieste-v3) .athena-empty button{min-height:40px;padding:9px 10px;margin:6px 0;border-color:var(--snap-line,var(--s-line));border-radius:8px;background:#fff;color:var(--s-accent);font-size:13px}
+body:has(.sieste-v3) .athena-history{padding:6px 12px;border-color:var(--snap-line,var(--s-line))}
+body:has(.sieste-v3) .athena-history select{font-size:16px;min-height:40px;padding:7px 8px;border-color:var(--snap-line,var(--s-line));border-radius:8px}
+body:has(.sieste-v3) .athena-compose textarea{font-size:16px;border-color:var(--snap-line,var(--s-line));border-radius:10px;background:#fafafb}
+body:has(.sieste-v3) .athena-compose>button{width:44px;height:44px;border-radius:10px;background:var(--s-accent);display:grid;place-items:center;padding:0}
+body:has(.sieste-v3) .athena-compare{min-height:36px;margin-bottom:6px;font-size:11px;line-height:1.4}
+body:has(.sieste-v3) .athena-footer{margin-top:3px;min-height:36px}
+body:has(.sieste-v3) .athena-footer button{width:36px;height:36px;padding:0}.athena-history button{border:0;background:#f2f3f8;border-radius:10px;width:38px;height:38px;display:grid;place-items:center;color:#536077}.athena-history{display:flex;gap:6px}.athena-history select{min-width:0;flex:1;border:1px solid #e4e7f0;border-radius:9px;padding:7px;background:white;font-size:13px}.athena-messages{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}.athena-empty p{color:#748092;margin:7px 0 16px}.athena-empty button{display:block;width:100%;text-align:left;border:1px solid #e4e5f0;border-radius:11px;background:#fafaff;color:#514aba;padding:11px;margin:7px 0;font-size:14px}.athena-question{border-radius:14px 14px 3px 14px;white-space:pre-wrap;overflow-wrap:anywhere}.athena-answer strong{color:#5347c4;font-size:12px}.athena-answer p{white-space:pre-wrap;overflow-wrap:anywhere;margin:5px 0}.athena-compose{display:flex;gap:8px;margin-bottom:7px}.athena-compose textarea{resize:none;flex:1;min-width:0;border:1px solid #dddfea;border-radius:12px;font:inherit;font-size:16px;background:#fafbff}.athena-compose button{border:0;border-radius:12px;background:#5549ce;color:#fff;width:42px;height:42px}.athena-error{font-size:13px;color:#aa493a;margin:0 0 8px}
+
+.athena-compare{display:flex;align-items:center;gap:7px;font-size:12px;line-height:1.4;margin-bottom:9px;color:#68738a}.athena-compare input{accent-color:#5549ce;width:16px;height:16px}.athena-connect-note{font-size:14px;line-height:1.5;margin:12px 16px;color:#68738a}
+.athena-messages{font-size:15px;line-height:1.5;padding:16px}.athena-question{font-size:14px;margin:0 0 18px 32px;padding:9px 12px;background:#f1f1fa;color:#4d5266}.athena-answer{color:#303647;margin-bottom:24px}.athena-prose>p{margin:0 0 12px}.athena-prose .athena-takeaway{font-size:17px;font-weight:650;line-height:1.4;color:#252c3e;margin:0 0 15px}.athena-evidence-label{font-weight:600;margin-bottom:6px;color:#737b90}.athena-prose .athena-evidence{display:flex;gap:9px;font-size:14px;line-height:1.5;margin-bottom:8px}.athena-evidence>span{color:#7167cd;font-weight:700}.athena-next{background:#f1f2fd;border-left:3px solid #776bd6;padding:10px 12px;border-radius:0 10px 10px 0;margin:14px 0 10px}.athena-next>span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#675cba}.athena-next p{font-size:14px;margin:4px 0 0}.athena-prose .athena-caveat{font-size:12px;line-height:1.45;color:#7b8393;margin:9px 0}.athena-waiting{color:#7a8194;font-size:14px}.athena-compose{margin:0;align-items:flex-end}.athena-compose textarea{min-height:42px;max-height:110px;line-height:22px;padding:9px 11px}.athena-compose button{flex-shrink:0}.athena-footer{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#8c93a1;margin-top:4px}.athena-footer button{border:0;background:transparent;color:#8c93a1;padding:3px 6px;display:grid;place-items:center}.athena-chat .athena-info{font-size:11px;margin-top:5px;line-height:1.4}.athena-history{flex-shrink:0;padding:6px 12px;border-bottom:1px solid #eef0f5}
+@media(max-width:600px){.athena-messages{padding:14px}.athena-empty p{font-size:14px}}
+
+.athena-compose>button{display:grid;place-items:center;padding:0;line-height:0;box-sizing:border-box}.athena-compose>button>svg{display:block;margin:0;justify-self:center;align-self:center}
+
+.athena-chat .athena-turn-scope{font-size:11px;color:#9096a3;margin:-10px 0 14px;text-align:right}
+}
+body:has(.sieste-v3) .athena-question:not([data-slot]) { background: var(--muted); color: var(--foreground); border-radius: 12px 12px 4px 12px; }
+body:has(.sieste-v3) .athena-prose .athena-takeaway { color: var(--foreground); letter-spacing: -.02em; }
+body:has(.sieste-v3) .athena-next { background: var(--accent); color: var(--foreground); border-color: var(--primary); border-radius: 10px; }
+body:has(.sieste-v3) .athena-next>span { color: var(--primary); }
+body:has(.sieste-v3) .athena-empty button:not([data-slot]) { background: var(--card); border-color: var(--border); color: var(--primary); border-radius: 10px; }
+body:has(.sieste-v3) .athena-compose textarea:not([data-slot]) { border-color: var(--input); background: var(--muted); color: var(--foreground); border-radius: 12px; }
+body:has(.sieste-v3) .athena-compose>button:not([data-slot]) { background: var(--primary); color: var(--primary-foreground); border-radius: 12px; display: grid; place-items: center; padding: 0; }
+body:has(.sieste-v3) .athena-compose>button>svg { margin: 0; display: block; }
+body:has(.sieste-v3) :is(.athena-footer,.athena-compare,.athena-chat .athena-info,.athena-chat .athena-turn-scope) { color: var(--muted-foreground); }
+body:has(.sieste-v3) .athena-messages[data-slot=message-scroller] { padding: 0; overflow: hidden; min-height: 0; }
+body:has(.sieste-v3) .athena-message-viewport { padding: 12px 14px; }
+body:has(.sieste-v3) .athena-message-content { gap: 12px; }
+body:has(.sieste-v3) .athena-question[data-slot=bubble-content] { margin: 0; }
+body:has(.sieste-v3) .athena-answer[data-slot=bubble-content] { margin: 0; padding: 0; }
+body:has(.sieste-v3) .athena-compose[data-slot=input-group] { gap: 0; margin: 0; }
+body:has(.sieste-v3) .athena-compose textarea[data-slot=input-group-control] { max-height: 110px; min-height: 42px; }
+body:has(.sieste-v3) .athena-compose [data-slot=input-group-addon] { padding: 4px 6px; }
+body:has(.sieste-v3) .athena-empty[data-slot=empty] { padding: 10px 0; gap: 12px; }
+body:has(.sieste-v3) .athena-empty [data-slot=empty-header] { gap: 6px; }
+body:has(.sieste-v3) .athena-empty [data-slot=empty-content] { gap: 6px; width: 100%; max-width: none; }
+body:has(.sieste-v3) .athena-empty [data-slot=button] { height: auto; min-height: 36px; white-space: normal; text-align: left; }
+@media (max-width:650px) {
+  
+  body:has(.sieste-v3) .athena-compose textarea { font-size: 16px; }
+}

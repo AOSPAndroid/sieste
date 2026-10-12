@@ -1,4 +1,5 @@
 "use client";
+import './athena-panel-styles.css';
 import {useEffect,useRef,useState,type RefObject} from 'react';
 
 import AthenaAnswer from './athena-answer';

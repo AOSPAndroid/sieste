@@ -1,4 +1,5 @@
 "use client";
+import './weather-styles.css';
 import WeatherOutfit from './weather-outfit';
 import WeatherCondition from './weather-condition';
 import {LoadingState} from './loading-state';

@@ -288,3 +288,5 @@ for (const [kind, definitions] of Object.entries(groupDefinitions)) for (const [
 await fs.writeFile(path.join(root, "app/original-share-art.json"), JSON.stringify(atlas));
 await fs.writeFile(path.join(outputDir, "atlas-metadata.json"), JSON.stringify(atlas, (key, value) => key === "png" || key === "faceMask" ? undefined : value, 2));
 console.log(`Wrote original-share-art.json (${(await fs.stat(path.join(root, "app/original-share-art.json"))).size} bytes)`);
+const {packageApprovedArt,writeShareAssetIndex}=await import('./package-share-assets.mjs');
+await packageApprovedArt();await writeShareAssetIndex();

@@ -1,11 +1,56 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
+import {Worker as NodeWorker} from 'node:worker_threads';
 import {Decoder,Stream,Encoder,Profile} from '@garmin/fitsdk';
 const source=p=>ts.transpileModule(readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
-const sports=new Function(source('app/sports.ts')+';return {sportFamily,sportName}')();
-const fit=new Function('Decoder','Stream','workoutEvidence','sportFamily',source('app/coros-native.ts')+source('app/api/coros/fit.ts')+';return {decodedFit}')(Decoder,Stream,()=>({}),sports.sportFamily);
-const imported=new Function('Decoder','Stream','decodedFit','sportFamily','sportName','lapElevation',source('app/import-fit.ts')+';return {importFitFile,importedFitMessages,maxImportBytes}')(Decoder,Stream,fit.decodedFit,sports.sportFamily,sports.sportName,()=>null);
+const sportsSource=source('app/sports.ts')+';return {sportFamily,sportName}';
+const fitSource=source('app/coros-native.ts')+source('app/api/coros/fit.ts')+';return {decodedFit}';
+const importSource=source('app/import-fit.ts');
+// Resolve only the browser loader in the Node harness. The file validations and
+// actual client/worker programs run unchanged, including a real transfer to an
+// isolated thread and the Garmin decoder in that thread.
+const harnessImportSource=importSource.replace(/await import\((['"])\.\/import-fit-worker-client\1\)/,'workerClient');
+assert.notEqual(harnessImportSource,importSource,'Harness resolves the current lazy worker client');
+const sports=new Function(sportsSource)();
+const fit=new Function('Decoder','Stream','workoutEvidence','sportFamily',fitSource)(Decoder,Stream,()=>({}),sports.sportFamily);
+const workerSource=source('app/import-fit.worker.ts');
+assert.match(readFileSync('app/import-fit-worker-client.ts','utf8'),/import fitWorkerUrl from ['"]\.\/import-fit\.worker\.ts\?worker&url['"]/,'Client requests the bundler-generated worker asset URL');
+const clientSource=source('app/import-fit-worker-client.ts');
+const workerProgram=`
+const {parentPort}=require('node:worker_threads');
+(async()=>{
+ const {Decoder,Stream}=await import(${JSON.stringify(import.meta.resolve('@garmin/fitsdk'))});
+ const sports=new Function(${JSON.stringify(sportsSource)})();
+ const fit=new Function('Decoder','Stream','workoutEvidence','sportFamily',${JSON.stringify(fitSource)})(Decoder,Stream,()=>({}),sports.sportFamily);
+ const imported=new Function('decodedFit','sportFamily','sportName','lapElevation',${JSON.stringify(importSource+';return {importedFitMessages,maxImportBytes}')})(fit.decodedFit,sports.sportFamily,sports.sportName,()=>null);
+ const self={postMessage:data=>parentPort.postMessage(data)};
+ new Function('self','Decoder','Stream','importedFitMessages','maxImportBytes',${JSON.stringify(workerSource)})(self,Decoder,Stream,imported.importedFitMessages,imported.maxImportBytes);
+ parentPort.on('message',data=>self.onmessage({data}));
+})().catch(error=>{throw error});`;
+const workerRuns=[];
+class BrowserWorker {
+ constructor(url,options){
+  assert.equal(url,'/assets/import-fit.worker.js','Client uses the emitted worker URL without resolving it against a server file URL');
+  assert.equal(options.type,'module');
+  this.run={terminated:false,transferred:false};workerRuns.push(this.run);
+  this.thread=new NodeWorker(workerProgram,{eval:true});
+  this.thread.on('message',data=>this.onmessage?.({data}));
+  this.thread.on('error',error=>this.onerror?.(error));
+ }
+ postMessage(data,transfer){
+  assert.deepEqual(transfer,[data.bytes],'FIT bytes are transferred instead of copied');
+  assert.ok(data.bytes instanceof ArrayBuffer);
+  this.run.bytes=data.bytes.byteLength;
+  this.thread.postMessage(data,transfer);
+  assert.equal(data.bytes.byteLength,0,'The browser buffer is detached after transfer');
+  this.run.transferred=true;
+ }
+ terminate(){this.run.terminated=true;void this.thread.terminate()}
+}
+const makeClient=(Worker,clock=setTimeout,cancel=clearTimeout)=>new Function('Worker','setTimeout','clearTimeout','fitWorkerUrl',clientSource+';return {decodeImportedFit}')(Worker,clock,cancel,'/assets/import-fit.worker.js');
+const workerClient=makeClient(BrowserWorker);
+const imported=new Function('decodedFit','sportFamily','sportName','lapElevation','workerClient',harnessImportSource+';return {importFitFile,importedFitMessages,maxImportBytes}')(fit.decodedFit,sports.sportFamily,sports.sportName,()=>null,workerClient);
 const start=new Date('2026-10-04T07:00:00Z'),at=n=>new Date(+start+n*1000);
 function fixture(sport='running',sessions=1,sessionFields={},paused=false){const encoder=new Encoder();encoder.onMesg(Profile.MesgNum.FILE_ID,{manufacturer:'garmin',type:'activity',product:1,timeCreated:start});
  for(let i=0;i<1800;i++)encoder.onMesg(Profile.MesgNum.RECORD,{timestamp:at(i),distance:i*3.4,enhancedSpeed:3.4,heartRate:140+i%10,cadence:sport==='running'?90:85,power:230,enhancedAltitude:50+20*Math.sin(i/300),positionLat:Math.round((48.8+i*.00001)*2147483648/180),positionLong:Math.round((2.3+i*.000015)*2147483648/180)});
@@ -23,10 +68,26 @@ const missingEnd=await imported.importFitFile(new File([fixture('running',1,{tim
 const fractionalEnd=await imported.importFitFile(new File([fixture('running',1,{timestamp:start,totalElapsedTime:1800.37})],'Fractional elapsed.fit'));assert.equal(fractionalEnd.seriesSampled.data.heartrate.length,1801,'Recovered sub-second elapsed time is preserved');
 const messages={sessionMesgs:[{sport:'running',startTime:start,timestamp:at(12),totalTimerTime:12}],recordMesgs:[{timestamp:start,heartRate:120},{timestamp:at(5),heartRate:140},{timestamp:at(10),heartRate:145}]};
 const sparse=imported.importedFitMessages(messages,'Smart recording.fit','sparse');assert.equal(sparse.seriesSampled.data.heartrate[1],null);assert.equal(sparse.seriesSampled.data.heartrate[5],140);assert.ok(sparse.notes.includes('gaps'));assert.equal(sparse.summary.distance,undefined,'Missing sensors stay absent');
+const runsBeforeInvalid=workerRuns.length;
 await assert.rejects(()=>imported.importFitFile(new File([bytes],'activity.zip')),/Unzip/);await assert.rejects(()=>imported.importFitFile(new File([bytes],'activity.gpx')),/\.fit/);await assert.rejects(()=>imported.importFitFile(new File([new Uint8Array(10)],'empty.fit')),/16 MB/);
 await assert.rejects(()=>imported.importFitFile({name:'large.fit',size:imported.maxImportBytes+1,arrayBuffer(){throw Error('Must reject before reading')}}),/16 MB/);
+assert.equal(workerRuns.length,runsBeforeInvalid,'Rejected files never create a worker or read oversized data');
 const broken=bytes.slice();broken[broken.length-1]^=1;await assert.rejects(()=>imported.importFitFile(new File([broken],'broken.fit')),/damaged|incomplete/);
 await assert.rejects(()=>imported.importFitFile(new File([fixture('running',2)],'triathlon.fit')),/multiple sessions/);
+await assert.rejects(()=>workerClient.decodeImportedFit(new ArrayBuffer(10),'invalid.fit'),/16 MB/,'Worker independently validates incoming bytes');
+assert.ok(workerRuns.length>=9,'Binary fixture imports execute in isolated workers');
+assert.ok(workerRuns.every(run=>run.transferred&&run.terminated),'Every worker transfers its input and terminates on success or validation error');
+let timeoutCallback,timeoutDelay,timeoutCleared=false,timedWorker;
+class IdleWorker {constructor(){timedWorker=this}postMessage(){}terminate(){this.terminated=true}}
+const timeoutClient=makeClient(IdleWorker,(callback,delay)=>{timeoutCallback=callback;timeoutDelay=delay;return 17},id=>{assert.equal(id,17);timeoutCleared=true});
+const timedResult=timeoutClient.decodeImportedFit(new ArrayBuffer(14),'slow.fit');
+const timedRejection=assert.rejects(()=>timedResult,/took too long/);
+assert.equal(timeoutDelay,60000,'A stalled import has a bounded one-minute timeout');timeoutCallback();await timedRejection;
+assert.ok(timeoutCleared&&timedWorker.terminated,'Timeout clears its timer and terminates the worker');
+let failedWorker;
+class FailedWorker {constructor(){failedWorker=this}postMessage(){queueMicrotask(()=>this.onerror(new Error('Worker unavailable')))}terminate(){this.terminated=true}}
+await assert.rejects(()=>makeClient(FailedWorker).decodeImportedFit(new ArrayBuffer(14),'failed.fit'),/could not be read/);
+assert.ok(failedWorker.terminated,'Worker runtime failures terminate the worker');
 const rounded={sessionMesgs:[{sport:'cycling',startTime:start,timestamp:start,totalElapsedTime:3600.37,totalTimerTime:2400.843}],recordMesgs:[{timestamp:start,heartRate:120},{timestamp:at(3603),heartRate:145}]};
 const recovered=imported.importedFitMessages(rounded,'Rounded export.fit','rounded');assert.equal(recovered.seriesSampled.data.heartrate.length,3604);assert.equal(recovered.seriesSampled.data.heartrate[3603],145,'Slightly rounded final sample remains in the timeline');assert.equal(recovered.summary.durationTotal,3600.37,'Recorded summary remains unchanged');
 const stopped=imported.importedFitMessages({...rounded,recordMesgs:[{timestamp:at(3602),heartRate:140},{timestamp:at(3603),heartRate:145}],eventMesgs:[{timestamp:at(3603),event:'timer',eventType:'stopAll'}]},'Stopped export.fit','stopped');assert.equal(stopped.seriesSampled.data.heartrate[3602],140,'Final active sample is retained');assert.equal(stopped.seriesSampled.data.heartrate[3603],null,'A sample at timer stop remains excluded');
@@ -36,4 +97,4 @@ assert.throws(()=>imported.importedFitMessages({...messages,sessionMesgs:[{start
 assert.throws(()=>imported.importedFitMessages({...rounded,sessionMesgs:[{...rounded.sessionMesgs[0],totalElapsedTime:49*3600}]},'x.fit','bad'),/48 hours/);
 assert.throws(()=>imported.importedFitMessages({...rounded,recordMesgs:[{timestamp:at(24*3600),heartRate:145}]},'x.fit','bad'),/do not match/);
 if(process.argv.includes('--fixtures')){writeFileSync('/workspace/scratch/sieste-import-running.fit',bytes);writeFileSync('/workspace/scratch/sieste-import-cycling.fit',fixture('cycling'));writeFileSync('/workspace/scratch/sieste-import-broken.fit',broken);writeFileSync('/workspace/scratch/sieste-import-multisession.fit',fixture('running',2))}
-console.log('FIT import passed: encoded Garmin fixtures, repeated/missing end timestamps, elapsed versus moving time, pauses/final samples, lap/sensor/GPS units, stable IDs, sparse/missing data and invalid/oversize/multi-session rejection.');
+console.log('FIT import passed: actual worker/client execution, transferred bytes, bounded timeout/error cleanup, encoded Garmin fixtures, repeated/missing end timestamps, elapsed versus moving time, pauses/final samples, lap/sensor/GPS units, stable IDs, sparse/missing data and invalid/oversize/multi-session rejection.');

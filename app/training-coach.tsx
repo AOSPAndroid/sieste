@@ -1,4 +1,5 @@
 "use client";
+import './coach-styles.css';
 import {useMemo,useState} from 'react';
 import RecoveryResponse from './recovery-response';
 import {localDate} from './week-overview';

@@ -31,7 +31,8 @@ const compact=lapElevation(large);assert.ok(compact.segments.flat().length<=384)
 const route=compile('app/api/sync/tredict.ts').replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
 const {sportFamily}=new Function(compile('app/sports.ts').replaceAll('export ','')+';return {sportFamily}')();
 const {cyclingPowerStats}=new Function('sportFamily',compile('app/cycling-power-data.ts').replace(/^import .*;\s*$/gm,'').replaceAll('export ','')+';return {cyclingPowerStats}')(sportFamily);
-const {POST}=new Function('lapElevation','workoutEvidence','cyclingPowerStats',route+';return {POST}') (lapElevation,()=>({version:1}),cyclingPowerStats);
+const {requestPool}=new Function(compile('app/api/request-pool.ts').replaceAll('export ','')+';return {requestPool}')();
+const {POST}=new Function('requestPool','lapElevation','workoutEvidence','cyclingPowerStats',route+';return {POST}') (requestPool,lapElevation,()=>({version:1}),cyclingPowerStats);
 const originalFetch=globalThis.fetch;
 try{
  globalThis.fetch=async url=>{assert.equal(new URL(url).searchParams.get('allSeries'),'1');return Response.json({...fixture,seriesSampled:{...fixture.seriesSampled,data:{...fixture.seriesSampled.data,positionLat:[48,49]}}})};

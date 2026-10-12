@@ -1,0 +1,40 @@
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+const urls=new Map();
+function moduleUrl(path){
+ if(urls.has(path))return urls.get(path);
+ let source=ts.transpileModule(readFileSync(path,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+ source=source.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,name)=>'from "'+moduleUrl(path.slice(0,path.lastIndexOf('/')+1)+name+'.ts')+'"');
+ const url='data:text/javascript;base64,'+Buffer.from(source).toString('base64');urls.set(path,url);return url;
+}
+const {createSyncDelta,applySyncDelta}=await import(moduleUrl('app/sync-delta.ts'));
+const {progressiveSync}=await import(moduleUrl('app/progressive-sync.ts'));
+const before={provider:'tredict',activities:[{id:'old',date:'2025-01-01',summary:{distance:100}},{id:'changed',date:'2026-10-11',summary:{distance:200}},{id:'deleted',date:'2026-10-10'}],sleep:{20261010:[28000]},hrv:{20261010:[90]},syncedAt:'2026-10-11T10:00:00Z',syncRevision:'"before"',extra:{coros:{daily:{20261010:{steps:100}},profile:{name:'Athlete'}},removeMe:true}};
+const after={...before,activities:[{id:'new',date:'2026-10-12',summary:{distance:300}},{...before.activities[1],summary:{distance:250}},before.activities[0]],sleep:{...before.sleep,20261012:[28800]},hrv:{20261012:[95]},syncedAt:'2026-10-12T10:00:00Z',extra:{coros:{...before.extra.coros,daily:{...before.extra.coros.daily,20261012:{steps:1000}}}}};
+const delta=createSyncDelta(before,after);
+assert.equal(delta.upserts.length,2);assert.deepEqual(delta.removed,['deleted']);
+const merged=applySyncDelta(before,delta);
+assert.deepEqual(merged,{...after,syncRevision:before.syncRevision});
+assert.equal(merged.activities.find(a=>a.id==='old'),before.activities[0],'Unchanged workout objects retain identity');
+assert.equal(merged.extra.coros.profile,before.extra.coros.profile,'Unchanged health branches retain identity');
+assert.throws(()=>applySyncDelta({...before,syncedAt:'stale'},delta),/Refresh/);
+assert.throws(()=>applySyncDelta(before,{...delta,changes:[{path:['__proto__','polluted'],value:true}]}),/Invalid/);
+assert.equal({}.polluted,undefined);
+let calls=0,seen=[];
+const result=await progressiveSync({token:'__saved__'},data=>seen.push(data),()=>{},async(_,options)=>{
+ const body=JSON.parse(options.body);calls++;
+ assert.equal(body.sinceRevision,calls===1?'"before"':'"workouts"');
+ return calls===1?Response.json(delta,{headers:{ETag:'"workouts"'}}):Response.json(createSyncDelta({...after,syncRevision:'"workouts"'},{...after,sleep:{...after.sleep,20261012:[29000]}}),{headers:{ETag:'"health"'}});
+},before);
+assert.equal(calls,2);assert.equal(seen[0].activities.find(a=>a.id==='old'),before.activities[0]);
+assert.equal(result.sleep[20261012][0],29000);assert.equal(result.syncRevision,'"health"');
+const {analyticsDays}=await import(moduleUrl('app/analytics-data.ts'));
+const history={activities:[{id:'a',date:'2026-10-12T12:00:00Z',sportType:'running',summary:{duration:3600}},{id:'b',date:'2026-10-12T14:00:00Z',sportType:'cycling',summary:{duration:7200}}],sleep:{20261012:[28800]},hrv:{20261012:[95]},historyComplete:true,extra:{efforts:{trainingEfforts:{20261012:[[40],[60]]}}}};
+let rows=analyticsDays(history,new Date('2026-10-12T23:59:59Z'),28,'all');
+assert.equal(rows.at(-1).volume,3);assert.equal(rows.at(-1).volume7,3);
+assert.equal(rows.at(-1).effort,100);assert.equal(rows.at(-1).short,100/7);assert.equal(rows.at(-1).long,100/42);
+assert.equal(rows.at(-1).sleep,8);assert.equal(rows.at(-1).hrv,95);
+rows=analyticsDays(history,new Date('2026-10-12T23:59:59Z'),7,'running');
+assert.equal(rows.at(-1).volume,1);assert.equal(rows.at(-1).effort,null,'Unsupported filtered effort remains unavailable');
+console.log('Passed sync performance: sparse deltas, deletes/health changes, stale-base rejection, structural sharing, phase revisions and indexed rolling analytics.');

@@ -16,6 +16,7 @@ export type DashboardAccount = {
   cacheScope: string | null;
 };
 type Options = {
+  previous?: {scope:string;data:AthleteData};
   onAccount: (account: DashboardAccount) => void;
   onScope: (scope: string | null) => void;
   onData: (data: AthleteData | null, cachedAt: number | null) => void;
@@ -33,6 +34,7 @@ type Options = {
   };
 };
 export async function restoreDashboard({
+  previous,
   onAccount,
   onScope,
   onData,
@@ -55,11 +57,16 @@ export async function restoreDashboard({
   const ready = () => {
     if (current()) onReady();
   };
+  // Both requests authenticate independently; no saved data is displayed until
+  // the cheap account response verifies its owner and connection scope.
+  const accountTask=request('/api/account',{cache:'no-store',signal:AbortSignal.timeout(20000)});
+  const savedTask=request('/api/sync',{
+    cache:'no-cache',
+    headers:previous?.data.syncRevision?{'If-None-Match':previous.data.syncRevision}:{},
+    signal:AbortSignal.timeout(20000),
+  }).then(response=>({response,error:null}),error=>({response:null,error}));
   try {
-    const response = await request("/api/account", {
-      cache: "no-store",
-      signal: AbortSignal.timeout(20000),
-    });
+    const response = await accountTask;
     const account = (await response.json()) as DashboardAccount & {
       error?: string;
     };
@@ -98,16 +105,16 @@ export async function restoreDashboard({
         }
       })
       .catch(() => {});
-    const saved = await request("/api/sync", {
-      cache: "no-store",
-      signal: AbortSignal.timeout(20000),
-    });
-    const state = (await saved.json()) as DashboardAccount & {
+    const result=await savedTask;
+    if(result.error)throw result.error;
+    let saved=result.response!;
+    if(saved.status===304&&(!previous||previous.scope!==scope||saved.headers.get('X-Sieste-User')!==account.userId))saved=await request('/api/sync',{cache:'no-cache',signal:AbortSignal.timeout(20000)});
+    const state = (saved.status===304?{...account,data:previous!.data}:await saved.json()) as DashboardAccount & {
       data?: AthleteData;
       error?: string;
     };
     if (!current()) return;
-    if (!saved.ok)
+    if (!saved.ok&&saved.status!==304)
       throw Error(state.error || "Could not load your saved dashboard.");
     if (!state.signedIn || state.userId !== account.userId) {
       authoritative = true;
@@ -145,6 +152,8 @@ export async function restoreDashboard({
     }
     onAccount({ ...account, corosConnected: !!state.corosConnected });
     if (validDashboard(state.data)) {
+      const etag=saved.headers.get('ETag');
+      if(etag)state.data={...state.data,syncRevision:etag};
       authoritative = true;
       shown = true;
       onData(state.data, null);
@@ -175,6 +184,7 @@ export async function restoreDashboard({
         if (current()) onPhase(phase);
       },
       request,
+      state.data,
     );
   } catch (error) {
     await cachedTask;

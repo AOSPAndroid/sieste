@@ -74,52 +74,28 @@ assert.equal(
   503,
   "Identity checks fail explicitly rather than reading a previous cache",
 );
-const sync = readFileSync("app/api/sync/route.ts", "utf8"),
-  source = compile(
-    sync.slice(
-      sync.indexOf("async function providerGET()"),
-      sync.indexOf("async function providerPOST("),
-    ),
-  );
-let upstreamStatus = 503;
-const providerGET = new Function(
-  "getChatGPTUser",
-  "corosConnection",
-  "tredict",
-  "corosSnapshot",
-  "combineProviders",
-  "privateJson",
-  "chatGPTSignOutPath",
-  source + ";return providerGET",
-)(
-  async () => user,
-  async () => null,
-  {
-    GET: async () =>
-      Response.json(
-        upstreamStatus === 200
-          ? { connected: true, data: { activities: [], sleep: {}, hrv: {} } }
-          : { error: "Snapshot storage failed" },
-        { status: upstreamStatus },
-      ),
-  },
-  async () => null,
-  (training) => training,
-  privateJson,
-  () => "/signout-with-chatgpt",
-);
-assert.equal(
-  (await providerGET()).status,
-  503,
-  "A transient snapshot error cannot masquerade as a disconnect and clear the device cache",
-);
-upstreamStatus = 200;
-response = await providerGET();
-assert.equal(
-  (await response.json()).userId,
-  "owner-a",
-  "The full snapshot identifies the verified account",
-);
-console.log(
-  "Passed account metadata: small authenticated response, no snapshot download, private response headers, anonymous isolation, explicit failures and authoritative snapshot identity.",
-);
+const sync=compile(readFileSync("app/api/sync/route.ts","utf8"));
+const responseHelpers=new Function(compile(readFileSync('app/api/sync/response.ts','utf8'))+';return {dashboardHeaders,dashboardJson,matchesDashboardEtag}')();
+let upstreamStatus=503,snapshotReads=0;
+const deps={
+ getChatGPTUser:async()=>user,connection:async()=>row,corosConnection:async()=>null,
+ tredict:{DELETE:()=>{},loadSavedTredictData:async()=>{snapshotReads++;if(upstreamStatus!==200)throw Error('Snapshot storage failed');return {activities:[],sleep:{},hrv:{}}}},
+ corosSnapshot:async()=>null,combineProviders:training=>training,privateJson,chatGPTSignOutPath:()=>'/signout-with-chatgpt',
+ dashboardEtag:async()=>'W/"private-revision"',activityMerges:async()=>[],applyMerges:data=>data,...responseHelpers,
+};
+const syncGET=new Function(...Object.keys(deps),sync+';return GET')(...Object.values(deps));
+const request=(suffix='',headers={})=>new Request('https://sieste.example/api/sync'+suffix,{headers});
+assert.equal((await syncGET(request())).status,503,'Storage failure cannot masquerade as a disconnect');
+upstreamStatus=200;response=await syncGET(request());
+assert.equal((await response.json()).userId,'owner-a');
+assert.equal(response.headers.get('ETag'),'W/"private-revision"');
+assert.equal(response.headers.get('Cache-Control'),'private, no-cache');
+assert.equal(response.headers.get('Vary'),'Cookie, Accept-Encoding');
+const count=snapshotReads;
+response=await syncGET(request('',{'If-None-Match':'"private-revision"'}));
+assert.equal(response.status,304);assert.equal(await response.text(),'');
+assert.equal(snapshotReads,count,'Unchanged conditional load never fetches R2');
+response=await syncGET(request('?changed=1'));
+assert.equal((await response.json()).revision,'W/"private-revision"');
+assert.equal(snapshotReads,count,'Changed check reads only indexed metadata');
+console.log('Passed account metadata: private owner checks, explicit failures, parallel-ready saved data, ETag304 and snapshot-free changed checks.');

@@ -1,4 +1,5 @@
 "use client";
+import './share-styles.css';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {loadWorkout} from './workout-detail-cache';
 import {localDate} from './week-overview';

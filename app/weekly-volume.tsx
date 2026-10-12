@@ -1,4 +1,5 @@
 "use client";
+import './overview-styles.css';
 import WidgetSpark from './widget-spark';
 import {useState,lazy,Suspense,type CSSProperties} from 'react';
 const WeeklyVolumeDetail=lazy(()=>import('./weekly-volume-detail'));

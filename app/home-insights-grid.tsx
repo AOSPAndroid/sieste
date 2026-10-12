@@ -1,5 +1,5 @@
 "use client";
-import {lazy,Suspense,useMemo,type ReactNode} from 'react';
+import {memo,lazy,Suspense,useMemo,type ReactNode} from 'react';
 import {ArrowUpRight} from 'lucide-react';
 import {Card,CardHeader,CardTitle,CardAction,CardContent,CardDescription} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
@@ -15,7 +15,7 @@ const TrainingSnapshot=lazy(()=>import('./training-snapshot'));
 const WeekGlance=lazy(()=>import('./week-glance'));
 type Metric={label:string;value:unknown;unit?:string;trend?:(number|null)[]};
 const format=(v:unknown)=>typeof v==='number'&&Number.isFinite(v)?v.toLocaleString('en-GB',{maximumFractionDigits:1}):'—';
-export default function HomeInsightsGrid({data,isDemo,token,syncing,onSelect,setData,onAccount,coach,connected}:{data:AthleteData;isDemo:boolean;token:string;syncing:boolean;onSelect:(a:Workout)=>void;setData:React.Dispatch<React.SetStateAction<AthleteData>>;onAccount:()=>void;coach:ReactNode;connected:ReactNode}){
+function HomeInsightsGrid({data,isDemo,token,syncing,onSelect,setData,onAccount,coach,connected}:{data:AthleteData;isDemo:boolean;token:string;syncing:boolean;onSelect:(a:Workout)=>void;setData:React.Dispatch<React.SetStateAction<AthleteData>>;onAccount:()=>void;coach:ReactNode;connected:ReactNode}){
  const expand=useExpand(),now=useMemo(()=>isDemo?new Date('2026-09-17T23:59:59'):new Date(),[isDemo,data]),week=useMemo(()=>weekOverview(data,now,sportFamily),[data,now]);
  const rows=week.rows,acts=rows.flatMap(r=>r.sessions),body=(data.extra?.bodyvalues?.bodyvalues??[]).filter((r:any)=>new Date(r.timestamp)<=now).sort((a:any,b:any)=>b.timestamp.localeCompare(a.timestamp));
  const latest=(key:string)=>body.find((r:any)=>typeof r[key]==='number')?.[key],c=data.extra?.coros,fit=c?.fitness;
@@ -35,3 +35,4 @@ export default function HomeInsightsGrid({data,isDemo,token,syncing,onSelect,set
  ];
  return <section className="home-insights-board" aria-label="Health and training insights"><header><h2>Your data</h2><span>Tap a card to explore</span></header><div className="home-insights-grid">{cards.map(card=><Card key={card.title} size="sm" className="home-insight-card" role="button" tabIndex={0} onClick={card.open} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();card.open()}}} aria-label={'Explore '+card.title}><CardHeader className="home-insight-ribbon"><CardTitle>{card.title}</CardTitle><CardAction><ArrowUpRight size={13} aria-hidden="true"/></CardAction></CardHeader><CardContent className="home-insight-cells">{card.metrics.map(metric=><span className="home-insight-cell" key={metric.label}><small>{metric.label}</small><strong>{format(metric.value)}<em>{metric.unit}</em></strong>{metric.trend&&<WidgetSpark values={metric.trend} label={metric.label+' · last 7 days'} color="#6366b8"/>}</span>)}</CardContent><CardDescription className="home-insight-note">{card.note}</CardDescription></Card>)}</div></section>;
 }
+export default memo(HomeInsightsGrid);

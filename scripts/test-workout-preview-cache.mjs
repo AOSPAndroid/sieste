@@ -22,6 +22,7 @@ async function scenario({age,detail,entrySignature=signature(activity),action='p
   healthDay:()=> '20261004',hasDailyReading:()=>false,mergeRecentSnapshot:(a,b)=>({...a,...b}),sessionLabels:[],
   analysisIdentity:async()=> 'account-identity',analysisSignature:signature,restoreAnalyses:async(_,__,data)=>data,
   saveAnalysis:async(...args)=>analyses.push(args),workoutExclusions:async()=>[],filteredSnapshot:async(_,data)=>data,
+  activityRecords:async(_owner,snapshotKey,ids)=>ids.map(id=>objects.get(snapshotKey)?.activities.find(a=>a.id===id)),
   getChatGPTUser:async()=>({userId:'athlete',displayName:'Synthetic athlete'}),chatGPTSignInPath:()=>'/signin',chatGPTSignOutPath:()=>'/signout',
   connection:async()=>row,storage:()=>({bucket,db,key:'unused-synthetic'}),privateJson:(body,status=200)=>Response.json(body,{status}),
   sameOrigin:()=>true,ownerPrefix:async()=> 'owner/',removeObjects:async()=>{},seal:async()=> 'sealed-synthetic',unseal:async()=> 'synthetic-provider-token',
