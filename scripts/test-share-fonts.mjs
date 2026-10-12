@@ -16,7 +16,7 @@ const alphaArea=async svg=>{
 for(const [fontFace,asset] of Object.entries(faces)){
  const requests=[];
  const module=await loadShareDesignModule({preload:false,reader:async path=>{requests.push(path);return readShareAsset(path);}});
- const svg=await module.renderShareCardSvg({...base,template:'refrail',fontFace});
+ const svg=await module.renderShareCardSvg({...base,dayHealth:undefined,dayCards:undefined,template:'refrail',fontFace});
  assert.equal(requests.length,1,fontFace+': selecting a font fetches just one face');
  assert.match(requests[0],new RegExp('/fonts/'+asset+'\\.json\\?v=[\\da-f]+$'));
  assert.ok(svg.includes(`data-reference-face="${fontFace}"`),fontFace+': the selected outlines reach the hero and support readings');
@@ -26,11 +26,11 @@ for(const [fontFace,asset] of Object.entries(faces)){
  assert.ok(scales.length>3&&scales.every(ratio=>Math.abs(ratio-(fontFace==='tall'?.72:1))<.002),fontFace+': glyphs keep natural proportions');
  const areas=[];
  for(const textThickness of [-2,0,12]){
-  const rendered=await module.renderShareCardSvg({...base,template:'refrail',fontFace,textThickness});
+  const rendered=await module.renderShareCardSvg({...base,dayHealth:undefined,dayCards:undefined,template:'refrail',fontFace,textThickness});
   areas.push(await alphaArea(rendered));
  }
  assert.ok(areas[0]<areas[1]&&areas[1]<areas[2],fontFace+': actual exported lettering obeys slim/original/bold settings');
- const finished=await module.renderShareCardSvg({...base,template:'refrail',fontFace,finish:'chrome',textThickness:5,labelMode:'icons'});
+ const finished=await module.renderShareCardSvg({...base,dayHealth:undefined,dayCards:undefined,template:'refrail',fontFace,finish:'chrome',textThickness:5,labelMode:'icons'});
  assert.match(finished,/fill="url\(#metal(?:Soft)?\)"/);assert.match(finished,/data-text-thickness="5"/);
  assert.ok(finished.includes('data-sport-icon="running"')&&finished.includes('data-share-cue-key="duration"'),'Typography retains metric and sport cues');
  await alphaArea(finished);

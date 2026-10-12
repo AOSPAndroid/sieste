@@ -15,7 +15,8 @@ const sportGlyphs:Record<string,string>={
  walking:'<circle cx="13" cy="3" r="2"/><path d="m7 11 3-4 4 1 2 5 4 1M12 8l-2 7-4 7M10 15l5 2 1 5"/>',
  strength_training:'<path d="m7 7 10 10M3 8l5-5M16 21l5-5M2 5l3-3M19 22l3-3M5 10l5-5M14 19l5-5"/>',
  swimming:'<circle cx="17" cy="7" r="2"/><path d="m4 11 5-5 5 5-3 3M2 16q2-2 4 0t4 0t4 0t4 0t4 0M2 21q2-2 4 0t4 0t4 0t4 0t4 0"/>',
- hiking:'<circle cx="13" cy="3" r="2"/><path d="m7 11 3-4 4 1 2 5h4M12 8l-2 7-4 7M10 15l5 2 1 5M20 10v12M6 7l-2 6"/>'
+ hiking:'<circle cx="13" cy="3" r="2"/><path d="m7 11 3-4 4 1 2 5h4M12 8l-2 7-4 7M10 15l5 2 1 5M20 10v12M6 7l-2 6"/>',
+ misc:'<path d="M3 12h4l3-8 4 16 3-8h4"/>'
 };
 const metricGlyphs:Record<string,string>={
  sleep:'<path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z"/>',
@@ -86,12 +87,51 @@ export function renderReferenceShare(o:ShareDesign,{ink:oInk}:{ink?:string}={}){
  const rule=(x1:number,y1:number,x2:number,y2:number)=>`<path data-share-rule="true" d="M${x1} ${y1}L${x2} ${y2}" fill="none" stroke="${ink}" stroke-width="1.5" stroke-opacity=".4"/>`;
  const icon=(key:string,x:number,y:number,size=30,sport=false)=>{
   if(labelMode==='none')return '';
-  const glyph=sport?sportGlyphs[key]:metricGlyphs[key];if(!glyph)return '';
+  const glyph=sport&&key?sportGlyphs[key]??sportGlyphs.misc:metricGlyphs[key];if(!glyph)return '';
   const kind=sport?'sport':['sleep','score','hrv','hr'].includes(key)?'health':'metric';
   return `<g data-${kind}-icon="${xml(key)}" data-share-cue-key="${xml(key)}" transform="translate(${x} ${y}) scale(${size/24})" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${glyph}</g>`;
  };
  const minimalCaption=(stat:ShareStat,x:number,y:number,width:number)=>labelMode==='icons'?icon(stat.key,x-14,y-23,28):caption(stat,x,y,width);
  const sportMark=(x:number,y:number,size=36,family=o.sportFamily)=>icon(family??'',x,y,size,true);
+ const health=o.dayHealth??{},validHealth=(value:unknown):value is number=>typeof value==='number'&&Number.isFinite(value)&&value>=0;
+ const sleepMinutes=validHealth(health.sleep)?Math.round(health.sleep/60):null;
+ const healthStats:ShareStat[]=[
+  {key:'sleep',label:'Sleep',value:sleepMinutes===null?'—':`${Math.floor(sleepMinutes/60)}h${String(sleepMinutes%60).padStart(2,'0')}`,unit:''},
+  {key:'hrv',label:'HRV',value:validHealth(health.hrv)&&health.hrv>0?String(Math.round(health.hrv)):'—',unit:'ms'},
+  {key:'score',label:'Sleep score',value:validHealth(health.score)&&health.score<=100?String(Math.round(health.score)):'—',unit:'/100'}
+ ];
+ const healthHistory=(health.history??[]).slice(-7),healthSessions=o.recoveryOnly?[]:(o.dayCards??[]).filter(card=>!!card.sportFamily);
+ const usableHealth=(key:'sleep'|'hrv'|'score',value:unknown):value is number=>validHealth(value)&&(key!=='hrv'||value>0)&&(key!=='score'||value<=100);
+ function healthSpark(key:'sleep'|'hrv'|'score',x:number,y:number,width:number,height:number){
+  const values=healthHistory.map(row=>row[key]),known=values.filter(value=>usableHealth(key,value));
+  if(!known.length)return `<g data-share-history="${key}" data-history-count="0" data-history-slots="${healthHistory.length}"/>`;
+  const min=Math.min(...known),max=Math.max(...known),padding=Math.max((max-min)*.15,key==='sleep'?.1:key==='score'?1:2),span=max-min+padding*2;
+  const positions=values.map((value,i)=>usableHealth(key,value)?{x:x+i*width/Math.max(1,healthHistory.length-1),y:y+height-(value-min+padding)/span*height,value}:null);
+  let d='',previous=false;
+  positions.forEach(point=>{if(point){d+=`${previous?'L':'M'}${point.x.toFixed(2)} ${point.y.toFixed(2)} `;previous=true;}else previous=false;});
+  return `<g data-share-history="${key}" data-history-count="${known.length}" data-history-slots="${healthHistory.length}"><path d="${d.trim()}" fill="none" stroke="${ink}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>${positions.map((point,i)=>point?`<circle data-history-date="${xml(healthHistory[i].date)}" data-history-value="${point.value}" cx="${point.x.toFixed(2)}" cy="${point.y.toFixed(2)}" r="${i===positions.length-1?4.5:2.3}" fill="${ink}"/>`:'').join('')}</g>`;
+ }
+ function healthBars(key:'sleep'|'hrv'|'score',x:number,y:number,width:number,height:number){
+  const values=healthHistory.map(row=>row[key]),known=values.filter(value=>usableHealth(key,value)),maximum=Math.max(1,...known),cell=width/Math.max(1,values.length);
+  return `<g data-share-history="${key}" data-history-kind="bars" data-history-count="${known.length}" data-history-slots="${values.length}">${values.map((value,i)=>{
+   if(!usableHealth(key,value))return `<g data-history-slot="${i}" data-history-date="${xml(healthHistory[i].date)}" data-history-value="missing"/>`;
+   const bar=value/maximum*height;
+   return `<g data-history-slot="${i}" data-history-date="${xml(healthHistory[i].date)}" data-history-value="${value}">${bar?`<rect x="${(x+i*cell).toFixed(2)}" y="${(y+height-bar).toFixed(2)}" width="${Math.max(1,cell-5).toFixed(2)}" height="${bar.toFixed(2)}" fill="${ink}" fill-opacity="${i===values.length-1?1:.56}"/>`:''}</g>`;
+  }).join('')}</g>`;
+ }
+ function healthFrame(healthHeight:number,lowerEdge=false){
+  const contentHeight=healthHeight+healthSessions.length*119,scale=Math.min(1,(o.height-296)/Math.max(1,contentHeight)),top=lowerEdge?o.height-168-contentHeight*scale:cy-contentHeight*scale/2;
+  positionedFooter=top+contentHeight*scale+38;
+  parts.push(`<g data-share-recovery-layout="${template}" transform="translate(${((1080-1080*scale)/2).toFixed(3)} ${top.toFixed(3)}) scale(${scale.toFixed(6)})">`);
+ }
+ function healthWorkoutRows(healthHeight:number){
+  healthSessions.forEach((session,i)=>{
+   const y=healthHeight+i*119;
+   parts.push(`<g data-share-day-activity="${i}" data-share-sport="${xml(session.sportFamily??'')}" data-share-activity-title="${xml(session.title)}">`,rule(108,y-17,972,y-17),sportMark(108,y+12,32,session.sportFamily));
+   session.stats.slice(0,3).forEach((stat,j)=>parts.push(reading(stat,171+j*267,y+12,246,44,'wide',false,{upper:false})));
+   parts.push('</g>');
+  });
+ }
  function trace(x:number,y:number,width:number,height:number,color=ink){
   const route=o.route;if(!route)return '';
   const segments=route.segments.map(segment=>segment.filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y))).filter(segment=>segment.length>1);
@@ -116,7 +156,34 @@ export function renderReferenceShare(o:ShareDesign,{ink:oInk}:{ink?:string}={}){
    parts.push(textReading(stat,cx,top+valueHeight+8,valueHeight,cell-22,{anchor:'middle',color,distanceDecimals:1}));
   });
  }
- if(template==='refrail'){
+ if(o.dayHealth&&['refrail','refduet','refledger','refcompactroute','refsplitline','refcorner'].includes(template)){
+  const healthHeight=template==='refsplitline'?476:template==='refduet'?400:template==='refcompactroute'?420:template==='refledger'||template==='refcorner'?430:440;
+  healthFrame(healthHeight,template==='refcorner');
+  const sleep=healthStats[0];
+  if(template==='refrail'){
+   parts.push(minimalCaption(sleep,146,39,200),reading(sleep,126,76,828,136,'wide',false,{upper:false}),rule(126,241,954,241));
+   healthStats.slice(1).forEach((stat,i)=>{const x=126+i*430;parts.push(reading(stat,x,282,398,58,'wide',false,{upper:false}),minimalCaption(stat,x+199,388,398));});
+  }else if(template==='refduet'){
+   parts.push(reading(sleep,141,100,374,110,'wide',true,{upper:false}),minimalCaption(sleep,328,279,374),rule(540,55,540,340));
+   healthStats.slice(1).forEach((stat,i)=>{const y=81+i*140;parts.push(reading(stat,608,y,336,60,'wide',true,{upper:false}),minimalCaption(stat,776,y-25,336));});
+  }else if(template==='refledger'){
+   healthStats.forEach((stat,i)=>{const y=40+i*122;parts.push(minimalCaption(stat,184,y+58,134),tag(stat,referenceText(referenceStatValue(stat,{upper:false}),{x:288,y:y+9,width:642,height:70,face:resolveShareFont(o.fontFace,'wide'),color:ink,align:'end'})));if(i<2)parts.push(rule(126,y+105,954,y+105));});
+  }else if(template==='refcompactroute'){
+   parts.push(rule(602,34,602,368));
+   healthStats.forEach((stat,i)=>{const key=stat.key as 'sleep'|'hrv'|'score',y=56+i*101;parts.push(minimalCaption(stat,146,y+33,134),healthSpark(key,228,y+6,314,61),reading(stat,654,y,318,59,'wide',false,{upper:false}));});
+  }else if(template==='refsplitline'){
+   parts.push(minimalCaption(sleep,146,34,200),reading(sleep,126,72,828,126,'wide',false,{upper:false}));
+   healthStats.forEach((stat,i)=>parts.push(healthBars(stat.key as 'sleep'|'hrv'|'score',126+i*282,244,258,64)));
+   parts.push(rule(126,324,954,324));
+   healthStats.slice(1).forEach((stat,i)=>{const x=126+i*430;parts.push(reading(stat,x,363,398,48,'wide',false,{upper:false}),minimalCaption(stat,x+199,444,398));});
+  }else{
+   parts.push(minimalCaption(sleep,122,27,200),reading(sleep,102,48,706,107,'wide',false,{upper:false}),rule(102,187,798,187));
+   healthStats.slice(1).forEach((stat,i)=>{const x=102+i*358;parts.push(reading(stat,x,225,334,44,'wide',false,{upper:false}),minimalCaption(stat,x+167,311,334));});
+   healthStats.forEach((stat,i)=>parts.push(healthSpark(stat.key as 'sleep'|'hrv'|'score',102+i*238,350,220,45)));
+  }
+  healthWorkoutRows(healthHeight);
+  parts.push('</g>');
+ }else if(template==='refrail'){
   parts.push(sportMark(126,cy-231,40),reading(hero,126,cy-161,828,136),rule(126,cy+9,954,cy+9));
   const shown=support.slice(0,3),cell=828/Math.max(1,shown.length);
   shown.forEach((stat,i)=>{const x=126+i*cell;parts.push(reading(stat,x,cy+47,cell-24,48),minimalCaption(stat,x+(cell-24)/2,cy+135,cell-24));});
@@ -155,43 +222,19 @@ export function renderReferenceShare(o:ShareDesign,{ink:oInk}:{ink?:string}={}){
   support.slice(0,2).forEach((stat,i)=>{const x=102+i*358;parts.push(reading(stat,x,y+182,334,40),minimalCaption(stat,x+167,y+268,334));});
   positionedFooter=o.height-90;
  }else if(template==='refrecoveryline'||template==='refrecoverystack'){
-  const health=o.dayHealth??{},valid=(value:unknown):value is number=>typeof value==='number'&&Number.isFinite(value)&&value>=0;
-  const minutes=valid(health.sleep)?Math.round(health.sleep/60):null;
-  const healthStats:ShareStat[]=[
-   {key:'sleep',label:'Sleep',value:minutes===null?'—':`${Math.floor(minutes/60)}h${String(minutes%60).padStart(2,'0')}`,unit:''},
-   {key:'hrv',label:'HRV',value:valid(health.hrv)&&health.hrv>0?String(Math.round(health.hrv)):'—',unit:'ms'},
-   {key:'score',label:'Sleep score',value:valid(health.score)&&health.score<=100?String(Math.round(health.score)):'—',unit:'/100'}
-  ];
-  const history=(health.history??[]).slice(-7),sessions=o.recoveryOnly?[]:(o.dayCards??[]).filter(card=>!!card.sportFamily);
-  const healthHeight=template==='refrecoveryline'?318:444,contentHeight=healthHeight+sessions.length*119,scale=Math.min(1,(o.height-296)/Math.max(1,contentHeight)),top=cy-contentHeight*scale/2;
-  positionedFooter=top+contentHeight*scale+38;
-  parts.push(`<g data-share-recovery-layout="${template}" transform="translate(${((1080-1080*scale)/2).toFixed(3)} ${top.toFixed(3)}) scale(${scale.toFixed(6)})">`);
-  function spark(key:'sleep'|'hrv'|'score',x:number,y:number,width:number,height:number){
-   const usable=(value:unknown):value is number=>valid(value)&&(key!=='hrv'||value>0)&&(key!=='score'||value<=100);
-   const values=history.map(row=>row[key]),known=values.filter(usable);
-   if(!known.length)return `<g data-share-history="${key}" data-history-count="0"/>`;
-   const min=Math.min(...known),max=Math.max(...known),padding=Math.max((max-min)*.15,key==='sleep'?.1:key==='score'?1:2),span=max-min+padding*2;
-   const positions=values.map((value,i)=>usable(value)?{x:x+i*width/Math.max(1,history.length-1),y:y+height-(value-min+padding)/span*height,value}:null);
-   let d='',previous=false;
-   positions.forEach(point=>{if(point){d+=`${previous?'L':'M'}${point.x.toFixed(2)} ${point.y.toFixed(2)} `;previous=true;}else previous=false;});
-   return `<g data-share-history="${key}" data-history-count="${known.length}" data-history-slots="${history.length}"><path d="${d.trim()}" fill="none" stroke="${ink}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>${positions.map((point,i)=>point?`<circle data-history-date="${xml(history[i].date)}" data-history-value="${point.value}" cx="${point.x.toFixed(2)}" cy="${point.y.toFixed(2)}" r="${i===positions.length-1?4.5:2.3}" fill="${ink}"/>`:'').join('')}</g>`;
-  }
+  const healthHeight=template==='refrecoveryline'?318:444;
+  healthFrame(healthHeight);
   if(template==='refrecoveryline'){
    healthStats.forEach((stat,i)=>{
     const x=108+i*288;
-    parts.push(minimalCaption(stat,x+132,34,248),reading(stat,x+8,81,248,68,'wide',true,{upper:false}),spark(stat.key as 'sleep'|'hrv'|'score',x+25,190,214,59));
+    parts.push(minimalCaption(stat,x+132,34,248),reading(stat,x+8,81,248,68,'wide',true,{upper:false}),healthSpark(stat.key as 'sleep'|'hrv'|'score',x+25,190,214,59));
    });
   }else{
    const sleep=healthStats[0];
-   parts.push(minimalCaption(sleep,239,36,268),reading(sleep,108,74,612,131,'wide',false,{upper:false}),spark('sleep',760,110,200,82),rule(108,245,972,245));
-   healthStats.slice(1).forEach((stat,i)=>{const x=108+i*450;parts.push(minimalCaption(stat,x+164,293,328),reading(stat,x,324,328,67,'wide',true,{upper:false}),spark(stat.key as 'hrv'|'score',x+357,333,63,45));});
+   parts.push(minimalCaption(sleep,239,36,268),reading(sleep,108,74,612,131,'wide',false,{upper:false}),healthSpark('sleep',760,110,200,82),rule(108,245,972,245));
+   healthStats.slice(1).forEach((stat,i)=>{const x=108+i*450;parts.push(minimalCaption(stat,x+164,293,328),reading(stat,x,324,328,67,'wide',true,{upper:false}),healthSpark(stat.key as 'hrv'|'score',x+357,333,63,45));});
   }
-  sessions.forEach((session,i)=>{
-   const y=healthHeight+i*119;
-   parts.push(`<g data-share-day-activity="${i}" data-share-sport="${xml(session.sportFamily??'')}">`,rule(108,y-17,972,y-17),sportMark(108,y+12,32,session.sportFamily));
-   session.stats.slice(0,3).forEach((stat,j)=>parts.push(reading(stat,171+j*267,y+12,246,44,'wide',false,{upper:false})));
-   parts.push('</g>');
-  });
+  healthWorkoutRows(healthHeight);
   parts.push('</g>');
  }else if(['refsingle','refpair','reftriple','refquad','refsix'].includes(template)){
   const count=({refsingle:1,refpair:2,reftriple:3,refquad:4,refsix:6} as Record<string,number>)[template];

@@ -34,10 +34,16 @@ export const referenceActivityDesigns=[
  {key:'refbubble',name:'Message',description:'Blue activity message · recorded start time'},
  {key:'refsummary',name:'Activity sentence',description:'A quiet gold header above your activity'}
 ] as const;
+export const referenceMinimalTemplates=['refrail','refduet','refledger','refcompactroute','refsplitline','refcorner'] as const;
+export const referenceMinimalDesigns=referenceActivityDesigns.filter(design=>referenceMinimalTemplates.some(key=>key===design.key));
 export const referenceRecoveryDesigns=[
  {key:'refrecoveryline',name:'Recovery line',description:'Three readings · fine seven-night charts'},
  {key:'refrecoverystack',name:'Morning stack',description:'Sleep in focus · HRV and score · quiet charts'}
 ] as const;
+/** Homepage health and full-day shares use the same design collection. */
+const homeDescriptions:Record<string,string>={refrail:'Strong sleep reading · two quiet recovery stats',refduet:'Two generous readings · sleep score below',refledger:'Three aligned recovery readings · small metric cues',refcompactroute:'Seven-night charts beside a compact reading column',refsplitline:'Three seven-night bar strips · today’s readings',refcorner:'Recovery readings along the lower edge'};
+export const referenceHomeDesigns=[...referenceMinimalDesigns.map(design=>({...design,description:homeDescriptions[design.key]})),...referenceRecoveryDesigns];
+export const isHomeShareTemplate=(template:string)=>referenceHomeDesigns.some(design=>design.key===template);
 export type ReferenceTemplate=typeof referenceActivityDesigns[number]['key']|typeof referenceRecoveryDesigns[number]['key'];
 export const referenceRouteTemplates:ReferenceTemplate[]=['refroute','refdayroute','refroutehero','refpairroute','refcompactroute'];
 const statLimits:Record<ReferenceTemplate,number>={refrail:4,refduet:2,refledger:3,refcompactroute:3,refsplitline:3,refcorner:3,refrecoveryline:3,refrecoverystack:3,refsingle:1,refpair:2,reftriple:3,refquad:4,refsix:6,refhero:4,refstack:3,refweekday:1,refroute:0,refdayroute:1,refroutehero:4,reftall:3,reftallday:1,refivory:6,reftoday:1,refserif:2,refschedule:3,refcard:6,refsportcard:3,refcaption:1,reflaps:0,refpairroute:2,refbubble:2,refsummary:2};
