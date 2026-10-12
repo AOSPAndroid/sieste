@@ -29,7 +29,7 @@ export function dashboardHeaders(supplied?:HeadersInit){
  return headers;
 }
 
-/** Serialize once, then stream gzip only when it is useful and the client accepts it. */
+/** Serialize once; Workers encodes the UTF-8 body from Content-Encoding at the HTTP boundary. */
 export function dashboardJson(data:unknown,request:Request,supplied?:HeadersInit){
  const headers=dashboardHeaders(supplied),json=JSON.stringify(data);
  if(json===undefined)throw new TypeError('Dashboard JSON must be serializable.');
@@ -39,9 +39,10 @@ export function dashboardJson(data:unknown,request:Request,supplied?:HeadersInit
  headers.set('Content-Type','application/json; charset=utf-8');
  headers.delete('Content-Length');
  headers.delete('Content-Encoding');
- if(typeof CompressionStream!=='undefined'&&gzip>0&&(identity===undefined||gzip>=identity)&&(bytes.byteLength>=gzipThreshold||identity===0)){
+ if(gzip>0&&(identity===undefined||gzip>=identity)&&(bytes.byteLength>=gzipThreshold||identity===0)){
   headers.set('Content-Encoding','gzip');
-  return new Response(new Response(bytes).body!.pipeThrough(new CompressionStream('gzip')),{headers});
  }
+ // Keep the body unencoded: Cloudflare's automatic encoding survives framework
+ // response wrappers. Pre-compressing here would gzip it twice on delivery.
  return new Response(bytes,{headers});
 }

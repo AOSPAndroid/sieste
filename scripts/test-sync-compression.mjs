@@ -1,6 +1,8 @@
 import {readFileSync} from 'node:fs';
-import {gunzipSync} from 'node:zlib';
+import {gunzipSync,brotliDecompressSync} from 'node:zlib';
+import {request as httpRequest} from 'node:http';
 import assert from 'node:assert/strict';
+import {Miniflare} from 'miniflare';
 import ts from 'typescript';
 
 const compile=path=>ts.transpileModule(readFileSync(path,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
@@ -9,7 +11,9 @@ const {dashboardJson,matchesDashboardEtag}=helpers;
 const request=(encoding,extra={})=>new Request('https://sieste.example/api/sync',{headers:{...(encoding===undefined?{}:{'Accept-Encoding':encoding}),...extra}});
 const read=async response=>{
  const bytes=Buffer.from(await response.arrayBuffer());
- return {bytes,body:JSON.parse(response.headers.get('Content-Encoding')==='gzip'?gunzipSync(bytes).toString():bytes.toString())};
+ // A handler's in-process Response remains plain JSON. Workers performs the
+ // negotiated encoding only when sending it across its HTTP boundary.
+ return {bytes,body:JSON.parse(bytes.toString())};
 };
 
 const payload={activities:Array.from({length:80},(_,index)=>({id:'workout-'+index,date:'2026-10-12',summary:{distance:index*100},evidence:'recorded sensor summary '.repeat(30)})),sleep:{20261012:[28800]},hrv:{20261012:[95]}};
@@ -23,7 +27,7 @@ assert.equal(response.headers.get('Cache-Control'),'private, no-cache');
 assert.equal(response.headers.get('Vary'),'Origin, cookie, Accept-Encoding');
 let decoded=await read(response);
 assert.deepEqual(decoded.body,payload);
-assert.ok(decoded.bytes.length<JSON.stringify(payload).length/4,'Actual gzip wire bytes reduce a representative history');
+assert.equal(decoded.bytes.toString(),JSON.stringify(payload),'The in-process body must not already be gzip-encoded');
 
 for(const encoding of [undefined,'br','identity','gzip;q=0','*;q=1, gzip;q=0','gzip;q=bogus','gzip;q=1.1','gzip;q=0.1234','gzip;q=0.5, identity;q=1','gzip;q=1,gzip;q=0']){
  response=dashboardJson(payload,request(encoding));
@@ -90,4 +94,63 @@ assert.equal(response.headers.get('Vary'),'Cookie, Accept-Encoding');assert.matc
 decoded=await read(response);assert.equal(decoded.body.format,'sieste-delta-v1');assert.equal(decoded.body.upserts.length,1);assert.deepEqual(decoded.body,createSyncDelta(before,after));
 response=await route.POST(post({action:'sync',token:'__saved__',phase:'workouts'}));
 assert.equal(response.headers.get('Content-Encoding'),'gzip');assert.deepEqual((await read(response)).body,after,'Full sync replies use the same compression boundary');
-console.log('Passed sync compression: streamed wire gzip, q/identity negotiation, single serialization, private Vary headers, UTF-8 thresholds, semantic ETags, body-free 304s and compressed full/sparse route replies.');
+
+// dispatchFetch and Node Response tests do not exercise Workers' automatic
+// HTTP encoding. Use a real socket and fetch (which decodes like a browser),
+// including a reconstructed response like Vinext's middleware/cookie wrappers.
+const httpEtag='W/"http-fixture"';
+const script=compile('app/api/sync/response.ts')+'\n'+compile('app/sync-delta.ts')+'\n'+`
+const before=${JSON.stringify(before)},after=${JSON.stringify(after)},etag=${JSON.stringify(httpEtag)};
+export default {fetch(request){
+ const headers=dashboardHeaders({'ETag':etag,'Cache-Control':'private, no-cache','X-Sieste-User':'owner-a'});
+ let response;
+ if(matchesDashboardEtag(request.headers.get('If-None-Match'),etag))response=new Response(null,{status:304,headers});
+ else {
+  const body=new URL(request.url).pathname==='/delta'?createSyncDelta(before,after):{signedIn:true,userId:'owner-a',data:before};
+  response=dashboardJson(body,request,headers);
+ }
+ const wrappedHeaders=new Headers(response.headers);
+ wrappedHeaders.append('Set-Cookie','fixture=1; Path=/; HttpOnly; SameSite=Lax');
+ return new Response(response.body,{status:response.status,statusText:response.statusText,headers:wrappedHeaders});
+}};
+`;
+const worker=new Miniflare({modules:true,script,compatibilityDate:'2026-05-15',port:0});
+const rawHttp=(url,headers)=>new Promise((resolve,reject)=>{
+ const request=httpRequest(url,{headers},response=>{
+  const chunks=[];response.on('data',chunk=>chunks.push(chunk));response.on('end',()=>resolve({status:response.statusCode,headers:response.headers,bytes:Buffer.concat(chunks)}));response.on('error',reject);
+ });request.on('error',reject);request.end();
+});
+try{
+ const origin=await worker.ready;
+ for(const path of ['/full','/delta']){
+  const expected=path==='/full'?{signedIn:true,userId:'owner-a',data:before}:createSyncDelta(before,after);
+  const url=new URL(path,origin);
+  for(const encoding of ['gzip','br, gzip','identity','gzip;q=0','gzip;q=0.5, identity;q=1']){
+   const encoded=encoding==='gzip'||encoding==='br, gzip';
+   const headers={'Accept-Encoding':encoding};
+   const browserResponse=await fetch(url,{headers});
+   assert.equal(browserResponse.status,200);
+   if(encoded)assert.ok(['gzip','br'].includes(browserResponse.headers.get('Content-Encoding')),'Workers may transcode gzip to accepted Brotli');
+   else assert.equal(browserResponse.headers.get('Content-Encoding'),null,'Correct negotiated HTTP representation for '+encoding);
+   assert.equal(browserResponse.headers.get('ETag'),httpEtag);
+   assert.ok(browserResponse.headers.get('Vary').includes('Accept-Encoding'));
+   assert.ok(browserResponse.headers.get('Set-Cookie').includes('fixture=1'),'Reconstructed response retains its cookies');
+   assert.deepEqual(await browserResponse.json(),expected,'Browser fetch must receive JSON after exactly one HTTP decode');
+   const wire=await rawHttp(url,headers);
+   if(encoded){
+    const coding=wire.headers['content-encoding'];
+    assert.ok(['gzip','br'].includes(coding));
+    if(coding==='gzip')assert.deepEqual([...wire.bytes.subarray(0,2)],[31,139],'Gzip bytes are present on the wire');
+    const plain=coding==='br'?brotliDecompressSync(wire.bytes):gunzipSync(wire.bytes);
+    assert.deepEqual(JSON.parse(plain.toString()),expected,'One gunzip must yield JSON, never another gzip stream');
+    assert.ok(wire.bytes.length<plain.length/4,'Wire compression reduces representative full and sparse dashboards');
+   }else assert.deepEqual(JSON.parse(wire.bytes.toString()),expected);
+  }
+ }
+ const notModified=await fetch(new URL('/full',origin),{headers:{'Accept-Encoding':'gzip','If-None-Match':httpEtag}});
+ assert.equal(notModified.status,304);assert.equal(await notModified.text(),'');
+ assert.equal(notModified.headers.get('ETag'),httpEtag);
+ const wire304=await rawHttp(new URL('/full',origin),{'Accept-Encoding':'gzip','If-None-Match':httpEtag});
+ assert.equal(wire304.status,304);assert.equal(wire304.bytes.length,0,'Workers may describe the negotiated representation but a 304 has no encoded body');
+}finally{await worker.dispose()}
+console.log('Passed sync compression: actual Workers HTTP gzip exactly once, browser JSON decoding, response/cookie wrappers, q/identity negotiation, single serialization, private Vary headers, UTF-8 thresholds, semantic ETags, body-free 304s and full/sparse route replies.');
