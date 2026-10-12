@@ -2,8 +2,8 @@ import {shareFont} from './share-assets';
 
 type Glyph=[number,number,number,number,number,string];
 type Face={units:number;glyphs:Record<string,Glyph>};
-export type ReferenceFace='wide'|'tall'|'serif'|'hand'|'condensed'|'editorial'|'slab';
-const names:Record<ReferenceFace,string>={wide:'Archivo Black',tall:'Anton',serif:'Caprasimo',hand:'Kalam Light',condensed:'Bebas Neue',editorial:'DM Serif Display',slab:'Roboto Slab Black'};
+export type ReferenceFace='wide'|'tall'|'serif'|'hand'|'condensed'|'editorial'|'slab'|'oswald'|'action'|'poster'|'widescreen'|'cinema'|'modern';
+const names:Record<ReferenceFace,string>={wide:'Archivo Black',tall:'Anton',serif:'Caprasimo',hand:'Kalam Light',condensed:'Bebas Neue',editorial:'DM Serif Display',slab:'Roboto Slab Black',oswald:'Oswald SemiBold',action:'Barlow Condensed SemiBold Italic',poster:'Teko SemiBold',widescreen:'Syncopate Bold',cinema:'Bodoni Moda SemiBold',modern:'Space Grotesk Bold'};
 const escape=(value:string)=>value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 const referenceFont=(face:ReferenceFace)=>(face==='tall'?shareFont('display','bold'):face==='serif'?shareFont('display','approved'):face==='condensed'?shareFont('display','tall'):face==='editorial'?shareFont('display','serif'):face==='slab'?shareFont('display','slab'):shareFont('reference',face)) as Face;
 
@@ -22,12 +22,11 @@ export function referenceTextSize(value:string,{width,height,face='wide'}:{width
   cursor+=glyph[0];
  }
  if(!Number.isFinite(minX)||maxX<=minX||maxY<=minY)return {width:0,height:0};
- const compression=face==='tall'?.72:1,scale=Math.min(height/(maxY-minY),width/((maxX-minX)*compression));
- return {width:(maxX-minX)*scale*compression,height:(maxY-minY)*scale};
+ const scale=Math.min(height/(maxY-minY),width/(maxX-minX),value==='—'?height/font.units:Infinity);
+ return {width:(maxX-minX)*scale,height:(maxY-minY)*scale};
 }
 
-/** Self-contained vector lettering. Boxes constrain natural letter proportions;
- * Anton alone has the deliberate narrow proportions of the condensed posters. */
+/** Self-contained vector lettering fitted with every face's natural proportions. */
 export function referenceText(value:string,{x,y,width,height,face='wide',color='#fff',align='start'}:{x:number;y:number;width:number;height:number;face?:ReferenceFace;color?:string;align?:'start'|'middle'|'end'}){
  value=value.normalize('NFC');
  if(!value.trim()||![x,y,width,height].every(Number.isFinite)||width<=0||height<=0)return '';
@@ -44,7 +43,7 @@ export function referenceText(value:string,{x,y,width,height,face='wide',color='
   cursor+=glyph[0];
  }
  if(!Number.isFinite(minX)||maxX<=minX||maxY<=minY)return '';
- const compression=face==='tall'?.72:1,scale=Math.min(height/(maxY-minY),width/((maxX-minX)*compression)),sx=scale*compression;
+ const scale=Math.min(height/(maxY-minY),width/(maxX-minX),value==='—'?height/font.units:Infinity),sx=scale;
  const paintedWidth=(maxX-minX)*sx,paintedHeight=(maxY-minY)*scale;
  const left=x+(align==='middle'?(width-paintedWidth)/2:align==='end'?width-paintedWidth:0),top=y+(height-paintedHeight)/2;
  cursor=0;
@@ -57,7 +56,7 @@ export function referenceText(value:string,{x,y,width,height,face='wide',color='
 export function referenceLabelText(value:string,{x,y,size,width,face='wide',color='#fff',anchor='start',weight=600,spacing=0}:{x:number;y:number;size:number;width:number;face?:ReferenceFace;color?:string;anchor?:'start'|'middle'|'end';weight?:number;spacing?:number}){
  value=value.normalize('NFC');
  if(!value.trim()||![x,y,size,width].every(Number.isFinite)||size<=0||width<=0)return '';
- const font=referenceFont(face),glyphs=[...value].map(character=>font.glyphs[character]),compression=face==='tall'?.72:1;
+ const font=referenceFont(face),glyphs=[...value].map(character=>font.glyphs[character]);
  const left=anchor==='middle'?x-width/2:anchor==='end'?x-width:x;
  if(glyphs.some(glyph=>!glyph))return referenceText(value,{x:left,y:y-size*.8,width,height:size,face,color,align:anchor});
  let cursor=0,minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
@@ -67,7 +66,7 @@ export function referenceLabelText(value:string,{x,y,size,width,face='wide',colo
  }
  if(!Number.isFinite(minX)||maxX<=minX||maxY<=minY)return '';
  const tracking=Number.isFinite(spacing)?Math.max(0,Math.min(spacing,size*.25)):0,gaps=Math.max(0,glyphs.length-1),naturalScale=size/font.units;
- const naturalWidth=(maxX-minX)*compression*naturalScale+gaps*tracking,fit=Math.min(1,width/naturalWidth),scale=naturalScale*fit,sx=scale*compression;
+ const naturalWidth=(maxX-minX)*naturalScale+gaps*tracking,fit=Math.min(1,width/naturalWidth),scale=naturalScale*fit,sx=scale;
  const paintedWidth=(maxX-minX)*sx+gaps*tracking*fit,start=x-(anchor==='middle'?paintedWidth/2:anchor==='end'?paintedWidth:0);
  cursor=0;
  const paths=glyphs.map((glyph,index)=>{const position=cursor+index*tracking*fit/sx;cursor+=glyph[0];return glyph[5]?`<path d="${glyph[5]}" transform="translate(${position.toFixed(6)} 0)"/>`:'';}).join('');
