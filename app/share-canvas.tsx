@@ -2,13 +2,13 @@
 import './share-styles.css';
 import {useEffect,useLayoutEffect,useId,useRef,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
-import {ArrowLeft,Palette,SlidersHorizontal,LayoutGrid,Settings2,X} from 'lucide-react';
+import {ArrowLeft,Palette,Type,SlidersHorizontal,LayoutGrid,Settings2,X} from 'lucide-react';
 
-export type ShareTool='colour'|'thickness'|'design'|'details';
-const tools=[{key:'colour',name:'Colour',icon:Palette},{key:'thickness',name:'Thickness',icon:SlidersHorizontal},{key:'design',name:'Design',icon:LayoutGrid},{key:'details',name:'Details',icon:Settings2}] as const;
+export type ShareTool='colour'|'font'|'thickness'|'design'|'details';
+const tools=[{key:'colour',name:'Colour',icon:Palette},{key:'font',name:'Font',icon:Type},{key:'thickness',name:'Thickness',icon:SlidersHorizontal},{key:'design',name:'Design',icon:LayoutGrid},{key:'details',name:'Details',icon:Settings2}] as const;
 const useClientLayoutEffect=typeof window==='undefined'?useEffect:useLayoutEffect;
 
-export default function ShareCanvas({preview,exports,colour,thickness,gallery,details,tool,onToolChange,onClose,loading=false}:{preview:ReactNode;exports:ReactNode;colour:ReactNode;thickness:ReactNode|null;gallery:ReactNode;details:ReactNode;tool:ShareTool|null;onToolChange:(tool:ShareTool|null)=>void;onClose:()=>void;loading?:boolean}){
+export default function ShareCanvas({preview,exports,colour,font,thickness,gallery,details,tool,onToolChange,onClose,loading=false}:{preview:ReactNode;exports:ReactNode;colour:ReactNode;font?:ReactNode;thickness:ReactNode|null;gallery:ReactNode;details:ReactNode;tool:ShareTool|null;onToolChange:(tool:ShareTool|null)=>void;onClose:()=>void;loading?:boolean}){
  const dialogRef=useRef<HTMLDialogElement>(null),trayRef=useRef<HTMLElement>(null),previousTool=useRef(tool),panelId=useId();
  useClientLayoutEffect(()=>{
   const dialog=dialogRef.current;if(!dialog)return;
@@ -26,7 +26,7 @@ export default function ShareCanvas({preview,exports,colour,thickness,gallery,de
   previousTool.current=tool;
   return()=>observer.disconnect();
  },[tool,loading]);
- const active=loading||(tool==='thickness'&&!thickness)?null:tool,content=active==='colour'?colour:active==='thickness'?thickness:active==='design'?gallery:details;
+ const active=loading||(tool==='thickness'&&!thickness)||(tool==='font'&&!font)?null:tool,content=active==='colour'?colour:active==='font'?font:active==='thickness'?thickness:active==='design'?gallery:details;
  if(typeof document==='undefined')return null;
  return createPortal(<dialog ref={dialogRef} className={`share-canvas${loading?' share-canvas-loading':''}`} aria-label="Full-screen share editor" onClick={e=>e.stopPropagation()} onKeyDown={e=>{
   if(e.key!=='Tab')return;
@@ -36,6 +36,6 @@ export default function ShareCanvas({preview,exports,colour,thickness,gallery,de
   <header className="share-canvas-header"><button type="button" className="share-canvas-back" aria-label="Close share editor" onClick={onClose}><ArrowLeft size={20}/></button>{exports}</header>
   <div className="share-canvas-stage">{preview}</div>
   {active&&<section ref={trayRef} id={panelId} className={`share-canvas-tray tool-${active}`} aria-labelledby={panelId+'-title'}><header><h2 id={panelId+'-title'}>{tools.find(t=>t.key===active)?.name}</h2><button type="button" aria-label="Close editing controls" onClick={()=>onToolChange(null)}><X size={18}/></button></header><div className="share-canvas-tool-content">{content}</div></section>}
-  {!loading&&<div className="share-canvas-tools" role="toolbar" aria-label="Edit share image">{tools.filter(t=>t.key!=='thickness'||!!thickness).map(({key,name,icon:Icon})=><button type="button" key={key} data-tool={key} aria-pressed={active===key} aria-expanded={active===key} aria-controls={active===key?panelId:undefined} onClick={()=>onToolChange(active===key?null:key)}><Icon size={19}/><span>{name}</span></button>)}</div>}
+  {!loading&&<div className="share-canvas-tools" role="toolbar" aria-label="Edit share image">{tools.filter(t=>(t.key!=='thickness'||!!thickness)&&(t.key!=='font'||!!font)).map(({key,name,icon:Icon})=><button type="button" key={key} data-tool={key} aria-pressed={active===key} aria-expanded={active===key} aria-controls={active===key?panelId:undefined} onClick={()=>onToolChange(active===key?null:key)}><Icon size={19}/><span>{name}</span></button>)}</div>}
  </dialog>,document.body);
 }

@@ -1,9 +1,11 @@
-import {referenceActivityDesigns,approvedActivityDesigns,approvedRecoveryDesigns,retroActivityDesigns,retroRecoveryDesigns,shareColourContrast,shareFinishes,routeTemplates,routeStatTemplates,type ShareDesign,type ShareStat,type ShareTemplate} from './share-design-catalog';
+import {referenceActivityDesigns,referenceRecoveryDesigns,approvedActivityDesigns,approvedRecoveryDesigns,retroActivityDesigns,retroRecoveryDesigns,shareColourContrast,shareFinishes,routeTemplates,routeStatTemplates,type ShareDesign,type ShareStat,type ShareTemplate} from './share-design-catalog';
 import {renderReferenceShare,renderApprovedShare,renderRetroShare} from './share-renderer-registry';
 import {cinematicText,cinematicTitleLines,type DisplayFace} from './cinematic-type';
 import {shareMetricLabel,shareLabelMode} from './share-labels';
 import {finishShareLettering} from './share-lettering';
 import {finishShareLegibility} from './share-legibility';
+import {referenceLabelText} from './share-reference-type';
+import {resolveShareFont,supportsShareFont} from './share-fonts';
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 // Small vector pictograms remain crisp in PNG exports and need no emoji fonts.
 const sportGlyphs:Record<string,string>={
@@ -42,10 +44,11 @@ export function shareCardSvg(o:ShareDesign){
  const englishVersions:Partial<Record<ShareTemplate,ShareTemplate>>={metroen:'metro',sweatreceipten:'sweatreceipt',excuseen:'excuse'},english=!!englishVersions[o.template];
  if(english)o={...o,template:englishVersions[o.template]!};
  const copy=(fr:string,en:string)=>english?en:fr;
- const isReference=referenceActivityDesigns.some(design=>design.key===o.template);
+ const isReference=[...referenceActivityDesigns,...referenceRecoveryDesigns].some(design=>design.key===o.template);
  const isApproved=[...approvedActivityDesigns,...approvedRecoveryDesigns].some(design=>design.key===o.template);
  const isRetro=[...retroActivityDesigns,...retroRecoveryDesigns].some(design=>design.key===o.template);
  const h=o.height,ink=(!o.finish||o.finish==='solid')&&!['#ffffff','#121826','#111111'].includes(o.accent)?o.accent:o.ink==='white'?'#ffffff':'#111111',parts:string[]=[];
+ const selectedFont=o.fontFace&&supportsShareFont(o.template)?resolveShareFont(o.fontFace):undefined;
  const compact=(s:ShareStat)=>s.value+(s.unit==='min:sec'||s.unit==='h:mm:ss'?'':s.unit==='/km'?'/km':' '+s.unit);
  const mode=shareLabelMode(o),explicitMode=o.labelMode!==undefined,labelCues=explicitMode?mode!=='none':!!o.showLabels;
  const allStats=[...o.stats,...(o.dayCards??[]).flatMap(card=>card.stats)];
@@ -62,6 +65,11 @@ export function shareCardSvg(o:ShareDesign){
   const healthKey=key==='hr'||key==='rhr'?'heartrate':key,glyph=sport?sportGlyphs[key]??sportGlyphs.misc:metricGlyphs[key]??sportGlyphs.misc,kind=sport?'sport':healthGlyphs[healthKey]?'health':'metric';
   return `<g data-${kind}-icon="${xml(kind==='health'?healthKey:key)}" data-share-cue-key="${xml(key)}" transform="translate(${left} ${y-iconSize*.85}) scale(${iconSize/24})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${glyph}</g>`;
  };
+ const written=(value:string,x:number,y:number,size:number,weight:number,color:string,width:number,serif=false,anchor='start',attributes='')=>{
+  if(selectedFont)return `<g${attributes}>${referenceLabelText(value,{x,y,size,width,face:selectedFont,color,weight,anchor:anchor as 'start'|'middle'|'end'})}</g>`;
+  const estimate=[...value].length*size*(serif?.48:.58);
+  return `<text${attributes} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${estimate>width?size*width/estimate:size}" font-weight="${weight}" text-anchor="${anchor}">${xml(value)}</text>`;
+ };
  function text(value:string,x:number,y:number,size=24,weight=400,color=ink,width=936,serif=false,anchor='start'){
  size=Math.max(26,size);weight=Math.max(500,weight);
  const caption=value.trim().toLocaleLowerCase().replace(/^\d+\s*(?:\/\s*)?/,'');
@@ -77,7 +85,8 @@ export function shareCardSvg(o:ShareDesign){
    if(mode==='icons'&&!authoredTitle)return iconCue(labelKey??family!,x,y,size,color,anchor,!!family);
    if(authoredTitle&&mode==='icons'&&family){
     const fitted=Math.min(size,width/Math.max(1,[...value].length*.58)),reserved=42,left=anchor==='middle'?x-width/2:anchor==='end'?x-width:x;
-    return iconCue(family,left,y,26,color,'start',true)+`<text data-share-activity="true" x="${left+reserved}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${Math.min(fitted,(width-reserved)/Math.max(1,[...value].length*.58))}" font-weight="${weight}">${xml(value)}</text>`;
+    const captionSize=Math.min(fitted,(width-reserved)/Math.max(1,[...value].length*.58));
+    return iconCue(family,left,y,26,color,'start',true)+(selectedFont?written(value,left+reserved,y,captionSize,weight,color,width-reserved,serif,'start',' data-share-activity="true"'):`<text data-share-activity="true" x="${left+reserved}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${captionSize}" font-weight="${weight}">${xml(value)}</text>`);
    }
    if(authoredTitle&&mode==='none'){labelKey=undefined;}else{
    labelKind=family?'sport':'metric';
@@ -94,7 +103,8 @@ export function shareCardSvg(o:ShareDesign){
   const glyph=`<g data-health-icon="${healthKey}" transform="translate(${left} ${y-iconSize*.85}) scale(${iconSize/24})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${healthGlyphs[healthKey]}</g>`;
   if(o.showLabels===false)return glyph;
   // Labels remain optional; when enabled reserve room for the same small icon.
-  return glyph+`<text x="${left+iconSize+8}" y="${y}" fill="${color}" font-family="Arial,Helvetica,sans-serif" font-size="${Math.min(size,Math.max(1,width-iconSize-8)/Math.max(1,value.length*.58))}" font-weight="${weight}">${xml(value)}</text>`;
+  const captionSize=Math.min(size,Math.max(1,width-iconSize-8)/Math.max(1,value.length*.58));
+  return glyph+(selectedFont?written(value,left+iconSize+8,y,captionSize,weight,color,Math.max(1,width-iconSize-8)):`<text x="${left+iconSize+8}" y="${y}" fill="${color}" font-family="Arial,Helvetica,sans-serif" font-size="${captionSize}" font-weight="${weight}">${xml(value)}</text>`);
  }
  const metricLabels=['sleep','sleep today','sleep score','overnight hrv','hrv','hours / minutes','milliseconds','out of 100',...o.stats.map(s=>s.label.toLowerCase()),...(o.dayCards??[]).flatMap(c=>c.stats.map(s=>s.label.toLowerCase()))];
  if(o.showLabels===false&&(metricLabels.includes(value.toLowerCase())||value.startsWith('7d range ')||value==='RECOVERY / LAST 7 DAYS'||value.includes('gaps = missing readings')||value.startsWith('HRV ring:')))return '';
@@ -112,15 +122,13 @@ export function shareCardSvg(o:ShareDesign){
   pictogram=`<g data-sport-icon="${xml(family)}" transform="translate(${left} ${y-size*.8}) scale(${iconSize/24})" fill="none" stroke="${paint}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sportGlyphs[family]??sportGlyphs.misc}</g>`;
   x=left+reserved;width=Math.max(1,width-reserved);anchor='start';
  }
- const estimate=[...value].length*size*(serif?.48:.58);
  const isStat=o.stats.some(stat=>[compact(stat),compact(stat).toUpperCase(),stat.value].includes(value)||value.toUpperCase().includes(compact(stat).toUpperCase()));
  const isActivity=[o.sport,o.title].some(label=>label.trim()&&value.toLocaleLowerCase().includes(label.toLocaleLowerCase()));
- return pictogram+`<text${isStat?' data-share-stat="true"':''}${isActivity?' data-share-activity="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${estimate>width?size*width/estimate:size}" font-weight="${weight}" text-anchor="${anchor}">${xml(value)}</text>`;
+ return pictogram+written(value,x,y,size,weight,color,width,serif,anchor,(isStat?' data-share-stat="true"':'')+(isActivity?' data-share-activity="true"':''));
  }
- const estimate=[...value].length*size*(serif?.48:.58);
  const isStat=o.stats.some(stat=>[compact(stat),compact(stat).toUpperCase(),stat.value].includes(value)||value.toUpperCase().includes(compact(stat).toUpperCase()));
  const isActivity=[o.sport,o.title].some(label=>label.trim()&&value.toLocaleLowerCase().includes(label.toLocaleLowerCase()));
- return `<text${labelKey?` data-share-label-key="${xml(labelKey)}" data-share-label-mode="${mode}" data-share-label-kind="${labelKind}"`:''}${isStat?' data-share-stat="true"':''}${isActivity?' data-share-activity="true"':''} x="${x}" y="${y}" fill="${color}" font-family="${serif?'Georgia,Times New Roman,serif':'Arial,Helvetica,sans-serif'}" font-size="${estimate>width?size*width/estimate:size}" font-weight="${weight}" text-anchor="${anchor}">${xml(value)}</text>`;
+ return written(value,x,y,size,weight,color,width,serif,anchor,(labelKey?` data-share-label-key="${xml(labelKey)}" data-share-label-mode="${mode}" data-share-label-kind="${labelKind}"`:'')+(isStat?' data-share-stat="true"':'')+(isActivity?' data-share-activity="true"':''));
  }
  const cinematicCue=(value:string,x:number,y:number,width:number,height:number,face:DisplayFace,color:string,center=false)=>{
   const custom=o.title.trim().toLocaleLowerCase()!==o.sport.trim().toLocaleLowerCase()&&o.title.trim().length>0&&value.trim().toLocaleLowerCase().includes(o.title.trim().toLocaleLowerCase());

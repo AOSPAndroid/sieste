@@ -1,7 +1,14 @@
 import type {routeGeometry} from './route-geometry';
 import type {ShareLabelMode} from './share-labels';
 import type {ShareLegibility} from './share-legibility';
+import type {ShareFontFace} from './share-fonts';
 export const referenceActivityDesigns=[
+ {key:'refrail',name:'Fine line',description:'Sport icon · strong distance · a quiet stat rule'},
+ {key:'refduet',name:'Duet',description:'Two generous readings · a single fine divider'},
+ {key:'refledger',name:'Stat ledger',description:'Three aligned readings · small metric cues'},
+ {key:'refcompactroute',name:'Route & type',description:'Fine route beside a compact reading column'},
+ {key:'refsplitline',name:'Split line',description:'Distance · recorded lap bars · two readings'},
+ {key:'refcorner',name:'Photo corner',description:'A small sport icon and stats along the lower edge'},
  {key:'refhero',name:'Headline',description:'Bold distance · three small readings'},
  {key:'refstack',name:'Three lines',description:'Distance, pace and exact time'},
  {key:'refweekday',name:'Day headline',description:'Weekday · compact bold distance'},
@@ -27,9 +34,13 @@ export const referenceActivityDesigns=[
  {key:'refbubble',name:'Message',description:'Blue activity message · recorded start time'},
  {key:'refsummary',name:'Activity sentence',description:'A quiet gold header above your activity'}
 ] as const;
-export type ReferenceTemplate=typeof referenceActivityDesigns[number]['key'];
-export const referenceRouteTemplates:ReferenceTemplate[]=['refroute','refdayroute','refroutehero','refpairroute'];
-const statLimits:Record<ReferenceTemplate,number>={refsingle:1,refpair:2,reftriple:3,refquad:4,refsix:6,refhero:4,refstack:3,refweekday:1,refroute:0,refdayroute:1,refroutehero:4,reftall:3,reftallday:1,refivory:6,reftoday:1,refserif:2,refschedule:3,refcard:6,refsportcard:3,refcaption:1,reflaps:0,refpairroute:2,refbubble:2,refsummary:2};
+export const referenceRecoveryDesigns=[
+ {key:'refrecoveryline',name:'Recovery line',description:'Three readings · fine seven-night charts'},
+ {key:'refrecoverystack',name:'Morning stack',description:'Sleep in focus · HRV and score · quiet charts'}
+] as const;
+export type ReferenceTemplate=typeof referenceActivityDesigns[number]['key']|typeof referenceRecoveryDesigns[number]['key'];
+export const referenceRouteTemplates:ReferenceTemplate[]=['refroute','refdayroute','refroutehero','refpairroute','refcompactroute'];
+const statLimits:Record<ReferenceTemplate,number>={refrail:4,refduet:2,refledger:3,refcompactroute:3,refsplitline:3,refcorner:3,refrecoveryline:3,refrecoverystack:3,refsingle:1,refpair:2,reftriple:3,refquad:4,refsix:6,refhero:4,refstack:3,refweekday:1,refroute:0,refdayroute:1,refroutehero:4,reftall:3,reftallday:1,refivory:6,reftoday:1,refserif:2,refschedule:3,refcard:6,refsportcard:3,refcaption:1,reflaps:0,refpairroute:2,refbubble:2,refsummary:2};
 export function referenceStatLimit(template:string){return statLimits[template as ReferenceTemplate]??6;}
 export const retroActivityDesigns=[
  {key:'retrohero',name:'Golden hour',description:'Café lettering · giant reading · red shadow',color:'#f4d35e'},
@@ -87,9 +98,9 @@ export const routeStatDesigns=[
  {key:'tracescorecard',name:'Trace scorecard',description:'Thick route · six equally bold readings'},
  {key:'tracestamp',name:'Trace stamp',description:'Framed route · slab-serif headline · stats'}
 ] as const;
-export type ShareTemplate=typeof referenceActivityDesigns[number]['key']|typeof approvedActivityDesigns[number]['key']|typeof approvedRecoveryDesigns[number]['key']|typeof retroActivityDesigns[number]['key']|typeof retroRecoveryDesigns[number]['key']|typeof routeStatDesigns[number]['key']|'cinemamonolith'|'cinemaepic'|'cinemawide'|'cinemamission'|'cinemalens'|'cinemawave'|'routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
+export type ShareTemplate=ReferenceTemplate|typeof approvedActivityDesigns[number]['key']|typeof approvedRecoveryDesigns[number]['key']|typeof retroActivityDesigns[number]['key']|typeof retroRecoveryDesigns[number]['key']|typeof routeStatDesigns[number]['key']|'cinemamonolith'|'cinemaepic'|'cinemawide'|'cinemamission'|'cinemalens'|'cinemawave'|'routegiant'|'cinemabig'|'cinemaday'|'cinematitle'|'cinematrace'|'cinemaserif'|'cinemastack'|'editorial'|'route'|'split'|'signature'|'serif'|'laps'|'bib'|'strip'|'outline'|'receipt'|'chrono'|'hollow'|'scorecard'|'margin'|'caption'|'routebadge'|'panorama'|'bubble'|'wide'|'weekday'|'glass'|'weekbold'|'weekchart'|'daystack'|'daytrends'|'daycolumns'|'daybars'|'daypanels'|'dayline'|'daytype'|'daytiles'|'dayledger'|'daybalance'|'daypulse'|'dayrings'|'dayribbon'|'dayposter'|'daymatrix'|'velocity'|'ghost'|'routefile'|'ticket'|'monolith'|'podium'|'halo'|'capsule'|'diamond'|'seal'|'orbit'|'metro'|'metroen'|'sweatreceipt'|'sweatreceipten'|'excuse'|'excuseen'|'croissant'|'chrome'|'chromebadge'|'chromeoutline'|'chromeheadline';
 export const routeStatTemplates:ShareTemplate[]=routeStatDesigns.map(design=>design.key);
 export const routeTemplates:ShareTemplate[]=[...referenceRouteTemplates,...routeStatTemplates,'routegiant','cinematrace','route','outline','routebadge','panorama','weekday','routefile','halo','capsule','diamond','seal','orbit','chromebadge'];
 export type ShareStat={key:string;label:string;value:string;unit:string};
 // dayHealth.sleep uses seconds; history.sleep uses hours from dailyShareHistory.
-export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;legibility?:ShareLegibility;showLabels?:boolean;labelMode?:ShareLabelMode;textThickness?:number;routeStroke?:number;finish?:ShareFinish;ink:'white'|'black';accent:string;bubbleColor?:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;displayDay?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
+export type ShareDesign={height:number;template:ShareTemplate;transparent:boolean;fontFace?:ShareFontFace;legibility?:ShareLegibility;showLabels?:boolean;labelMode?:ShareLabelMode;textThickness?:number;routeStroke?:number;finish?:ShareFinish;ink:'white'|'black';accent:string;bubbleColor?:string;title:string;sport:string;sportFamily?:string;date:string;stats:ShareStat[];route:ReturnType<typeof routeGeometry>;brand:boolean;demo:boolean;laps?:{index:number;value:number|null;pace:number|null}[];cycling?:boolean;weekday?:string;time?:string;displayDay?:string;recoveryOnly?:boolean;dayCards?:{title:string;sportFamily?:string;stats:ShareStat[]}[];dayHealth?:{sleep?:number;score?:number;hrv?:number;hrvRange?:[number,number];history?:{date:string;sleep:number|null;score:number|null;hrv:number|null}[]};dayMix?:{label:string;seconds:number;color:string}[];dayCoverage?:{covered:number;total:number};weekDays?:{label:string;value:number|null}[]};
