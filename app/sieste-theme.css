@@ -1685,3 +1685,16 @@ body:has(.sieste-v3) .athena-chat :is(form,.athena-history) { border-color: var(
 @media (prefers-reduced-motion:reduce) {
   .sieste-v3 :is(button,summary,a),body:has(.sieste-v3) :is(.athena-launcher,.athena-chat button) { transition: none; }
 }
+/* Supporting insights stay one deliberate tap away from the daily overview. */
+.sieste-v3 .home-data-fold { margin-top:12px; border:1px solid var(--border); border-radius:16px; background:var(--card); padding:0 12px; }
+.sieste-v3 .home-data-fold>summary { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:54px; cursor:pointer; list-style:none; }
+.sieste-v3 .home-data-fold>summary::-webkit-details-marker { display:none; }
+.sieste-v3 .home-data-fold>summary>span { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; }
+.sieste-v3 .home-data-fold>summary strong { font-size:13px; font-weight:650; color:var(--foreground); }
+.sieste-v3 .home-data-fold>summary small { font-size:11px; color:var(--muted-foreground); }
+.sieste-v3 .home-data-fold>summary>svg { width:17px; height:17px; color:var(--muted-foreground); transition:transform .18s ease-out; }
+.sieste-v3 .home-data-fold[open]>summary>svg { transform:rotate(180deg); }
+.sieste-v3 .home-data-fold>summary:focus-visible { outline:2px solid var(--primary); outline-offset:3px; border-radius:10px; }
+.sieste-v3 .home-data-fold .home-insights-board { margin:0 0 12px; }
+.sieste-v3 .home-data-fold .home-insights-board>header { display:none; }
+@media(prefers-reduced-motion:reduce) { .sieste-v3 .home-data-fold>summary>svg { transition:none; } }

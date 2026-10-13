@@ -221,3 +221,89 @@
 @media (max-width:360px) {
   .sieste-v3 .sleep-page .sleep-vital-cards strong { font-size: 24px; }
 }
+
+/* Sleep starts with the weekly rhythm; supporting analysis stays one tap away. */
+.sieste-v3 .sleep-page.sleep-focus { display: flex; flex-direction: column; gap: 10px; }
+.sieste-v3 .sleep-focus .sleep-page-heading { min-height: 44px; margin: 0; }
+.sieste-v3 .sleep-focus .sleep-page-heading h1 { font-size: 22px; font-weight: 650; letter-spacing: -.04em; }
+.sieste-v3 .sleep-focus .sleep-page-heading h1 svg { width: 20px; height: 20px; }
+.sieste-v3 .sleep-focus .sleep-page-heading .sleep-period-toggle { margin-left: auto; }
+.sieste-v3 .sleep-focus .sleep-page-heading [data-slot=toggle-group-item] { min-height: 40px; min-width: 62px; }
+.sieste-v3 .sleep-focus .sleep-night-picker { max-width: none; }
+.sieste-v3 .sleep-focus .sleep-night-picker select { min-height: 40px; width: 142px; max-width: none; padding-right: 28px; }
+.sieste-v3 .sleep-focus .sleep-period-nav { margin: 0; padding: 0; min-height: 44px; font-size: 12px; }
+.sieste-v3 .sleep-focus .sleep-period-nav [data-slot=button] { width: 44px; height: 44px; min-height: 44px; border-radius: 12px; }
+.sieste-v3 .sleep-focus .sleep-period-nav .sleep-back-current { width: auto; padding-inline: 12px; }
+.sieste-v3 .sleep-focus .sleep-window-hero { margin: 0; padding: 18px; border-radius: 22px; overflow: hidden; }
+.sieste-v3 .sleep-focus .sleep-window-hero>header { min-height: 44px; align-items: center; margin-bottom: 16px; gap: 12px; flex-wrap: nowrap; }
+.sieste-v3 .sleep-focus .sleep-window-hero>header>div { display: flex; flex-direction: column; gap: 3px; }
+.sieste-v3 .sleep-focus .sleep-window-hero>header small { color: var(--muted-foreground); font-size: 11px; }
+.sieste-v3 .sleep-focus .sleep-window-hero>header h2 { font-size: 22px; line-height: 1.2; letter-spacing: -.04em; }
+.sieste-v3 .sleep-focus .sleep-window-hero>header>span { margin-left: auto; color: var(--muted-foreground); font-size: 11px; white-space: nowrap; }
+.sieste-v3 .sleep-focus .sleep-window-hero>header .expand-widget { width: 44px; height: 44px; min-height: 44px; padding: 12px; border-radius: 12px; }
+.sleep-window-selection { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; color: var(--foreground); font-size: 12px; font-variant-numeric: tabular-nums; }
+.sleep-window-selection small { color: var(--muted-foreground); font-size: 10px; }
+.sieste-v3 .sleep-window-plot .sleep-window-readout { display: grid; grid-template-columns: 1.12fr 1fr 1fr; padding: 0; gap: 0; background: transparent; border-radius: 0; margin-bottom: 16px; }
+.sieste-v3 .sleep-window-readout>div { min-width: 0; padding: 0 12px; border-left: 1px solid var(--border); }
+.sieste-v3 .sleep-window-readout>div:first-child { padding-left: 0; border-left: 0; }
+.sieste-v3 .sleep-window-readout small { display: flex; align-items: center; gap: 5px; color: var(--muted-foreground); font-size: 11px; margin-bottom: 6px; white-space: nowrap; }
+.sieste-v3 .sleep-window-readout small svg { width: 13px; height: 13px; margin: 0; color: var(--primary); }
+.sieste-v3 .sleep-window-readout strong { display: block; font-size: 26px; line-height: 1.2; letter-spacing: -.05em; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--foreground); white-space: nowrap; }
+.sieste-v3 .sleep-window-readout>div:first-child strong { color: var(--primary); }
+.sieste-v3 .sleep-window-plot .sleep-window-timeline>svg { display: block; width: 100%; max-height: none; height: auto; margin: 0; }
+.sleep-window-timeline { min-width: 0; }
+.sleep-window-timeline svg { font-variant-numeric: tabular-nums; }
+.sleep-window-grid { stroke: var(--border, #e6e7ee); stroke-width: .6; }
+.sleep-window-axis { fill: var(--muted-foreground, #737581); font-size: 11px; }
+.sleep-window-midnight { stroke: var(--primary, #6366f1); stroke-width: .6; stroke-opacity: .35; stroke-dasharray: 3 4; }
+.sleep-window-column { fill: transparent; transition: fill .16s ease; }
+.sleep-window-timeline g[aria-pressed=true] .sleep-window-column { fill: var(--accent, #eeefff); }
+.sleep-window-timeline g[role=button]:hover .sleep-window-column { fill: var(--muted, #f6f6fa); }
+.sleep-window-timeline g[role=button]:focus-visible .sleep-window-column { stroke: var(--primary); stroke-width: 1.5; }
+.sleep-window-range { fill: var(--primary, #6366f1); fill-opacity: .2; }
+.sleep-window-timeline g[aria-pressed=true] .sleep-window-range { fill-opacity: .55; }
+.sleep-window-bed-dot { fill: var(--primary, #6366f1); }
+.sleep-window-wake-dot { fill: var(--muted-foreground, #737581); }
+.sleep-window-late { fill: #bc852c; }
+.sleep-window-missing { stroke: var(--muted-foreground, #737581); stroke-width: 1.4; stroke-linecap: round; stroke-opacity: .35; }
+.sleep-window-day { fill: var(--muted-foreground, #737581); font-size: 10px; }
+.sleep-window-date { fill: var(--foreground, #292932); font-size: 12px; font-weight: 600; }
+.sleep-window-bed-line,.sleep-window-wake-line { fill: none; stroke-width: 1.2; stroke-dasharray: 2 4; }
+.sleep-window-bed-line { stroke: var(--primary, #6366f1); stroke-opacity: .6; }
+.sleep-window-wake-line { stroke: var(--muted-foreground, #737581); stroke-opacity: .55; }
+.sleep-window-caption { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; margin-top: 10px; }
+.sleep-window-caption p,.sleep-window-caption>span { color: var(--muted-foreground); font-size: 11px; line-height: 1.5; margin: 0; }
+.sleep-window-caption>span { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.sleep-window-caption i { width: 5px; height: 5px; border-radius: 50%; background: #bc852c; }
+.sieste-v3 .sleep-focus .sleep-window-hero>.sleep-timing-lines { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 10px; }
+.sieste-v3 .sleep-focus .sleep-window-hero>.sleep-timing-lines>summary { min-height: 36px; display: flex; align-items: center; color: var(--muted-foreground); font-size: 12px; cursor: pointer; }
+.sieste-v3 .sleep-focus .sleep-secondary { margin: 0; }
+.sieste-v3 .sleep-focus .sleep-secondary>summary { min-height: 48px; padding: 12px 14px; }
+.sieste-v3 .sleep-focus .sleep-secondary>div { padding: 12px 14px; }
+.sieste-v3 .sleep-focus .sleep-secondary .sleep-vitals { margin: 0; }
+.sieste-v3 .sleep-focus .sleep-secondary .sleep-training { padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+@media (min-width: 900px) {
+ .sieste-v3 .sleep-focus .sleep-window-hero { padding: 22px 26px; }
+ .sieste-v3 .sleep-focus .sleep-window-plot { display: grid; grid-template-columns: minmax(170px,.65fr) minmax(0,2fr); column-gap: 28px; }
+ .sieste-v3 .sleep-focus .sleep-window-selection { grid-column: 1; align-self: start; flex-direction: column; }
+ .sieste-v3 .sleep-focus .sleep-window-readout { grid-column: 1; grid-row: 2; align-self: start; display: flex; flex-direction: column; gap: 22px; }
+ .sieste-v3 .sleep-focus .sleep-window-readout>div { padding: 0; border-left: 0; }
+ .sieste-v3 .sleep-focus .sleep-window-readout strong { font-size: 36px; }
+ .sieste-v3 .sleep-focus .sleep-window-timeline { grid-column: 2; grid-row: 1/4; }
+ .sieste-v3 .sleep-focus .sleep-window-caption { grid-column: 1/-1; }
+ .sieste-v3 .sleep-focus .sleep-window-timeline>svg { max-height: 360px; }
+}
+@media (max-width: 600px) {
+ .sieste-v3 .sleep-focus .sleep-page-heading { gap: 8px; }
+ .sieste-v3 .sleep-focus .sleep-night-picker { display: none; }
+ .sieste-v3 .sleep-focus .sleep-window-hero { padding: 14px 12px; }
+ .sieste-v3 .sleep-focus .sleep-window-hero>header h2 { font-size: 20px; }
+ .sieste-v3 .sleep-focus .sleep-window-hero>header>span { font-size: 10px; }
+ .sieste-v3 .sleep-focus .sleep-window-readout strong { font-size: 24px; }
+ .sieste-v3 .sleep-focus .sleep-window-readout>div { padding-inline: 9px; }
+ .sieste-v3 .sleep-focus .sleep-window-readout>div:first-child { padding-left: 0; }
+ .sieste-v3 .sleep-focus .sleep-window-timeline[data-dense=true] { overflow-x: auto; scroll-snap-type: x proximity; }
+ .sieste-v3 .sleep-focus .sleep-window-timeline[data-dense=true]>svg { width: 600px; max-width: none; }
+ .sleep-window-caption p,.sleep-window-caption>span { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .sleep-window-column { transition: none; } }
