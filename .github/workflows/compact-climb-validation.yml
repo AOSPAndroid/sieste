@@ -1,0 +1,37 @@
+name: Temporary compact climb validation
+on:
+  push:
+    branches:
+      - codex/compact-climb-whatsapp-20261017
+    paths:
+      - .github/workflows/compact-climb-validation.yml
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: "true"
+      SHARP_IGNORE_GLOBAL_LIBVIPS: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 0248036dca09c9a1073abd235f7ca1546189e793
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install locked dependencies
+        run: npm run install:ci
+      - name: Check compact text and segment readings
+        run: |
+          node scripts/test-segment-share.mjs
+          node scripts/test-profile-segment-data.mjs
+          node scripts/test-running-profile.mjs
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build
+      - name: Check bundle budget
+        run: npm run audit:bundle
