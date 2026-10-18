@@ -1,4 +1,5 @@
 import {sportFamily} from './sports';
+import {vo2Points,vo2Baseline,TREDICT_VO2_LABEL,VO2_WINDOW_DAYS} from './vo2-tracking';
 export type Trend={tone:'good'|'watch'|'bad'|'steady'|'neutral'|'missing';arrow:string;text:string;description:string};
 const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
 export function valueTrend(value:unknown,previous:unknown,direction:'higher'|'lower'|'neutral'='neutral',comparison='previous period',redPercent=10):Trend{
@@ -23,9 +24,9 @@ export function sessionTrend(activity:any,history:any[]){
 export function vo2Trend(activity:any,history:any[]){
  const value=activity.summary?.vo2max,date=Date.parse(activity.date);
  if(sportFamily(activity)!=='running'||!finite(value)||value<=0)return null;
- const prior=history.filter(a=>a.id!==activity.id&&sportFamily(a)==='running'&&Date.parse(a.date)<date&&Date.parse(a.date)>=date-35*86400000&&finite(a.summary?.vo2max)&&a.summary.vo2max>0).sort((a,b)=>Date.parse(b.date)-Date.parse(a.date))[0];
- if(!prior)return null;const comparison=`prior running estimate · ${new Date(prior.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`;
- return {metric:'vo2max',label:'VO₂ estimate',prior,comparison,trend:valueTrend(value,prior.summary.vo2max,'higher',comparison,3),explanation:'Latest workout VO₂ estimate versus the prior recorded running estimate. Different workout conditions can change estimates; this is not a confirmed fitness change.'};
+ const base=vo2Baseline(vo2Points(history),activity.id,date);if(!base)return null;
+ const comparison=base.kind==='median'?`median of ${base.count} runs in the prior ${VO2_WINDOW_DAYS} days`:`prior run estimate · ${new Date((base as {date:string}).date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`;
+ return {metric:'vo2max',label:TREDICT_VO2_LABEL,prior:base,comparison,trend:valueTrend(value,Math.round(base.value*10)/10,'higher',comparison,3),explanation:`This run's Tredict VO₂ estimate versus ${comparison}. Heat, hills and fatigue move single-run estimates; a change across several runs is more meaningful than one run.`};
 }
 
 export function recoveryTrend(value:unknown,previous:unknown,status:import('./metric-status').MetricStatus,comparison='previous recorded day'):Trend{const trend=valueTrend(value,previous,'neutral',comparison);return {...trend,tone:trend.tone==='missing'?'missing':status.tone==='red'?'bad':status.tone==='orange'?'watch':'neutral',description:trend.description+' · '+status.reason};}
