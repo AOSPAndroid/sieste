@@ -4,6 +4,9 @@ export const SNAPSHOT_TTL = 14 * 86400000;
 const MAX_BYTES = 15 * 1024 * 1024;
 const DATABASE = "sieste-device-cache";
 const STORE = "dashboards";
+// Opaque scope of the last verified snapshot, so the next visit can paint it
+// before the account check returns. It is never a credential.
+const SCOPE_HINT = "sieste-device-scope";
 type Snapshot = {
   version: 1;
   scope: string;
@@ -172,7 +175,23 @@ export async function writeDeviceSnapshot(
     return false;
   }
 }
+export function rememberedScope(): string | null {
+  try {
+    return localStorage.getItem(SCOPE_HINT) || null;
+  } catch {
+    return null;
+  }
+}
+export function rememberScope(scope: string | null) {
+  try {
+    if (scope) localStorage.setItem(SCOPE_HINT, scope);
+    else localStorage.removeItem(SCOPE_HINT);
+  } catch {
+    /* Storage blocked: the next visit waits for the account check. */
+  }
+}
 export async function clearDeviceSnapshot() {
+  rememberScope(null);
   activeScope = null;
   const epoch = ++generation;
   const db = await openDatabase();
