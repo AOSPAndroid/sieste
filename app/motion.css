@@ -17,3 +17,13 @@
 .deferred-chart-skeleton{min-height:290px;padding:12px 0}.deferred-chart-skeleton>.skeleton-line{width:35%;height:17px;border-radius:5px;margin-bottom:14px}.deferred-chart-skeleton>.skeleton-chart{height:245px}.route-loading .loading-state{min-height:155px}.route-loading .loading-skeleton>i{height:80px}.route-thumbnail.is-loading{border-radius:7px;color:#788596}
 .sync-progress{position:fixed;top:0;left:0;right:0;height:2px;overflow:hidden;background:#e8f1fa;z-index:55;pointer-events:none}.sync-progress>i{display:block;width:30%;height:100%;background:#2875b7;animation:sieste-sync 1.8s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.home-board,.training-journal,.weather-recon,.workspace-tool-panel:not([hidden]),.overlay,.overlay>.modal,.overlay>.expanded-widget,.home-recovery>.home-metric,.loading-orbit,.sync-progress>i{animation:none}.loading-skeleton>i:after,.dashboard-skeleton i:after,.route-thumbnail.is-loading:after,.deferred-chart-skeleton>i:after{animation:none;display:none}.dashboard-theme .mini-dock button,.sieste-account,.workspace-tool-buttons>button,.journal-activity,.weather-days button,.calendar-session,.home-metric{transition:none;transform:none!important}.sync-progress>i{width:100%;opacity:.55}}
+/* Live refresh: only values that can still change today show progress. */
+.is-updating .live-value{animation:sieste-live-pulse 1.6s ease-in-out infinite}
+.live-value.live-arrived{animation:sieste-live-arrive .9s ease-out}
+.is-updating .live-value.live-arrived{animation:sieste-live-arrive .9s ease-out,sieste-live-pulse 1.6s ease-in-out .9s infinite}
+.health-headline.is-updating .health-headline-label:after,.is-updating>small:first-child:after{content:'';display:inline-block;width:5px;height:5px;margin-left:5px;border-radius:50%;background:#2875b7;vertical-align:middle;animation:sieste-live-pulse 1.2s ease-in-out infinite}
+.calendar-session-preview.is-new{animation:sieste-live-new 1.2s ease-out}
+@keyframes sieste-live-pulse{50%{opacity:.45}}
+@keyframes sieste-live-arrive{0%{opacity:.25;transform:translateY(4px)}55%{color:#2875b7}100%{opacity:1;transform:none}}
+@keyframes sieste-live-new{0%{opacity:0;transform:translateY(-6px);box-shadow:0 0 0 2px #2875b7}70%{box-shadow:0 0 0 2px rgba(40,117,183,.2)}100%{opacity:1;transform:none;box-shadow:none}}
+@media(prefers-reduced-motion:reduce){.is-updating .live-value,.live-value.live-arrived,.calendar-session-preview.is-new{animation:none}.health-headline.is-updating .health-headline-label:after,.is-updating>small:first-child:after{animation:none;opacity:.7}}

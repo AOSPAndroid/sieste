@@ -55,6 +55,8 @@ function harness({
   failRefresh = false,
   cacheFailure = false,
   current = () => true,
+  hint,
+  metadataGate = null,
 } = {}) {
   const events = [],
     calls = [];
@@ -67,11 +69,20 @@ function harness({
       if (cacheFailure) throw Error("Storage blocked");
       return cachedData ? { data: cachedData, savedAt: 100 } : null;
     },
+    ...(hint === undefined
+      ? {}
+      : {
+          remembered: () => hint,
+          remember: (scope) => events.push(["remember", scope]),
+        }),
   };
   const request = async (url, options) => {
     calls.push([url, options]);
-    if (url === "/api/account")
+    if (url === "/api/account") {
+      if (metadataGate) await metadataGate.promise;
+      if (metadataStatus === 0) throw Error("Offline");
       return Response.json(metadata, { status: metadataStatus });
+    }
     if (options.method !== "POST") {
       if (serverGate) await serverGate.promise;
       if (failServer) throw Error("Offline");
@@ -192,8 +203,9 @@ s = harness({ state: { signedIn: false, connected: false } });
 await s.task;
 assert.ok(s.events.some(([key]) => key === "clear"));
 assert.equal(s.events.filter(([key]) => key === "onData").at(-1)[1], null);
-s = harness({ state: { ...account, userId: "B", data: data("private-b") } });
+s = harness({ hint: "scope-a", state: { ...account, userId: "B", data: data("private-b") } });
 await s.task;
+assert.ok(s.events.some(([key, value]) => key === "remember" && value === null), "A changed sign-in forgets the remembered scope");
 assert.ok(
   !s.events.some(
     ([key, value]) =>
@@ -201,8 +213,9 @@ assert.ok(
   ),
 );
 assert.ok(s.events.some(([key]) => key === "clear"));
-s = harness({ state: { ...account, connected: false, data: null } });
+s = harness({ hint: "scope-a", state: { ...account, connected: false, data: null } });
 await s.task;
+assert.ok(s.events.some(([key, value]) => key === "remember" && value === null), "Disconnecting forgets the remembered scope");
 assert.ok(s.events.some(([key]) => key === "clear"));
 assert.equal(s.events.filter(([key]) => key === "onData").at(-1)[1], null);
 s = harness({
@@ -236,6 +249,51 @@ assert.ok(
     ([key, value]) => key === "onData" && value?.activities[0]?.id === "server",
   ),
 );
+// A remembered scope paints the device snapshot before the account check.
+gate = deferred();
+s = harness({ hint: "scope-a", metadataGate: gate });
+await settle();
+assert.ok(
+  s.events.some(([key, value, at]) => key === "onData" && value === cached && at === 100),
+  "Remembered snapshot renders before the account check",
+);
+assert.ok(s.events.some(([key]) => key === "onReady"));
+assert.deepEqual(s.calls.map((c) => c[0]), ["/api/account"]);
+const provisional = s.events.findIndex(([key, value]) => key === "onAccount" && value.signedIn && value.connected && value.cacheScope === "scope-a");
+assert.ok(provisional >= 0 && provisional < s.events.findIndex(([key, value]) => key === "onData" && value === cached), "The remembered dashboard is treated as signed in and connected");
+assert.ok(s.events.some(([key, value]) => key === "onBusy" && value === true), "Polling waits while the account is verified");
+gate.resolve();
+await s.task;
+assert.equal(s.events.filter(([key]) => key === "read").length, 1, "Verified scope is read once");
+assert.ok(s.events.some(([key, value]) => key === "remember" && value === "scope-a"));
+assert.equal(
+  s.events.filter(([key]) => key === "onScope").length,
+  1,
+  "Matching verification keeps the painted dashboard mounted",
+);
+s = harness({ hint: "scope-a", metadata: { signedIn: false, connected: false } });
+await s.task;
+assert.equal(s.events.filter(([key]) => key === "onData").at(-1)[1], null, "Signed-out visits remove the remembered snapshot");
+assert.ok(s.events.some(([key, value]) => key === "remember" && value === null));
+assert.ok(s.events.some(([key]) => key === "clear"));
+gate = deferred();
+s = harness({ hint: "scope-a", cacheGate: gate, metadata: { signedIn: false, connected: false } });
+await s.task;
+gate.resolve();
+await settle();
+assert.ok(!s.events.some(([key, value]) => key === "onData" && value === cached));
+assert.equal(s.events.filter(([key]) => key === "onData").at(-1)[1], null, "A late snapshot read cannot reappear after sign-out");
+s = harness({ hint: "old-scope" });
+await s.task;
+const painted = s.events.findIndex(([key, value]) => key === "onData" && value === cached);
+const hidden = s.events.findIndex(([key, value], i) => i > painted && key === "onData" && value === null);
+assert.ok(painted >= 0 && hidden > painted, "A changed connection hides the remembered snapshot");
+assert.ok(s.events.some(([key, value]) => key === "activate" && value === "scope-a"));
+assert.ok(s.events.some(([key, value]) => key === "remember" && value === "scope-a"));
+s = harness({ hint: "scope-a", metadataStatus: 0 });
+await s.task;
+assert.equal(s.events.filter(([key, value]) => key === "onData" && value).at(-1)[1], cached, "Offline visits keep the remembered snapshot");
+assert.ok(s.events.some(([key, value]) => key === "onError" && value.startsWith("Showing your saved dashboard")));
 console.log(
-  "Passed account restore: cached first paint, five-minute freshness, background refresh, failures, slow/blocked storage, account checks, sign-out/disconnect cleanup and stale request cancellation.",
+  "Passed account restore: remembered-snapshot first paint, cached first paint, five-minute freshness, background refresh, failures, slow/blocked storage, account checks, sign-out/disconnect cleanup and stale request cancellation.",
 );

@@ -2,6 +2,8 @@ import {
   activateSnapshotScope,
   clearDeviceSnapshot,
   readDeviceSnapshot,
+  rememberScope,
+  rememberedScope,
   validDashboard,
 } from "./device-snapshot-cache";
 import { progressiveSync } from "./progressive-sync";
@@ -30,6 +32,8 @@ type Options = {
     activate: typeof activateSnapshotScope;
     clear: typeof clearDeviceSnapshot;
     read: typeof readDeviceSnapshot;
+    remembered?: typeof rememberedScope;
+    remember?: typeof rememberScope;
   };
 };
 export async function restoreDashboard({
@@ -47,6 +51,8 @@ export async function restoreDashboard({
     activate: activateSnapshotScope,
     clear: clearDeviceSnapshot,
     read: readDeviceSnapshot,
+    remembered: rememberedScope,
+    remember: rememberScope,
   },
 }: Options) {
   let shown = false,
@@ -55,6 +61,39 @@ export async function restoreDashboard({
   const ready = () => {
     if (current()) onReady();
   };
+  // Show a device snapshot unless the server has answered first. `allowed`
+  // lets the remembered-scope paint be withdrawn by the account check.
+  const paintFromDevice = (scope: string, allowed: () => boolean = () => true) =>
+    cache
+      .read(scope)
+      .then((hit) => {
+        if (!hit || !allowed() || authoritative || !current()) return;
+        shown = true;
+        if (scope === hinted)
+          // Provisional until /api/account answers, so Sync now and polling
+          // treat the restored dashboard as the saved connection it came from.
+          onAccount({
+            signedIn: true,
+            connected: true,
+            corosConnected:
+              hit.data.provider === "coros" || !!hit.data.extra?.coros,
+            cacheScope: scope,
+          });
+        onData(hit.data, hit.savedAt);
+        ready();
+      })
+      .catch(() => {});
+  // Paint the last verified device snapshot before the network answers. The
+  // account check below still decides whether it may stay on screen.
+  const hinted = cache.remembered?.() ?? null;
+  let hintValid = !!hinted;
+  if (hinted) {
+    cache.activate(hinted);
+    onScope(hinted);
+    onPhase("Refreshing saved dashboard…");
+    onBusy(true);
+    cachedTask = paintFromDevice(hinted, () => hintValid);
+  }
   try {
     const response = await request("/api/account", {
       cache: "no-store",
@@ -73,7 +112,10 @@ export async function restoreDashboard({
       !account.userId ||
       !account.cacheScope
     ) {
+      hintValid = false;
+      shown = false;
       onScope(null);
+      cache.remember?.(null);
       await cache.clear();
       if (!current()) return;
       onData(null, null);
@@ -81,23 +123,25 @@ export async function restoreDashboard({
       return;
     }
     const scope = account.cacheScope;
-    cache.activate(scope);
-    onScope(scope);
+    if (scope !== hinted) {
+      // A different account or connection: the hinted snapshot is not theirs.
+      if (hintValid) {
+        hintValid = false;
+        if (shown) {
+          shown = false;
+          onData(null, null);
+        }
+      }
+      cache.activate(scope);
+      onScope(scope);
+    }
+    cache.remember?.(scope);
     onError("");
     onPhase("Refreshing saved dashboard…");
     onBusy(true);
     // Start the authoritative read in parallel with IndexedDB. Cache failures or
     // blocked storage cannot hold up a successful server response.
-    cachedTask = cache
-      .read(scope)
-      .then((hit) => {
-        if (hit && !authoritative && current()) {
-          shown = true;
-          onData(hit.data, hit.savedAt);
-          ready();
-        }
-      })
-      .catch(() => {});
+    if (scope !== hinted) cachedTask = paintFromDevice(scope);
     const saved = await request("/api/sync", {
       cache: "no-store",
       signal: AbortSignal.timeout(20000),
@@ -113,6 +157,7 @@ export async function restoreDashboard({
       authoritative = true;
       shown = false;
       onScope(null);
+      cache.remember?.(null);
       await cache.clear();
       if (!current()) return;
       onAccount({
@@ -131,6 +176,7 @@ export async function restoreDashboard({
       authoritative = true;
       shown = false;
       onScope(null);
+      cache.remember?.(null);
       await cache.clear();
       if (!current()) return;
       onAccount({
