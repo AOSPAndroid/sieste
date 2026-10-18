@@ -61,6 +61,28 @@ export async function restoreDashboard({
   const ready = () => {
     if (current()) onReady();
   };
+  // Show a device snapshot unless the server has answered first. `allowed`
+  // lets the remembered-scope paint be withdrawn by the account check.
+  const paintFromDevice = (scope: string, allowed: () => boolean = () => true) =>
+    cache
+      .read(scope)
+      .then((hit) => {
+        if (!hit || !allowed() || authoritative || !current()) return;
+        shown = true;
+        if (scope === hinted)
+          // Provisional until /api/account answers, so Sync now and polling
+          // treat the restored dashboard as the saved connection it came from.
+          onAccount({
+            signedIn: true,
+            connected: true,
+            corosConnected:
+              hit.data.provider === "coros" || !!hit.data.extra?.coros,
+            cacheScope: scope,
+          });
+        onData(hit.data, hit.savedAt);
+        ready();
+      })
+      .catch(() => {});
   // Paint the last verified device snapshot before the network answers. The
   // account check below still decides whether it may stay on screen.
   const hinted = cache.remembered?.() ?? null;
@@ -68,16 +90,9 @@ export async function restoreDashboard({
   if (hinted) {
     cache.activate(hinted);
     onScope(hinted);
-    cachedTask = cache
-      .read(hinted)
-      .then((hit) => {
-        if (hit && hintValid && !authoritative && current()) {
-          shown = true;
-          onData(hit.data, hit.savedAt);
-          ready();
-        }
-      })
-      .catch(() => {});
+    onPhase("Refreshing saved dashboard…");
+    onBusy(true);
+    cachedTask = paintFromDevice(hinted, () => hintValid);
   }
   try {
     const response = await request("/api/account", {
@@ -126,17 +141,7 @@ export async function restoreDashboard({
     onBusy(true);
     // Start the authoritative read in parallel with IndexedDB. Cache failures or
     // blocked storage cannot hold up a successful server response.
-    if (scope !== hinted)
-      cachedTask = cache
-        .read(scope)
-        .then((hit) => {
-          if (hit && !authoritative && current()) {
-            shown = true;
-            onData(hit.data, hit.savedAt);
-            ready();
-          }
-        })
-        .catch(() => {});
+    if (scope !== hinted) cachedTask = paintFromDevice(scope);
     const saved = await request("/api/sync", {
       cache: "no-store",
       signal: AbortSignal.timeout(20000),
@@ -152,6 +157,7 @@ export async function restoreDashboard({
       authoritative = true;
       shown = false;
       onScope(null);
+      cache.remember?.(null);
       await cache.clear();
       if (!current()) return;
       onAccount({
@@ -170,6 +176,7 @@ export async function restoreDashboard({
       authoritative = true;
       shown = false;
       onScope(null);
+      cache.remember?.(null);
       await cache.clear();
       if (!current()) return;
       onAccount({

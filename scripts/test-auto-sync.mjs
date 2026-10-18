@@ -203,8 +203,9 @@ s = harness({ state: { signedIn: false, connected: false } });
 await s.task;
 assert.ok(s.events.some(([key]) => key === "clear"));
 assert.equal(s.events.filter(([key]) => key === "onData").at(-1)[1], null);
-s = harness({ state: { ...account, userId: "B", data: data("private-b") } });
+s = harness({ hint: "scope-a", state: { ...account, userId: "B", data: data("private-b") } });
 await s.task;
+assert.ok(s.events.some(([key, value]) => key === "remember" && value === null), "A changed sign-in forgets the remembered scope");
 assert.ok(
   !s.events.some(
     ([key, value]) =>
@@ -212,8 +213,9 @@ assert.ok(
   ),
 );
 assert.ok(s.events.some(([key]) => key === "clear"));
-s = harness({ state: { ...account, connected: false, data: null } });
+s = harness({ hint: "scope-a", state: { ...account, connected: false, data: null } });
 await s.task;
+assert.ok(s.events.some(([key, value]) => key === "remember" && value === null), "Disconnecting forgets the remembered scope");
 assert.ok(s.events.some(([key]) => key === "clear"));
 assert.equal(s.events.filter(([key]) => key === "onData").at(-1)[1], null);
 s = harness({
@@ -257,6 +259,9 @@ assert.ok(
 );
 assert.ok(s.events.some(([key]) => key === "onReady"));
 assert.deepEqual(s.calls.map((c) => c[0]), ["/api/account"]);
+const provisional = s.events.findIndex(([key, value]) => key === "onAccount" && value.signedIn && value.connected && value.cacheScope === "scope-a");
+assert.ok(provisional >= 0 && provisional < s.events.findIndex(([key, value]) => key === "onData" && value === cached), "The remembered dashboard is treated as signed in and connected");
+assert.ok(s.events.some(([key, value]) => key === "onBusy" && value === true), "Polling waits while the account is verified");
 gate.resolve();
 await s.task;
 assert.equal(s.events.filter(([key]) => key === "read").length, 1, "Verified scope is read once");

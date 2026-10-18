@@ -16,9 +16,9 @@ assert.equal(refreshHealth('querySleepData',ago(5*3600000),now,true,true),false)
 // Daily totals request only the days since the newest stored total.
 assert.equal(dailyHealthDays({},'20261018'),28);
 assert.equal(dailyHealthDays(undefined,'20261018'),28);
-assert.equal(dailyHealthDays({'20261018':{steps:4000}},'20261018'),2,'Same-day refresh re-reads yesterday and today');
-assert.equal(dailyHealthDays({'20261017':{},'20261001':{}},'20261018'),2);
-assert.equal(dailyHealthDays({'20261011':{}},'20261018'),8,'A week away fills the gap');
+assert.equal(dailyHealthDays({'20261018':{steps:4000}},'20261018'),7,'Same-day refresh re-reads the last week for late watch uploads');
+assert.equal(dailyHealthDays({'20261017':{},'20261001':{}},'20261018'),7);
+assert.equal(dailyHealthDays({'20261008':{}},'20261018'),11,'Ten days away fills the gap');
 assert.equal(dailyHealthDays({'20260101':{}},'20261018'),28,'Long gaps are capped');
-assert.equal(dailyHealthDays({'20261031':{}},'20261101'),2,'Month boundaries count calendar days');
+assert.equal(dailyHealthDays({'20261020':{}},'20261101'),13,'Month boundaries count calendar days');
 console.log('Passed live refresh: 15-minute daily totals, hourly settled sources, once-a-day overnight readings and incremental daily-health ranges.');
