@@ -1739,3 +1739,14 @@ body:has(.sieste-v3) .athena-chat :is(form,.athena-history) { border-color: var(
  .sieste-v3 .home-toolbar-actions .home-snapshot-action { width:44px; padding:0; }
  .sieste-v3 .home-toolbar-actions .home-snapshot-action>span { display:none; }
 }
+
+/* Live refresh: only values that can still change today show progress. */
+.is-updating .live-value{animation:sieste-live-pulse 1.6s ease-in-out infinite}
+.live-value.live-arrived{animation:sieste-live-arrive .9s ease-out}
+.is-updating .live-value.live-arrived{animation:sieste-live-arrive .9s ease-out,sieste-live-pulse 1.6s ease-in-out .9s infinite}
+.health-headline.is-updating .health-headline-label:after,.is-updating>small:first-child:after{content:'';display:inline-block;width:5px;height:5px;margin-left:5px;border-radius:50%;background:#2875b7;vertical-align:middle;animation:sieste-live-pulse 1.2s ease-in-out infinite}
+.calendar-session-preview.is-new{animation:sieste-live-new 1.2s ease-out}
+@keyframes sieste-live-pulse{50%{opacity:.45}}
+@keyframes sieste-live-arrive{0%{opacity:.25;transform:translateY(4px)}55%{color:#2875b7}100%{opacity:1;transform:none}}
+@keyframes sieste-live-new{0%{opacity:0;transform:translateY(-6px);box-shadow:0 0 0 2px #2875b7}70%{box-shadow:0 0 0 2px rgba(40,117,183,.2)}100%{opacity:1;transform:none;box-shadow:none}}
+@media(prefers-reduced-motion:reduce){.is-updating .live-value,.live-value.live-arrived,.calendar-session-preview.is-new{animation:none}.health-headline.is-updating .health-headline-label:after,.is-updating>small:first-child:after{animation:none;opacity:.7}}
