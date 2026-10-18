@@ -2,3 +2,10 @@
 .vo2-numbers .negative-value{color:#b4233c}
 .vo2-tooltip{display:grid;gap:3px;background:#fff;border:1px solid #e2e2e2;border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(15,23,42,.08)}
 .vo2-tooltip strong{font-weight:600;color:#171717}
+.vo2-home-picker{margin:4px 0 8px}
+.vo2-home-numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 4px}
+.vo2-home-numbers small,.vo2-home-numbers span{display:block;font-size:11px;color:#6b7280}
+.vo2-home-numbers strong{display:block;font-size:22px;font-weight:600;margin:2px 0}
+.vo2-home-numbers .negative-value{color:#b4233c}
+.vo2-home-chart{height:170px;margin:4px 0}
+.vo2-home-note{font-size:11px;color:#6b7280;margin:4px 0 0}

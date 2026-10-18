@@ -22,11 +22,12 @@ export function sessionTrend(activity:any,history:any[]){
 }
 
 export function vo2Trend(activity:any,history:any[]){
- const value=activity.summary?.vo2max,date=Date.parse(activity.date);
- if(sportFamily(activity)!=='running'||!finite(value)||value<=0)return null;
- const base=vo2Baseline(vo2Points(history),activity.id,date);if(!base)return null;
- const comparison=base.kind==='median'?`median of ${base.count} runs in the prior ${VO2_WINDOW_DAYS} days`:`prior run estimate · ${new Date((base as {date:string}).date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`;
- return {metric:'vo2max',label:TREDICT_VO2_LABEL,prior:base,comparison,trend:valueTrend(value,Math.round(base.value*10)/10,'higher',comparison,3),explanation:`This run's Tredict VO₂ estimate versus ${comparison}. Heat, hills and fatigue move single-run estimates; a change across several runs is more meaningful than one run.`};
+ const value=activity.summary?.vo2max,date=Date.parse(activity.date),sport=sportFamily(activity);
+ if((sport!=='running'&&sport!=='cycling')||!finite(value)||value<=0)return null;
+ const base=vo2Baseline(vo2Points(history,sport),activity.id,date);if(!base)return null;
+ const noun=sport==='running'?'run':'ride';
+ const comparison=base.kind==='median'?`median of ${base.count} ${noun}s in the prior ${VO2_WINDOW_DAYS} days`:`prior ${noun} estimate · ${new Date((base as {date:string}).date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`;
+ return {metric:'vo2max',label:sport==='running'?TREDICT_VO2_LABEL:'Ride VO₂ · Tredict',prior:base,comparison,trend:valueTrend(value,Math.round(base.value*10)/10,'higher',comparison,3),explanation:`This ${noun}'s Tredict VO₂ estimate versus ${comparison}. Heat, hills and fatigue move single-session estimates; a change across several ${noun}s is more meaningful than one.`};
 }
 
 export function recoveryTrend(value:unknown,previous:unknown,status:import('./metric-status').MetricStatus,comparison='previous recorded day'):Trend{const trend=valueTrend(value,previous,'neutral',comparison);return {...trend,tone:trend.tone==='missing'?'missing':status.tone==='red'?'bad':status.tone==='orange'?'watch':'neutral',description:trend.description+' · '+status.reason};}

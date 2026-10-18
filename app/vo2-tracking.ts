@@ -11,7 +11,8 @@ const DAY=86400000;
 const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
 
 export type Vo2Point={id:string;date:string;t:number;value:number;title?:string};
-type Activity={id:string;date:string;title?:string;summary?:{vo2max?:unknown}};
+export type Vo2Sport='running'|'cycling';
+type Activity={id:string;date:string;title?:string;sportType?:string;subSportType?:string;summary?:{vo2max?:unknown}};
 
 export function median(values:number[]){
  if(!values.length)return null;
@@ -19,10 +20,12 @@ export function median(values:number[]){
  return sorted.length%2?sorted[mid]:(sorted[mid-1]+sorted[mid])/2;
 }
 
-// Running estimates in date order. Implausible values (outside 20–95) are dropped.
-export function vo2Points(activities:Activity[]):Vo2Point[]{
+// One sport's estimates in date order. Runs and rides are kept apart because
+// estimates from heart rate and pace differ from those based on power.
+// Implausible values (outside 20–95) are dropped.
+export function vo2Points(activities:Activity[],sport:Vo2Sport='running'):Vo2Point[]{
  return activities
-  .filter(a=>sportFamily(a as never)==='running'&&finite(a.summary?.vo2max)&&(a.summary!.vo2max as number)>=20&&(a.summary!.vo2max as number)<=95&&Number.isFinite(Date.parse(a.date)))
+  .filter(a=>sportFamily(a as never)===sport&&finite(a.summary?.vo2max)&&(a.summary!.vo2max as number)>=20&&(a.summary!.vo2max as number)<=95&&Number.isFinite(Date.parse(a.date)))
   .map(a=>({id:a.id,date:a.date,t:Date.parse(a.date),value:a.summary!.vo2max as number,title:a.title}))
   .sort((a,b)=>a.t-b.t);
 }
@@ -54,6 +57,11 @@ export function vo2Baseline(points:Vo2Point[],activityId:string,date:number){
  if(prior.length>=VO2_MIN_RUNS)return {value:median(prior.map(p=>p.value))!,kind:'median' as const,count:prior.length};
  const last=points.filter(p=>p.id!==activityId&&p.t<date&&p.t>=date-35*DAY).at(-1);
  return last?{value:last.value,kind:'previous' as const,count:1,date:last.date}:null;
+}
+
+// Sports that have at least one estimate, so views only offer what exists.
+export function vo2Sports(activities:Activity[]):Vo2Sport[]{
+ return (['running','cycling'] as const).filter(sport=>vo2Points(activities,sport).length>0);
 }
 
 // COROS fitness history is keyed by YYYYMMDD.
