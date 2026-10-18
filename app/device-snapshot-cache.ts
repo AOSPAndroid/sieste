@@ -46,7 +46,7 @@ function deleteScope(meta:IDBObjectStore,rows:IDBObjectStore,scope:string){
  const cursor=rows.index('scope').openKeyCursor(scope);
  cursor.onsuccess=()=>{if(cursor.result){rows.delete(cursor.result.primaryKey);cursor.result.continue()}};
 }
-// Scope is activated only after the server has verified the account/connection.
+// Scope is remembered on this device and then verified by the account check.
 export function activateSnapshotScope(scope:string|null){
  if(scope===activeScope)return;
  activeScope=scope;generation++;known=new Map();
@@ -107,7 +107,11 @@ export async function writeDeviceSnapshot(scope:string,data:AthleteData,now=Date
  });
  writeQueue=task.catch(()=>false);return task;
 }
+const SCOPE_HINT='sieste-device-scope';
+export function rememberedScope():string|null{try{return localStorage.getItem(SCOPE_HINT)||null}catch{return null}}
+export function rememberScope(scope:string|null){try{if(scope)localStorage.setItem(SCOPE_HINT,scope);else localStorage.removeItem(SCOPE_HINT)}catch{/* Storage unavailable: wait for the account check. */}}
 export async function clearDeviceSnapshot(){
+ rememberScope(null);
  activeScope=null;known=new Map();const epoch=++generation,db=await openDatabase();
  if(db&&epoch===generation)await transaction(db,'readwrite',(meta,rows)=>{meta.clear();rows.clear()});
 }
