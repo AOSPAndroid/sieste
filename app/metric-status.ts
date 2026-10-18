@@ -11,7 +11,7 @@ export function metricDecline(key:string,value:number,previous:number,comparison
  if(key==='rhr'&&value-previous<=2)return null;
  const large=key==='rhr'?value-previous>=5:key==='vo2'?change<=-3:key==='hrv'?change<=-10:change<=-20;
  const amount=key==='rhr'?`${(value-previous).toFixed(1)} bpm`:`${Math.abs(change)<.1?'<0.1':Math.abs(change).toFixed(1)}%`;
- const name=key==='rhr'?'Resting HR':key==='vo2'?'VO₂ estimate':key==='hrv'?'HRV':'Sleep';
+ const name=key==='rhr'?'Resting HR':key==='vo2'?'Tredict run VO₂':key==='hrv'?'HRV':'Sleep';
  return status(large?'red':'orange',`${key==='rhr'?'↑':'↓'} ${name} ${amount}`,`${comparison}: ${previous.toFixed(1)} → ${value.toFixed(1)}. Resting-HR rises of 2 bpm or less are treated as small variation; other adverse changes are highlighted. Red marks HRV drops ≥10%, VO₂ estimate drops ≥3%, sleep drops ≥20%, or resting HR rises ≥5 bpm. These are sieste display rules, not a diagnosis or proof of lost fitness.`);
 }
 export function metricStatus(key:string,data:any,now:Date,family:(a:any)=>string,weekly=false):MetricStatus{
