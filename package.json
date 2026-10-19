@@ -15,7 +15,7 @@
     "test:cache": "node scripts/test-device-cache.mjs && node scripts/test-auto-sync.mjs && node scripts/test-account-metadata.mjs",
     "test:notifications": "node scripts/test-activity-alerts.mjs && node scripts/test-sleep-alerts.mjs",
     "test:import": "node scripts/test-activity-import.mjs",
-    "test:sync": "node scripts/test-progressive-sync.mjs && node scripts/test-health-sync-fallback.mjs && node scripts/test-sync-performance.mjs && node scripts/test-sync-compression.mjs && node scripts/test-live-refresh.mjs",
+    "test:sync": "node scripts/test-progressive-sync.mjs && node scripts/test-health-sync-fallback.mjs && node scripts/test-sync-performance.mjs && node scripts/test-sync-compression.mjs && node scripts/test-live-refresh.mjs && node scripts/test-pending-sessions.mjs && node scripts/test-provider-sync.mjs",
     "test:laps": "node scripts/test-lap-elevation.mjs && node scripts/test-workout-cache.mjs && node scripts/test-tab-retention.mjs && node scripts/test-background-analysis.mjs && node scripts/test-home-lap-refresh.mjs && node scripts/test-workout-preview-cache.mjs",
     "typecheck": "tsc --noEmit --incremental false --noUnusedLocals --noUnusedParameters",
     "audit:code": "node scripts/audit-code.mjs",

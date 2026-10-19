@@ -209,7 +209,7 @@ export async function restoreDashboard({
       validDashboard(state.data) &&
       Number.isFinite(stamp) &&
       stamp <= Date.now() &&
-      Date.now() - stamp < 300000
+      Date.now() - stamp < 60000
     )
       return;
     onBusy(true);
