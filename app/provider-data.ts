@@ -17,8 +17,27 @@ export function mergeBodyValues(primary:any[]=[],fallback:any[]=[],fallbackProvi
  }
  return [...days.values()].sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
 }
+// Tredict is the workout source, but it imports from COROS some time after a
+// session ends. A recent COROS session with no Tredict session starting within
+// five minutes is shown provisionally until Tredict delivers it; the Tredict
+// copy then carries the COROS id as an alias so removals and alerts match.
+const PENDING_WINDOW=3*86400000,SAME_SESSION=5*60000;
+type Session={id:string;date:string;provider?:string;fallbackId?:string;provisional?:string};
+export function withPendingCorosSessions<T extends Session>(primary:T[]=[],coros:T[]=[],now=Date.now()):T[]{
+ const recent=coros.filter(a=>a?.provider==='coros'&&typeof a.id==='string'&&Number.isFinite(Date.parse(a.date))&&now-Date.parse(a.date)<=PENDING_WINDOW&&Date.parse(a.date)<=now+SAME_SESSION);
+ if(!recent.length)return primary;
+ const matched=new Set<string>();
+ const activities=primary.map(a=>{
+  const t=Date.parse(a.date);if(!Number.isFinite(t))return a;
+  const twin=recent.find(c=>!matched.has(c.id)&&Math.abs(Date.parse(c.date)-t)<=SAME_SESSION);
+  if(!twin)return a;matched.add(twin.id);
+  return a.fallbackId?a:{...a,fallbackId:twin.id};
+ });
+ const pending=recent.filter(c=>!matched.has(c.id)).map(c=>({...c,provisional:'tredict'}) as T);
+ return pending.length?[...pending,...activities].sort((a,b)=>String(b.date).localeCompare(String(a.date))):activities;
+}
 export function combineProviders(training:any,health:any){
  if(!training)return health;if(!health)return training;
  const sleep=daily(training.sleep,health.sleep),hrv=daily(training.hrv,health.hrv);
- return {...training,provider:'tredict',sleep:sleep.values,hrv:hrv.values,extra:{...training.extra,bodyvalues:{...health.extra?.bodyvalues,...training.extra?.bodyvalues,bodyvalues:mergeBodyValues(training.extra?.bodyvalues?.bodyvalues,health.extra?.bodyvalues?.bodyvalues)},coros:health.extra?.coros},sources:{...training.sources,corosHealth:{provider:'coros',retrievedAt:health.syncedAt}},metricSources:{sleep:sleep.sources,hrv:hrv.sources},warnings:[...new Set([...(training.warnings??[]),...(health.warnings??[])])],sourceNote:'Tredict primary · COROS fills missing readings and additional metrics',healthSyncedAt:health.syncedAt};
+ return {...training,activities:withPendingCorosSessions(training.activities,health.activities),provider:'tredict',sleep:sleep.values,hrv:hrv.values,extra:{...training.extra,bodyvalues:{...health.extra?.bodyvalues,...training.extra?.bodyvalues,bodyvalues:mergeBodyValues(training.extra?.bodyvalues?.bodyvalues,health.extra?.bodyvalues?.bodyvalues)},coros:health.extra?.coros},sources:{...training.sources,corosHealth:{provider:'coros',retrievedAt:health.syncedAt}},metricSources:{sleep:sleep.sources,hrv:hrv.sources},warnings:[...new Set([...(training.warnings??[]),...(health.warnings??[])])],sourceNote:'Tredict primary · COROS fills missing readings and additional metrics',healthSyncedAt:health.syncedAt};
 }

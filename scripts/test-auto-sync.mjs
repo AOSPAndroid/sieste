@@ -132,6 +132,9 @@ assert.deepEqual(
 gate.resolve();
 await s.task;
 assert.equal(s.calls.length, 2, "Recent snapshots skip provider sync");
+s = harness({ state: { ...account, data: { ...saved, syncedAt: new Date(Date.now() - 120000).toISOString() } } });
+await s.task;
+assert.equal(s.calls.length, 3, "A snapshot older than a minute refreshes, so a just-finished session appears");
 assert.ok(
   s.events.some(
     ([key, value, at]) =>
@@ -309,5 +312,5 @@ await s.task;
 assert.equal(s.events.filter(([key, value]) => key === "onData" && value).at(-1)[1], cached, "Offline visits keep the remembered snapshot");
 assert.ok(s.events.some(([key, value]) => key === "onError" && value.startsWith("Showing your saved dashboard")));
 console.log(
-  "Passed account restore: remembered-snapshot first paint, cached first paint, five-minute freshness, background refresh, failures, slow/blocked storage, account checks, sign-out/disconnect cleanup and stale request cancellation.",
+  "Passed account restore: remembered-snapshot first paint, cached first paint, one-minute freshness, background refresh, failures, slow/blocked storage, account checks, sign-out/disconnect cleanup and stale request cancellation.",
 );
