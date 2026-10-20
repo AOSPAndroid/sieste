@@ -5,6 +5,8 @@ import DeferredPanel from './deferred-panel';
 import type {AthleteData,Workout} from './analytics';
 import {Compass} from 'lucide-react';
 import WorkoutContext,{StrengthSummary} from './workout-context';
+import WorkoutHero,{heroMetrics} from './workout-hero';
+import {sportName} from './sports';
 import './workout-explorer.css';
 const WorkoutExplorer=lazy(()=>import('./workout-explorer'));
 const CyclingAnalysis=lazy(()=>import('./cycling-analysis'));
@@ -36,8 +38,10 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  const [routeSelection,setRouteSelection]=useState<RouteSelection|null>(null);
  const {cards,other,family}=useMemo(()=>activityMetrics(detail),[detail]),step=detail.seriesSampled?.sampleSize,comparison=useMemo(()=>sessionTrend(detail,history),[detail,history]),vo2=useMemo(()=>vo2Trend(detail,history),[detail,history]);
  const showRoute=['running','cycling','walking','hiking'].includes(family);
+ // The hero carries the headline numbers; tiles retain charts, elapsed time and elevation gain/loss.
+ const headline=useMemo(()=>new Set(heroMetrics(cards,family,detail.summary).primary.map(m=>m.id)),[cards,family,detail.summary]);
  return <div className="activity-scroll-summary compact-activity activity-glance">
- <WorkoutContext detail={detail} history={history} healthData={healthData} onSelect={onSelect}/>
+ <WorkoutHero cards={cards} family={family} sportName={sportName(family)} summary={detail.summary} loading={loading}/>
  {family==='strength_training'&&<StrengthSummary detail={detail} history={history}/> }
  <div className={`activity-analysis-layout${showRoute?' has-route':''}`}>
  {showRoute&&<div className="activity-mini-map"><ExpandButton title="Recorded route"><RouteMap detail={detail} loading={loading} selection={routeSelection}/></ExpandButton><RouteMap detail={detail} loading={loading} selection={routeSelection} compact/></div>}
@@ -49,8 +53,9 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
 
  {family==='running'&&<DeferredPanel className="activity-extra-sensors" summary="Deep analysis · running pace & repeats"><RunningAnalysis detail={detail}/></DeferredPanel>}
  <DeferredPanel className="activity-extra-sensors" summary="Execution · repeat consistency & fading"><IntervalConsistency key={detail.id} detail={detail}/><ActivityLaps detail={detail}/></DeferredPanel>
+ <WorkoutContext detail={detail} history={history} healthData={healthData} onSelect={onSelect}/>
  {!loading&&!detail.mergedIds&&<SessionIntelligence key={`intelligence-${detail.id}`} detail={detail} onClassify={onClassify}/>}
- {(['Session','Technique','Conditions'] as const).map(group=>{const metrics=cards.filter(m=>m.group===group);return metrics.length>0&&<section className="activity-glance-group" key={group}><div className="activity-section-label"><h3>{group==='Session'?'Workout at a glance':group==='Technique'?'Movement & technique':'Terrain & conditions'}</h3><span>{group==='Session'?'↗ Details & charts':''}</span></div><div className="activity-glance-grid">{metrics.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>})}
+ {(['Session','Technique','Conditions'] as const).map(group=>{const metrics=cards.filter(m=>m.group===group&&!(group==='Session'&&headline.has(m.id)&&!['duration','altitude','speed','heartrate','power'].includes(m.id)));return metrics.length>0&&<section className="activity-glance-group" key={group}><div className="activity-section-label"><h3>{group==='Session'?'Details & charts':group==='Technique'?'Movement & technique':'Terrain & conditions'}</h3><span>{group==='Session'?'Tap ↗ to expand':''}</span></div><div className="activity-glance-grid">{metrics.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>})}
  {family==='running'&&<RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading}/>}
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}
  {other.length>0&&<details className="activity-extra-sensors"><summary>{other.length} additional recorded sensors</summary><p>Available under Telemetry and Raw data. No assumed units or generic averages.</p><div>{other.map(key=><span key={key}>{key.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase())}</span>)}</div></details>}
