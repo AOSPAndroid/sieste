@@ -1,0 +1,92 @@
+/* sieste 2026 · one surface language for every page.
+   Night heroes on top, white cards on a quiet ground, a dark floating nav.
+   Unlayered on purpose: it sits above the legacy layers without !important.
+   Page-specific parts live with each page's stylesheet. */
+.sieste-v3{
+ --n-night:#090c13;--n-ground:#f3f4f7;--n-card:#fff;--n-ink:#0b1220;--n-muted:#5b6678;--n-faint:#8a94a6;
+ --n-line:rgba(11,18,32,.07);--n-radius:22px;--n-hero-radius:28px;
+ --n-shadow:0 1px 2px rgba(11,18,32,.04),0 10px 30px -14px rgba(11,18,32,.16);
+ --s-ink:var(--n-ink);--s-muted:var(--n-muted);--s-faint:var(--n-faint);--s-canvas:var(--n-ground);--s-line:#e6e8ee;
+ --n-on-night:#f8fafc;--n-on-night-muted:rgba(248,250,252,.62);--n-glass:rgba(255,255,255,.08);--n-glass-line:rgba(255,255,255,.14);
+}
+html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{background:var(--n-ground)}
+.sieste-v3.shell{color:var(--n-ink);-webkit-font-smoothing:antialiased}
+
+/* Top bar */
+.sieste-v3 .sieste-topbar{background:transparent;border:0;box-shadow:none}
+.sieste-v3 .sieste-topbar .v2-current-page{font-size:13px;font-weight:600;color:var(--n-muted)}
+.sieste-v3 .sieste-topbar .sieste-account{width:40px;height:40px;border:0;border-radius:999px;background:var(--n-card);box-shadow:var(--n-shadow);color:var(--n-ink)}
+
+/* Dark hero: shared by each page's headline panel */
+.sieste-v3 .n-hero{position:relative;isolation:isolate;overflow:hidden;border:0;border-radius:var(--n-hero-radius);background:radial-gradient(120% 90% at 100% 0%,color-mix(in srgb,var(--n-glow,#6366f1) 46%,transparent),transparent 62%),var(--n-night);color:var(--n-on-night);box-shadow:0 24px 48px -28px rgba(9,12,19,.7)}
+.sieste-v3 .n-hero{--s-ink:#fff;--s-muted:var(--n-on-night-muted);--s-faint:rgba(248,250,252,.5);--s-line:var(--n-glass-line);--foreground:#fff;--card-foreground:#fff;--muted-foreground:var(--n-on-night-muted);--border:var(--n-glass-line);--snap-line:var(--n-glass-line)}
+.sieste-v3 .n-hero :where(h1,h2,h3,strong,b){color:#fff}
+.sieste-v3 .n-hero :where(small,p,.text-muted-foreground){color:var(--n-on-night-muted)}
+
+/* Cards */
+.sieste-v3 main :where([data-slot=card],.weekly-volume,.fatigue-recovery,.home-data-fold,.home-method,.connect-banner,.workspace-tools-panel){border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow);--tw-ring-shadow:0 0 #0000}
+.sieste-v3 main [data-slot=card]{--tw-ring-color:transparent}
+.sieste-v3 main :where([data-slot=card-title],.volume-heading h2,.fatigue-recovery>header h2){font-size:17px;font-weight:750;letter-spacing:-.025em;color:var(--n-ink)}
+
+/* Pills: segmented controls and quiet actions read as chips */
+.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group]{gap:4px;padding:4px;border:0;border-radius:999px;background:rgba(11,18,32,.055);box-shadow:none}
+.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item]{border:0!important;border-radius:999px!important;background:transparent;color:var(--n-muted);font-weight:600;box-shadow:none}
+.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item][data-state=on]{background:var(--n-ink);color:#fff}
+.sieste-v3 .home-toolbar-actions>[data-slot=button]{border:0;border-radius:999px;background:var(--n-card);box-shadow:var(--n-shadow);color:var(--n-ink)}
+
+/* Floating nav: dark pill, the active page shows its label */
+.sieste-v3 .mini-dock{gap:4px;padding:6px;border:0;border-radius:999px;background:rgba(9,12,19,.9);box-shadow:0 16px 36px -12px rgba(9,12,19,.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6)}
+.sieste-v3 .mini-dock>button{display:flex;align-items:center;gap:7px;width:auto;height:44px;padding:0 14px;border-radius:999px;background:transparent;color:rgba(248,250,252,.66)}
+.sieste-v3 .mini-dock>button small{display:none;font-size:13.5px;font-weight:650;letter-spacing:-.01em}
+.sieste-v3 .mini-dock>button svg{width:19px;height:19px}
+.sieste-v3 .mini-dock>button:hover,.sieste-v3 .mini-dock>button:not([aria-current=page]):hover{background:rgba(255,255,255,.08);color:#fff}
+.sieste-v3 .mini-dock>button[aria-current=page],.sieste-v3 .mini-dock>button[aria-current=page]:hover{padding:0 16px;background:#fff;color:var(--n-ink)}
+.sieste-v3 .mini-dock>button[aria-current=page] small{display:inline}
+.sieste-v3 .mini-dock>button:active,.sieste-v3 .mini-dock>button[aria-current=page]:active{background:rgba(255,255,255,.18)}
+.sieste-v3 .floating-sync{border:0;border-radius:999px;background:rgba(9,12,19,.9);color:#fff;box-shadow:0 16px 36px -12px rgba(9,12,19,.6)}
+.sieste-v3 .floating-sync:hover{background:var(--n-night);color:#fff}
+
+/* Home · today's health becomes the hero */
+.sieste-v3 .snapshot-home-focus{display:flex;flex-direction:column;gap:12px}
+.sieste-v3 .home-toolbar time{font-size:13px;font-weight:600;color:var(--n-muted)}
+.sieste-v3 main .health-headlines{--n-glow:#6366f1;--primary:#a5b4fc;padding:20px 18px 18px}
+.sieste-v3 main .health-headlines [data-slot=card-title] h2{margin:0;font-size:26px;font-weight:750;letter-spacing:-.04em;color:#fff}
+.sieste-v3 main .health-headlines [data-slot=badge]{border:1px solid var(--n-glass-line);border-radius:999px;background:var(--n-glass);color:var(--n-on-night)}
+.sieste-v3 main .health-headline-grid{gap:0;padding:0}
+.sieste-v3 main .health-headline{border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--n-on-night);text-align:left}
+.sieste-v3 main .health-headline:hover{background:rgba(255,255,255,.04)}
+.sieste-v3 main .health-headline-label{color:var(--n-on-night-muted);font-size:12px;font-weight:500}
+.sieste-v3 main .health-metric-icon{background:transparent;color:var(--n-on-night-muted)}
+.sieste-v3 main .health-headline .live-value{color:#fff;font-weight:750;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.sieste-v3 main .health-headline.primary .live-value{font-size:clamp(30px,8.4vw,44px);line-height:1}
+.sieste-v3 main .health-headline.secondary .live-value{font-size:20px;line-height:1.1}
+.sieste-v3 main .health-headline .live-value small{color:var(--n-on-night-muted);font-size:12.5px;font-weight:600;letter-spacing:0}
+.sieste-v3 main .health-headline.secondary{border-top:1px solid rgba(255,255,255,.12)}
+.sieste-v3 main .health-headline-change,.sieste-v3 main .health-headline .widget-spark.no-data{color:var(--n-on-night-muted)}
+.sieste-v3 main .health-headline-status{filter:brightness(1.45) saturate(1.1)}
+.sieste-v3 main .health-data-note{color:rgba(248,250,252,.45)}
+.sieste-v3 .health-scroll-strip{border:0;border-radius:999px;background:rgba(9,12,19,.9);color:#fff;box-shadow:0 16px 36px -14px rgba(9,12,19,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.sieste-v3 .health-scroll-strip :where(button,strong,small){color:#fff}
+
+/* Notices sit on the ground as soft cards */
+.sieste-v3 main :where(.notice,.activity-retrieved-notice,.workout-undo){border:0;border-radius:16px;background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 .device-cache-note{color:var(--n-faint)}
+
+/* Account sheet */
+.sieste-v3 .account-modal{border:0;border-radius:var(--n-hero-radius);background:var(--n-ground);box-shadow:0 30px 80px -30px rgba(9,12,19,.55);overflow:hidden auto;padding:0}
+.sieste-v3 .account-modal-header{position:relative;isolation:isolate;margin:0;padding:22px 20px 26px;background:radial-gradient(120% 120% at 0% 0%,rgba(99,102,241,.45),transparent 62%),var(--n-night);color:#fff;border:0}
+.sieste-v3 .account-modal-header p{margin:6px 0 0;font-size:13.5px;color:var(--n-on-night-muted)}
+.sieste-v3 .account-modal-header h2{margin:0;font-size:26px;font-weight:750;letter-spacing:-.04em;color:#fff}
+.sieste-v3 .account-modal-header [data-slot=button]{border:1px solid var(--n-glass-line);border-radius:999px;background:var(--n-glass);color:#fff}
+.sieste-v3 .account-modal-content{display:flex;flex-direction:column;gap:12px;padding:16px 14px 22px}
+.sieste-v3 .account-modal-content>:where(p){margin:0 6px;font-size:13px;color:var(--n-muted)}
+.sieste-v3 .account-modal-content>:where(section,details,div:not(.account-signin)){margin:0;border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 .account-modal-content>details>summary{min-height:54px;display:flex;align-items:center;padding:0 16px;font-size:15px;font-weight:650;cursor:pointer}
+.sieste-v3 .account-modal-content>details[open]{padding-bottom:14px}
+.sieste-v3 .account-modal-content>details>:not(summary){margin-inline:16px}
+.sieste-v3 .account-modal-content .docs-link{align-self:stretch;display:grid;place-items:center;height:50px;margin-top:6px;border:1px solid rgba(217,65,95,.28);border-radius:999px;background:var(--n-card);color:#b42343;font-weight:650;text-decoration:none}
+.sieste-v3 .account-modal-content :where(.primary-button){border:0;border-radius:999px;background:var(--n-ink);color:#fff}
+
+@media (min-width:720px){
+ .sieste-v3 main .health-headlines{padding:26px 26px 22px}
+}
