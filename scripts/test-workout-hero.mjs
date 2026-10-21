@@ -69,3 +69,46 @@ const initializeFocus=new Function('document','manageScroll','onClose',focusSour
 const cleanup=initializeFocus();assert.equal(focused,true,'Opening a cached GPS workout focuses its close button instead of an inert map control');
 cleanup();assert.equal(restored,true);assert.equal(documentMock.body.style.overflow,'');
 console.log('Workout hero: clock/pace boundaries, finite totals, sport priorities, retained details, stable selections and accessible dialog focus passed.');
+
+const dock=module('app/workout-map-dock.tsx',{react:{},'lucide-react':{},'./route-map':silentModule,'./expansion':{ExpandButton:Silent}});
+const climb={start:10,end:40,label:'Climb 1',kind:'climb'};
+assert.equal(dock.dockState(null,false,false),'none','No selection, no dock');
+assert.equal(dock.dockState(climb,true,false),'none','The header map already shows the selection');
+assert.equal(dock.dockState(climb,false,false),'open','A selection below the fold pins the map');
+assert.equal(dock.dockState(climb,false,true),'collapsed','A folded dock leaves a way back');
+
+// Attach the real dock button refs and run its handlers/layout effects across
+// renders. Automatic visibility/selection changes must not move user focus.
+const hookValues=[],focusMoves=[];let hookCursor=0,layoutEffects=[],mountedRefs=[];
+const dockHooks={
+ useState(initial){const i=hookCursor++;if(!(i in hookValues))hookValues[i]=initial;return [hookValues[i],value=>{hookValues[i]=typeof value==='function'?value(hookValues[i]):value}]},
+ useRef(initial){const i=hookCursor++;return hookValues[i]??=( {current:initial} )},
+ useEffect(){},useLayoutEffect(effect){layoutEffects.push(effect)},
+};
+const interactiveDock=module('app/workout-map-dock.tsx',{react:dockHooks,'lucide-react':{ChevronUp:Silent,MapPin:Silent},'./route-map':silentModule,'./expansion':{ExpandButton:Silent}}).default;
+function renderDock(selection=climb){
+ hookCursor=0;layoutEffects=[];for(const ref of mountedRefs)ref.current=null;mountedRefs=[];
+ const tree=interactiveDock({detail:{},selection,anchor:null}),buttons=new Map();
+ function attach(node){
+  if(Array.isArray(node)){node.forEach(attach);return}if(!React.isValidElement(node))return;
+  if(typeof node.type==='string'){
+   const label=node.props['aria-label']??(node.props.className==='workout-map-dock-pill'?'Show on map':node.type);
+   const element=node.type==='button'?{props:node.props,focus:options=>focusMoves.push({label,options})}:{querySelector:()=>null,closest:()=>null};
+   if(node.type==='button')buttons.set(label,element);
+   if(node.props.ref){node.props.ref.current=element;mountedRefs.push(node.props.ref)}
+  }
+  attach(node.props.children);
+ }
+ attach(tree);layoutEffects.forEach(effect=>effect());return buttons;
+}
+assert.equal(renderDock().size,0,'Visible hero does not need a dock');
+hookValues[0]=false; // IntersectionObserver has reported that the hero scrolled away.
+let dockButtons=renderDock();assert.equal(focusMoves.length,0,'Automatic dock opening preserves chart focus');
+dockButtons.get('Hide map').props.onClick();dockButtons=renderDock();
+assert.deepEqual(focusMoves.at(-1),{label:'Show on map',options:{preventScroll:true}},'Hiding the map transfers focus to its replacement show button');
+dockButtons.get('Show on map').props.onClick();dockButtons=renderDock();
+assert.deepEqual(focusMoves.at(-1),{label:'Hide map',options:{preventScroll:true}},'Showing the map transfers focus to its replacement hide button');
+dockButtons.get('Hide map').props.onClick();renderDock();const movesBeforeSelection=focusMoves.length;
+assert.ok(renderDock({...climb,revision:1}).has('Hide map'),'A new section reopens a folded map');
+assert.equal(focusMoves.length,movesBeforeSelection,'A new chart selection retains focus on the chart control');
+console.log('Workout map dock: manual fold/unfold retains keyboard focus; automatic opening preserves chart focus.');

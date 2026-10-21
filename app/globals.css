@@ -3,6 +3,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "./sieste-theme.css";
+@import "./sieste-2026.css";
 @custom-variant dark (&:is(.dark *));
 @layer sieste-base {.studio-tabs{display:flex;gap:6px;border-bottom:1px solid #e2e2e2;padding-bottom:12px;margin-bottom:20px;overflow-x:auto}.studio-tabs button{flex-shrink:0;background:#fff;border:1px solid #e2e2e2;border-radius:6px;padding:11px 14px;color:#171717;font-size:14px}.studio-tabs button[aria-pressed=true]{border-color:#e2e2e2}.studio-filters{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:0 0 22px;font-size:13px;color:#171717}.studio-filters label,.plan-form label{display:flex;flex-direction:column;gap:8px;font-size:14px;color:#171717}.studio-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}.studio-stat{border:1px solid #e2e2e2;padding:20px;border-radius:8px;min-width:0}.studio-stat>span{display:block;font-size:13px}.studio-stat>strong{display:block;font-size:27px;letter-spacing:-.6px;margin:17px 0 10px}.studio-stat>small{display:block;font-size:12px;line-height:1.6;color:#171717}.plan-form{display:flex;flex-direction:column;gap:18px;padding:0 23px 23px}.form-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}.plan-form input[type=number]{width:100%}.plan-form textarea{resize:vertical}
 @media(max-width:1100px){.studio-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
