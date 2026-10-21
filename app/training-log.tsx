@@ -49,7 +49,7 @@ function TrainingLog({data,isDemo,token,onSelect,onData}:{onData?:(data:AthleteD
  const monthlyTime=clockDuration(model.duration).replace(/h (\d+)m$/,(_,minutes)=>'h'+String(minutes).padStart(2,'0'));
  return <section className="training-journal journal-calendar-focus" aria-label="Training log">
   <div className="journal-focus-layout">
-   <section className="journal-calendar journal-calendar-hero" aria-label="Activity calendar">
+   <section className="journal-calendar journal-calendar-hero n-hero" aria-label="Activity calendar">
     <header className="journal-calendar-heading">
      <div><p className="journal-eyebrow">Training log</p><label className="journal-month-picker"><span className="journal-month-name" aria-hidden="true">{new Date(month+'-01T12:00:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</span><input type="month" aria-label="Activity month" value={month} min={earliest} max={today.slice(0,7)} onChange={e=>changeMonth(e.target.value)} onClick={e=>{try{e.currentTarget.showPicker?.()}catch{e.currentTarget.focus()}}}/></label></div>
      <nav className="journal-month-navigation" aria-label="Calendar month"><Button variant="ghost" size="sm" disabled={month===today.slice(0,7)} onClick={()=>changeMonth(today.slice(0,7))}>Today</Button><Button variant="outline" size="icon-lg" aria-label="Previous month" disabled={month<=earliest} onClick={()=>move(-1)}><ChevronLeft data-icon="inline-start"/></Button><Button variant="outline" size="icon-lg" aria-label="Next month" disabled={month>=today.slice(0,7)} onClick={()=>move(1)}><ChevronRight data-icon="inline-start"/></Button></nav>
