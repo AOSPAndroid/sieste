@@ -9,7 +9,8 @@ function module(path,imports={}){
  new Function('require','exports','React',source)(key=>{if(!(key in imports))throw new Error(`Unknown test import ${key}`);return imports[key]},exports,React);
  return exports;
 }
-const hero=module('app/workout-hero.tsx');
+const Silent=()=>null,silentModule={__esModule:true,default:Silent};
+const hero=module('app/workout-hero.tsx',{'lucide-react':{X:Silent},'./route-map':silentModule,'./expansion':{ExpandButton:Silent}});
 for(const [seconds,expected] of [[59.4,'0:59'],[59.6,'1:00'],[3599.6,'1:00:00'],[3601,'1:00:01']])assert.equal(hero.clock(seconds),expected);
 for(const seconds of [undefined,null,'60',0,-1,NaN,Infinity,-Infinity])assert.equal(hero.clock(seconds),null,'Invalid activity time is not formatted as a clock');
 
@@ -31,8 +32,7 @@ assert.deepEqual(hero.heroMetrics([card('calories','0'),card('heartrate')],'othe
 
 const sports=module('app/sports.ts'),native=module('app/coros-native.ts'),power=module('app/cycling-power-data.ts',{'./sports':sports});
 const metrics=module('app/activity-metrics.ts',{'./sports':sports,'./coros-native':native,'./cycling-power-data':power});
-const Silent=()=>null,silentModule={__esModule:true,default:Silent};
-const imports=Object.fromEntries(['./deferred-panel','./workout-explorer.css','./activity-profile','./recorded-fields','./session-intelligence','./running-technique','./route-map','./activity-zones','./trend-badge'].map(key=>[key,silentModule]));
+const imports=Object.fromEntries(['./deferred-panel','./workout-explorer.css','./activity-profile','./recorded-fields','./session-intelligence','./running-technique','./route-map','./activity-zones','./trend-badge','./workout-splits'].map(key=>[key,silentModule]));
 Object.assign(imports,{
  react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),lazy:()=>Silent},
  'lucide-react':{Compass:Silent},

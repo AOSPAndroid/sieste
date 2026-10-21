@@ -1,12 +1,12 @@
 "use client";
-import {useState,lazy,useMemo} from 'react';
+import {lazy,useMemo} from 'react';
 import type {RouteSelection} from './route-geometry';
 import DeferredPanel from './deferred-panel';
 import type {AthleteData,Workout} from './analytics';
 import {Compass} from 'lucide-react';
 import WorkoutContext,{StrengthSummary} from './workout-context';
-import WorkoutHero,{heroMetrics} from './workout-hero';
-import {sportName} from './sports';
+import {heroMetrics} from './workout-hero';
+import WorkoutSplits from './workout-splits';
 import './workout-explorer.css';
 const WorkoutExplorer=lazy(()=>import('./workout-explorer'));
 const CyclingAnalysis=lazy(()=>import('./cycling-analysis'));
@@ -17,7 +17,6 @@ import WidgetSpark from './widget-spark';
 import SessionIntelligence from './session-intelligence';
 import RunningTechnique from './running-technique';
 import {ResponsiveContainer,ComposedChart,Line,Area,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
-import RouteMap from './route-map';
 import {ExpandButton} from './expansion';
 const ActivityLaps=lazy(()=>import('./activity-laps'));
 import ActivityZones from './activity-zones';
@@ -34,18 +33,17 @@ function MetricCard({metric,step,comparison}:{metric:ActivityMetric;step:unknown
  const hasChart=metric.values.some(finite),rows=metric.values.map((value,i)=>({x:finite(step)?i*step/60:i,value}));
  return <section className={`activity-glance-card${hasChart?' has-microchart':''}`}><header><h3><i style={{background:metric.color}}/>{metric.title}</h3><ExpandButton title={metric.title}><div className="activity-expanded-sensor"><div className="activity-expanded-value"><strong style={{color:metric.color}}>{metric.value}</strong> {metric.unit}<small>{metric.note}</small></div><p>{metric.explanation}</p>{comparison?.metric===metric.id&&<><TrendBadge trend={comparison.trend} caption={comparison.comparison}/><p>{comparison.explanation}</p></>}{hasChart&&<SensorChart rows={rows} title={metric.title} unit={metric.unit} color={metric.color} step={step} pace={metric.pace} area={metric.id==='altitude'} expanded/>}</div></ExpandButton></header><div className="activity-glance-value"><strong style={{color:metric.color}}>{metric.value}</strong><span>{metric.unit}</span></div><p>{metric.note}</p>{comparison?.metric===metric.id&&<TrendBadge trend={comparison.trend} caption={comparison.metric==='vo2max'?(comparison.comparison.startsWith('median')?'vs 28-day median':'vs prior session'):'vs similar session'}/>}{hasChart&&<MicroChart metric={metric}/>}</section>;
 }
-export default function ActivitySummary({detail,loading,history=[],onClassify,healthData,token='',storageScope='',isDemo=false,onSelect}:{onClassify?:(label:string|null)=>void;detail:Workout&Record<string,any>;loading:boolean;history?:Workout[];healthData?:AthleteData;token?:string;storageScope?:string;isDemo?:boolean;onSelect?:(activity:Workout)=>void}){
- const [routeSelection,setRouteSelection]=useState<RouteSelection|null>(null);
+export default function ActivitySummary({detail,loading,history=[],onClassify,healthData,token='',storageScope='',isDemo=false,onSelect,onRouteSelection}:{onRouteSelection?:(selection:RouteSelection|null)=>void;onClassify?:(label:string|null)=>void;detail:Workout&Record<string,any>;loading:boolean;history?:Workout[];healthData?:AthleteData;token?:string;storageScope?:string;isDemo?:boolean;onSelect?:(activity:Workout)=>void}){
  const {cards,other,family}=useMemo(()=>activityMetrics(detail),[detail]),step=detail.seriesSampled?.sampleSize,comparison=useMemo(()=>sessionTrend(detail,history),[detail,history]),vo2=useMemo(()=>vo2Trend(detail,history),[detail,history]);
  const showRoute=['running','cycling','walking','hiking'].includes(family);
  // The hero carries the headline numbers; tiles retain charts, elapsed time and elevation gain/loss.
  const headline=useMemo(()=>new Set(heroMetrics(cards,family,detail.summary).primary.map(m=>m.id)),[cards,family,detail.summary]);
  return <div className="activity-scroll-summary compact-activity activity-glance">
- <WorkoutHero cards={cards} family={family} sportName={sportName(family)} summary={detail.summary} loading={loading}/>
+ <WorkoutSplits detail={detail} family={family}/>
  {family==='strength_training'&&<StrengthSummary detail={detail} history={history}/> }
  <div className={`activity-analysis-layout${showRoute?' has-route':''}`}>
- {showRoute&&<div className="activity-mini-map"><ExpandButton title="Recorded route"><RouteMap detail={detail} loading={loading} selection={routeSelection}/></ExpandButton><RouteMap detail={detail} loading={loading} selection={routeSelection} compact/></div>}
- {family!=='strength_training'&&detail.seriesSampled?.data&&<ActivityProfile key={`profile-${detail.id}`} detail={detail} onSelection={setRouteSelection}/>}
+ 
+ {family!=='strength_training'&&detail.seriesSampled?.data&&<ActivityProfile key={`profile-${detail.id}`} detail={detail} onSelection={selection=>onRouteSelection?.(selection)}/>}
  </div>
  <DeferredPanel className="activity-extra-sensors workout-explorer-fold" summary={<span><Compass size={13}/>Explore workout<small>{family==='cycling'?'Replay · terrain · coasting · compare':family==='running'?'Replay · fingerprint · terrain · compare':'Laps · recovery'}</small></span>}><WorkoutExplorer detail={detail} history={history} healthData={healthData} token={token} storageScope={storageScope} isDemo={isDemo}/></DeferredPanel>
  {detail.recordedSource==='COROS FIT'&&<a className="docs-link" href={'/api/coros/file?id='+encodeURIComponent(detail.id)}>Download original COROS FIT ↗</a>}<ActivityZones summary={detail.summary??{}} loading={loading}/>
