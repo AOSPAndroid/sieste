@@ -1,9 +1,9 @@
-/* Workout sheet · immersive header, one surface language, one accent per sport.
+/* Workout sheet · quiet header, one surface language, one accent per sport.
    Scoped to the sheet and loaded only with the workout view.
    Selectors share one prefix so they outrank the older theme without !important. */
 .workout-sheet{
  --ws-bg:#f3f4f7;--ws-card:#fff;--ws-ink:#0b1220;--ws-muted:#5b6678;--ws-faint:#8a94a6;
- --ws-line:rgba(11,18,32,.08);--ws-radius:16px;--ws-night:#090c13;--hero-map-h:340px;--ws-tabs-h:54px;--dock-h:172px;
+ --ws-line:rgba(11,18,32,.08);--ws-radius:16px;--ws-night:#090c13;--route-map-h:220px;--ws-tabs-h:54px;--dock-h:172px;
  --ws-shadow:0 0 0 1px var(--ws-line);
  --sport:#64748b;
 }
@@ -18,48 +18,55 @@
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body{overflow:visible;padding:14px 14px 36px;background:transparent}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body>.activity-glance{background:transparent}
 
-/* Header */
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero{position:relative;isolation:isolate;overflow:hidden;color:#f8fafc;background:var(--ws-night);flex:none}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero.has-route{padding-top:calc(var(--hero-map-h) - 44px)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero.no-route{padding-top:76px;background:radial-gradient(110% 120% at 0% 0%,color-mix(in srgb,var(--sport) 62%,var(--ws-night)) 0%,var(--ws-night) 62%)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero.has-route:before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(9,12,19,.35) 0,rgba(9,12,19,0) 90px,rgba(9,12,19,0) 40%,rgba(9,12,19,.7) calc(var(--hero-map-h) - 80px),var(--ws-night) calc(var(--hero-map-h) - 10px))}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero:after{content:'';position:absolute;z-index:-1;left:-20%;bottom:-40%;width:90%;height:80%;background:radial-gradient(closest-side,color-mix(in srgb,var(--sport) 38%,transparent),transparent);pointer-events:none}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map{position:absolute;inset:0 0 auto 0;z-index:-2;height:var(--hero-map-h);display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .route-panel{display:contents}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .route-panel>:not(.route-canvas){display:none}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .route-canvas{flex:none;width:max(100%,calc(var(--hero-map-h) * 800 / 420));background:var(--ws-night);line-height:0}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .route-canvas>svg{display:block;flex:none;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:800/420;filter:none!important}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .route-canvas>svg>rect:first-of-type{fill:var(--ws-night)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .route-basemap{filter:grayscale(1) invert(1) brightness(.55) contrast(1.35)!important}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .map-tools,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .map-pan,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .route-scrubber{display:none!important}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-map .map-attribution{display:none}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-attribution{position:absolute;z-index:3;top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;font-size:10px;color:rgba(255,255,255,.5);text-decoration:none}
+/* Header: sport and date, title, headline numbers on the sheet ground */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero{position:relative;flex:none;padding:calc(env(safe-area-inset-top,0px) + 18px) 0 0;background:var(--ws-bg);color:var(--ws-ink)}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-actions{position:absolute;z-index:3;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;display:flex;gap:8px}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-actions>button{display:grid;place-items:center;width:38px;height:38px;min-width:38px;padding:0;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(9,12,19,.42);color:#fff;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:none;cursor:pointer}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-actions>button:hover{background:rgba(9,12,19,.62)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-actions svg{width:17px;height:17px;color:#fff}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-body{position:relative;padding:0 20px 22px}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-kicker{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:0;font-size:13px;font-weight:500;color:rgba(248,250,252,.72)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-icon{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--sport);color:#fff;box-shadow:0 4px 14px -4px var(--sport)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-icon svg{width:15px;height:15px;color:#fff;stroke:currentColor}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-actions>button{display:grid;place-items:center;width:36px;height:36px;min-width:36px;padding:0;border:0;border-radius:999px;background:rgba(11,18,32,.06);color:var(--ws-ink);box-shadow:none;cursor:pointer}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-actions>button:hover{background:rgba(11,18,32,.1)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-actions svg{width:17px;height:17px;color:currentColor}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-body{position:relative;padding:0 20px 18px}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-kicker{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:0;padding-right:44px;font-size:13px;font-weight:500;color:var(--ws-muted)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-icon{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--sport);color:#fff}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-icon svg{width:14px;height:14px;color:#fff;stroke:currentColor}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-loading{width:6px;height:6px;border-radius:50%;background:var(--sport);animation:ws-pulse 1.1s ease-in-out infinite}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero h2{margin:10px 0 18px;padding:0;font-size:clamp(24px,7vw,32px);font-weight:750;line-height:1.08;letter-spacing:-.035em;color:#fff;overflow-wrap:anywhere}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero h2{margin:8px 0 16px;padding:0;font-size:clamp(22px,6vw,28px);font-weight:700;line-height:1.1;letter-spacing:-.03em;color:var(--ws-ink);overflow-wrap:anywhere}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero dl{margin:0}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero dd{margin:0}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary[data-count="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary[data-count="1"]{grid-template-columns:1fr}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary dt{font-size:12px;font-weight:500;color:rgba(248,250,252,.6)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary dt{font-size:12px;font-weight:500;color:var(--ws-muted)}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary dd{display:flex;align-items:baseline;gap:3px;margin-top:3px;white-space:nowrap;min-width:0}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary strong{font-size:clamp(24px,6.5vw,46px);font-weight:750;line-height:1;letter-spacing:-.045em;color:#fff;font-variant-numeric:tabular-nums}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary dd span{font-size:13px;font-weight:600;color:rgba(248,250,252,.6)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary>div{min-width:0;padding:0 10px;border-left:1px solid rgba(255,255,255,.1)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary strong{font-size:clamp(22px,6vw,34px);font-weight:650;line-height:1;letter-spacing:-.04em;color:var(--ws-ink);font-variant-numeric:tabular-nums}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-primary dd span{font-size:12.5px;font-weight:600;color:var(--ws-muted)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:16px;padding-top:12px;border-top:1px solid var(--ws-line)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary>div{min-width:0;padding:0 10px;border-left:1px solid var(--ws-line)}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary>div:first-child{padding-left:0;border-left:0}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary dt{font-size:11px;color:rgba(248,250,252,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary dd{margin-top:3px;font-size:16px;font-weight:650;letter-spacing:-.02em;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary dd span{font-size:11px;font-weight:500;color:rgba(248,250,252,.55)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary dt{font-size:11px;color:var(--ws-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary dd{margin-top:3px;font-size:15px;font-weight:650;letter-spacing:-.02em;color:var(--ws-ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-secondary dd span{font-size:11px;font-weight:500;color:var(--ws-muted)}
 @keyframes ws-pulse{50%{opacity:.3}}
+
+/* Route, climbs & laps: the map sits on top of the analysis it illustrates */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-analysis{margin:0;border-radius:var(--ws-radius);background:var(--ws-card);box-shadow:var(--ws-shadow);overflow:hidden}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map{position:relative;height:var(--route-map-h);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#eef0f3;border-bottom:1px solid var(--ws-line)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map>.route-panel{display:contents}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map>.route-panel>:not(.route-canvas){display:none}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map .route-canvas{flex:none;width:max(100%,calc(var(--route-map-h) * 800 / 420));line-height:0}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map .route-canvas>svg{display:block;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:800/420}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map :where(.map-tools,.map-pan,.route-scrubber,.map-attribution){display:none!important}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map>.expand-widget{position:absolute;top:10px;right:10px;width:34px;min-width:34px;height:34px;border:0;border-radius:999px;background:rgba(255,255,255,.92);color:var(--ws-ink);box-shadow:0 0 0 1px var(--ws-line)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-attribution{position:absolute;left:10px;bottom:8px;font-size:10px;color:var(--ws-muted);text-decoration:none}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-analysis>.unified-profile{margin:0;border:0!important;border-radius:0!important;box-shadow:none;background:transparent}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-profile.is-compact :where(.effort-analysis-toolbar,.unified-toggles,.profile-table-toolbar,.unified-notes,.effort-source-note,header>div>small){display:none!important}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-profile.is-compact>header{margin-bottom:10px}
+
+/* Mechanics: movement measures as a grid of quiet tiles */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-mechanics{display:flex;flex-direction:column;gap:10px;margin:6px 0 0}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-mechanics>header h3{margin:0 4px;font-size:18px;font-weight:700;letter-spacing:-.025em;color:var(--ws-ink)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-mechanics>details{margin:0;border-radius:var(--ws-radius);background:var(--ws-card);box-shadow:var(--ws-shadow)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-mechanics>details.activity-extra-sensors>summary{min-height:56px;padding:6px 16px;line-height:1.25}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-mechanics>details.activity-extra-sensors>summary>span small{margin-left:0;font-size:12.5px;font-weight:500;color:var(--ws-muted)}
 
 /* Tabs: sticky pill chips on a frosted bar */
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:6px;padding:10px 14px;background:color-mix(in srgb,var(--ws-bg) 86%,transparent);-webkit-backdrop-filter:saturate(1.8) blur(18px);backdrop-filter:saturate(1.8) blur(18px);box-shadow:0 1px 0 var(--ws-line)}
@@ -73,23 +80,21 @@
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs [role=tab]:hover{color:var(--ws-ink)}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs [role=tab][data-state=active],.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs [role=tab][data-active]{background:var(--ws-ink);color:#fff;box-shadow:0 4px 14px -6px rgba(11,18,32,.6)}
 
-/* Map dock: pins under the tabs once the header map has scrolled away.
+/* Map dock: pins under the tabs once the route map has scrolled away.
    It has no height of its own so the analysis never shifts when it opens. */
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock{position:sticky;top:var(--ws-tabs-h);z-index:19;height:0;padding:0 10px}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-card{position:relative;isolation:isolate;margin-top:6px;height:var(--dock-h);border-radius:18px;overflow:hidden;background:var(--ws-night);box-shadow:0 18px 40px -16px rgba(9,12,19,.6),0 0 0 1px rgba(255,255,255,.06) inset;animation:ws-dock-in .22s ease-out}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-card{position:relative;isolation:isolate;margin-top:6px;height:var(--dock-h);border-radius:14px;overflow:hidden;background:#eef0f3;box-shadow:0 0 0 1px var(--ws-line),0 12px 28px -18px rgba(11,18,32,.4);animation:ws-dock-in .22s ease-out}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map{position:absolute;inset:0;z-index:-1;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .route-panel{display:contents}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .route-panel>:not(.route-canvas),.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .map-tools,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .map-pan,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .route-scrubber,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .map-attribution{display:none!important}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .route-canvas{flex:none;width:max(100%,calc(var(--dock-h) * 800 / 420));background:var(--ws-night);line-height:0}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .route-canvas{flex:none;width:max(100%,calc(var(--dock-h) * 800 / 420));line-height:0}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .route-canvas>svg{display:block;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:800/420;filter:none!important}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .route-canvas>svg>rect:first-of-type{fill:var(--ws-night)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-map .route-basemap{filter:grayscale(1) invert(1) brightness(.55) contrast(1.35)!important}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-label{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:6px;max-width:calc(100% - 20px);margin:0;padding:6px 11px;border-radius:999px;background:rgba(9,12,19,.62);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-label{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:6px;max-width:calc(100% - 20px);margin:0;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.94);box-shadow:0 0 0 1px var(--ws-line);color:var(--ws-ink);font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-label svg{flex:none;color:var(--sport)}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-actions{position:absolute;top:8px;right:8px;display:flex;gap:6px}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-actions>button{display:grid;place-items:center;width:34px;height:34px;min-width:34px;padding:0;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(9,12,19,.5);color:#fff;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:none;cursor:pointer}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-actions svg{width:16px;height:16px;color:#fff}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-pill{position:absolute;top:6px;right:10px;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;border:0;border-radius:999px;background:var(--ws-night);color:#fff;font-size:12.5px;font-weight:650;box-shadow:0 10px 24px -10px rgba(9,12,19,.6);cursor:pointer;animation:ws-dock-in .18s ease-out}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-actions>button{display:grid;place-items:center;width:34px;height:34px;min-width:34px;padding:0;border-radius:999px;border:0;background:rgba(255,255,255,.94);color:var(--ws-ink);box-shadow:0 0 0 1px var(--ws-line);cursor:pointer}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-actions svg{width:16px;height:16px;color:currentColor}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-pill{position:absolute;top:6px;right:10px;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;border:0;border-radius:999px;background:#fff;color:var(--ws-ink);font-size:12.5px;font-weight:650;box-shadow:0 0 0 1px var(--ws-line),0 8px 20px -12px rgba(11,18,32,.35);cursor:pointer;animation:ws-dock-in .18s ease-out}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-pill svg{color:var(--sport)}
 @keyframes ws-dock-in{from{opacity:0;transform:translateY(-8px)}}
 
@@ -191,7 +196,7 @@
  .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs [role=tab]{padding-inline:8px;font-size:12.5px}
 }
 @media (min-width:720px){
- .workout-sheet{--hero-map-h:380px;--ws-tabs-h:58px;--dock-h:240px}
+ .workout-sheet{--route-map-h:300px;--ws-tabs-h:58px;--dock-h:240px}
  .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-body{padding:0 32px 28px}
  .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body{padding:18px 24px 40px}
  .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs-bar{padding:12px 24px}
