@@ -3,7 +3,6 @@ import {lazy,useMemo} from 'react';
 import type {RouteSelection} from './route-geometry';
 import DeferredPanel from './deferred-panel';
 import type {AthleteData,Workout} from './analytics';
-import {Compass} from 'lucide-react';
 import WorkoutContext,{StrengthSummary} from './workout-context';
 import {heroMetrics} from './workout-hero';
 import WorkoutSplits from './workout-splits';
@@ -38,24 +37,26 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  const showRoute=['running','cycling','walking','hiking'].includes(family);
  // The hero carries the headline numbers; tiles retain charts, elapsed time and elevation gain/loss.
  const headline=useMemo(()=>new Set(heroMetrics(cards,family,detail.summary).primary.map(m=>m.id)),[cards,family,detail.summary]);
+ const groups=(['Session','Technique','Conditions'] as const).map(group=>({group,metrics:cards.filter(m=>m.group===group&&!(group==='Session'&&headline.has(m.id)&&!['duration','altitude','speed','heartrate','power'].includes(m.id)))})).filter(g=>g.metrics.length>0),metricCount=groups.reduce((n,g)=>n+g.metrics.length,0);
+ // Summary shows what most sessions are read for; everything else waits in one list of folded rows.
  return <div className="activity-scroll-summary compact-activity activity-glance">
  <WorkoutSplits detail={detail} family={family}/>
  {family==='strength_training'&&<StrengthSummary detail={detail} history={history}/> }
  <div className={`activity-analysis-layout${showRoute?' has-route':''}`}>
  {family!=='strength_training'&&detail.seriesSampled?.data&&<ActivityProfile key={`profile-${detail.id}`} detail={detail} onSelection={onRouteSelection}/>}
  </div>
- <DeferredPanel className="activity-extra-sensors workout-explorer-fold" summary={<span><Compass size={13}/>Explore workout<small>{family==='cycling'?'Replay · terrain · coasting · compare':family==='running'?'Replay · fingerprint · terrain · compare':'Laps · recovery'}</small></span>}><WorkoutExplorer detail={detail} history={history} healthData={healthData} token={token} storageScope={storageScope} isDemo={isDemo}/></DeferredPanel>
- {detail.recordedSource==='COROS FIT'&&<a className="docs-link" href={'/api/coros/file?id='+encodeURIComponent(detail.id)}>Download original COROS FIT ↗</a>}<ActivityZones summary={detail.summary??{}} loading={loading}/>
- {family==='cycling'&&<DeferredPanel className="activity-extra-sensors" summary="Deep analysis · efficiency, power & durability"><CyclingAnalysis detail={detail} history={history}/></DeferredPanel>}
-
- {family==='running'&&<DeferredPanel className="activity-extra-sensors" summary="Deep analysis · running pace & repeats"><RunningAnalysis detail={detail}/></DeferredPanel>}
- <DeferredPanel className="activity-extra-sensors" summary="Execution · repeat consistency & fading"><IntervalConsistency key={detail.id} detail={detail}/><ActivityLaps detail={detail}/></DeferredPanel>
+ <ActivityZones summary={detail.summary??{}} loading={loading}/>
  <WorkoutContext detail={detail} history={history} healthData={healthData} onSelect={onSelect}/>
- {!loading&&!detail.mergedIds&&<SessionIntelligence key={`intelligence-${detail.id}`} detail={detail} onClassify={onClassify}/>}
- {(['Session','Technique','Conditions'] as const).map(group=>{const metrics=cards.filter(m=>m.group===group&&!(group==='Session'&&headline.has(m.id)&&!['duration','altitude','speed','heartrate','power'].includes(m.id)));return metrics.length>0&&<section className="activity-glance-group" key={group}><div className="activity-section-label"><h3>{group==='Session'?'Details & charts':group==='Technique'?'Movement & technique':'Terrain & conditions'}</h3><span>{group==='Session'?'Tap ↗ to expand':''}</span></div><div className="activity-glance-grid">{metrics.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>})}
- {family==='running'&&<RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading}/>}
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}
- {other.length>0&&<details className="activity-extra-sensors"><summary>{other.length} additional recorded sensors</summary><p>Available under Telemetry and Raw data. No assumed units or generic averages.</p><div>{other.map(key=><span key={key}>{key.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase())}</span>)}</div></details>}
+ <section className="workout-more" aria-label="More analysis">
+ {metricCount>0&&<DeferredPanel className="activity-extra-sensors" summary={<span>All metrics & charts<small>{metricCount} recorded measures</small></span>}>{()=><>{groups.map(({group,metrics})=><section className="activity-glance-group" key={group}><div className="activity-section-label"><h3>{group==='Session'?'Session':group==='Technique'?'Movement & technique':'Terrain & conditions'}</h3><span>{group==='Session'?'Tap ↗ to expand':''}</span></div><div className="activity-glance-grid">{metrics.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>)}{other.length>0&&<details className="activity-extra-sensors"><summary>{other.length} additional recorded sensors</summary><p>Available under Telemetry and Raw data. No assumed units or generic averages.</p><div>{other.map(key=><span key={key}>{key.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase())}</span>)}</div></details>}<p className="activity-data-note">Micro charts show the whole workout; each has its own scale. Expand for units and values. Gaps are preserved. {detail.demo?'Illustrative demo.':''}</p></>}</DeferredPanel>}
+ <DeferredPanel className="activity-extra-sensors workout-explorer-fold" summary={<span>Explore workout<small>{family==='cycling'?'Replay · terrain · coasting · compare':family==='running'?'Replay · fingerprint · terrain · compare':'Laps · recovery'}</small></span>}><WorkoutExplorer detail={detail} history={history} healthData={healthData} token={token} storageScope={storageScope} isDemo={isDemo}/></DeferredPanel>
+ {family==='cycling'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Deep analysis<small>Efficiency, power & durability</small></span>}><CyclingAnalysis detail={detail} history={history}/></DeferredPanel>}
+ {family==='running'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Deep analysis<small>Running pace & repeats</small></span>}><RunningAnalysis detail={detail}/></DeferredPanel>}
+ <DeferredPanel className="activity-extra-sensors" summary={<span>Execution<small>Repeat consistency & fading</small></span>}><IntervalConsistency key={detail.id} detail={detail}/><ActivityLaps detail={detail}/></DeferredPanel>
+ {family==='running'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Running technique<small>This run against your earlier runs</small></span>}><RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading}/></DeferredPanel>}
+ {!loading&&!detail.mergedIds&&<DeferredPanel className="activity-extra-sensors" summary={<span>Session type<small>Label & coaching notes</small></span>}><SessionIntelligence key={`intelligence-${detail.id}`} detail={detail} onClassify={onClassify}/></DeferredPanel>}
  <RecordedFields detail={detail}/>
- <p className="activity-data-note">Micro charts show the whole workout; each has its own scale. Expand for units and values. Gaps are preserved. {detail.demo?'Illustrative demo.':''}</p></div>;
+ {detail.recordedSource==='COROS FIT'&&<a className="docs-link" href={'/api/coros/file?id='+encodeURIComponent(detail.id)}>Download original COROS FIT ↗</a>}
+ </section></div>;
 }
