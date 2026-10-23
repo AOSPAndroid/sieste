@@ -25,8 +25,6 @@
 
 .route-selection-status{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:5px 8px;background:#f3f2ff;font-size:11px}.route-selection-status small{font-size:10px;color:#7d8497}
 
-.activity-mini-map{scroll-margin-top:75px}
-
 
 }
 @layer sieste-legacy {.sync-details{border:1px solid #e5e5e5;border-radius:8px;padding:10px 12px}.detail-tabs{gap:5px}.detail-tabs button{font-size:13px}.workout-modal .detail-tabs{overflow-x:auto;white-space:nowrap}.workout-modal .eyebrow{padding-top:6px}.activity-scroll-summary .route-canvas{max-height:340px;overflow:hidden;border-radius:12px}.activity-scroll-summary .route-canvas > svg{width:100%;height:340px}.activity-scroll-summary .route-heading{padding-top:8px}.activity-scroll-summary .route-scrubber,.activity-scroll-summary .route-legend,.activity-scroll-summary .route-panel>.lab-note{display:none}.expanded-widget .lab-chart{height:400px!important}@media(max-width:650px){.activity-scroll-summary .route-canvas,.activity-scroll-summary .route-canvas > svg{height:250px}.expanded-widget .lab-chart{height:300px!important}}.dashboard-theme .lab-panel,.dashboard-theme .studio-card{border-color:#e5e5e5;box-shadow:none;border-radius:8px}
@@ -39,15 +37,10 @@
 .workout-remove p[role=alert]{color:#a52b35}
 .dashboard-theme .lab-panel,.dashboard-theme .studio-card{padding:12px}
 .route-canvas .map-tools{gap:5px;z-index:2}.route-canvas .map-tools button{box-sizing:border-box;width:36px;height:36px;min-width:36px;min-height:36px;margin:0;padding:0;display:flex;align-items:center;justify-content:center;line-height:1;touch-action:manipulation}.route-canvas .map-tools button>svg{display:block;position:static;flex:none;width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;aspect-ratio:1;margin:0;filter:none}.route-canvas .map-tools button:disabled{opacity:.45}.route-canvas .map-tools button:focus-visible{outline:2px solid #2563eb;outline-offset:2px}.workout-modal .route-heading{padding-right:56px}.workout-modal .route-heading h3{min-width:0}.workout-modal .route-heading button{flex-shrink:0}.workspace-tool-panel .lab-toolbar>.eyebrow{display:none}.workspace-tool-panel .laboratory{margin-top:0}.workspace-tool-panel .sync-details{margin:6px 0}.workspace-tool-panel .lab-toolbar{flex-wrap:wrap}.route-loading .loading-state{min-height:155px}.route-loading .loading-skeleton>i{height:80px}
-.activity-sheet-heading{position:sticky;top:-12px;z-index:8;background:#f6f8fc;display:flex;align-items:center;gap:9px;padding:1px 0 9px;margin:0;min-width:0}
-.activity-sheet-heading>div{flex:1;min-width:0}.workout-modal .activity-sheet-heading h2{font-size:19px;line-height:1.2;margin:0;padding:0;letter-spacing:-.5px;font-weight:700;overflow-wrap:anywhere}.activity-sheet-heading p{font-size:12px;margin:3px 0 0;color:#8290a0}
-.activity-sheet-icon{display:grid;place-items:center;width:34px;height:34px;border:1px solid #dfe7f1;background:#fff;border-radius:10px;color:#3268d6;flex:none}
-.activity-sheet-close{display:grid;place-items:center;flex:none;width:34px;height:34px;padding:0;border:1px solid #dfe5ee;border-radius:50%;background:#fff;color:#344454;cursor:pointer}
 .workout-modal .detail-tabs{margin:0 0 10px;padding:3px;gap:3px;border:1px solid #e4e9f1;border-radius:10px;background:#edf1f7;scrollbar-width:none}.workout-modal .detail-tabs button{font-size:12px;padding:7px 10px;background:transparent;border:0;border-radius:7px;color:#728094}.workout-modal .detail-tabs button.active{background:#fff;color:#243748;box-shadow:0 1px 4px #20304013;font-weight:600}
-.activity-mini-map{position:relative;margin-bottom:9px}.activity-mini-map>.expand-widget{position:absolute;z-index:3;right:9px;top:7px}.workout-modal .activity-mini-map .route-panel{border:1px solid #e1e7f0;background:#fff;border-radius:10px;overflow:hidden;padding:0}.workout-modal .activity-mini-map .route-heading{padding:7px 43px 7px 9px;min-height:30px;margin:0}.activity-mini-map .route-heading h3{font-size:12px;font-weight:600;margin:0}.activity-mini-map .route-heading .lab-button{font-size:11px;min-height:25px;padding:3px 7px;border-radius:6px}.compact-activity .activity-mini-map .route-canvas,.compact-activity .activity-mini-map .route-canvas>svg{height:170px;min-height:0;max-height:170px;border-radius:0;width:100%}.activity-mini-map .map-tools{gap:3px}.activity-mini-map .map-tools button{width:28px;height:28px;min-width:28px;min-height:28px}.activity-mini-map .map-attribution{font-size:9px;padding:2px 4px}.activity-mini-map .route-empty{padding:12px}.activity-mini-map .route-empty h3{font-size:12px}.activity-mini-map .route-empty p{font-size:11px;margin:4px}
 .activity-section-label{display:flex;align-items:center;justify-content:space-between;margin:10px 1px 5px}.activity-section-label h3{font-size:13px;margin:0;color:#344454}.activity-section-label>span{font-size:10px;color:#8c98a7}.activity-sensor-chart.is-expanded{height:clamp(280px,60dvh,650px);width:100%;min-width:0}.activity-expanded-sensor>p{font-size:12px;color:#8a96a4}
 .compact-laps{background:#fff;border:1px solid #e1e7f0;border-radius:10px;overflow:hidden;margin-top:9px}.compact-laps>header{padding:7px 9px;display:flex;align-items:center;justify-content:space-between;gap:5px}.compact-laps h3{font-size:13px;margin:0;color:#344454}.compact-laps h3>span{font-size:10px;margin-left:4px;color:#94a0ae;font-weight:400}.compact-laps header>div{display:flex;align-items:center;gap:5px}.compact-laps header button{font-size:10px;border:1px solid #e8edf3;background:#f7f9fc;color:#70839b;border-radius:6px;padding:5px;cursor:pointer}.compact-lap-scroll{overflow:auto;max-height:330px;scrollbar-width:thin}.compact-laps table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;white-space:nowrap}.compact-laps thead th{position:sticky;top:0;z-index:1;background:#f5f8fc;color:#8290a0;text-align:right;font-weight:500;font-size:10px;padding:7px 8px;border:0}.compact-laps small{font-size:9px;font-weight:400}.compact-laps td{font-size:12px;padding:7px 8px;text-align:right;border:0;border-bottom:1px dotted #e8edf3;color:#48596b;line-height:1.3}.compact-laps tbody th{padding:7px 8px;border:0;border-bottom:1px dotted #e8edf3;color:#48596b;line-height:1.3}.compact-laps tr:last-child td,.compact-laps tr:last-child th{border:0}.compact-laps tr:nth-child(even){background:#fafbfd}.compact-laps thead th:first-child,.compact-laps tbody th{text-align:left;font-size:11px;font-weight:500}.lap-marker{display:inline-block;width:3px;height:3px;background:#91a4bd;border-radius:50%;margin:0 5px 2px 0}.lap-hr-dot{display:inline-block;width:4px;height:4px;background:#e05270;border-radius:50%;margin:0 4px 2px 0}.compact-laps .lap-pace{color:#3268d6;font-weight:600}.lap-elevation{display:inline-flex;align-items:center;gap:4px}.lap-elevation>span{display:inline-flex;align-items:center;gap:1px}.lap-elevation svg{color:#56936d}.lap-elevation>b{color:#c1cad4;font-weight:400}.activity-advanced-laps{margin-top:10px;border:1px solid #e1e7f0;border-radius:9px;background:#fff;padding:10px}.activity-advanced-laps>summary{font-size:12px;color:#637890;cursor:pointer}.workout-modal .workout-remove{margin-top:14px;padding:10px 0 0}.workout-modal .workout-remove p,.workout-modal .workout-remove small{font-size:10px;line-height:1.4}
-@media(max-width:600px){.activity-sheet-heading{top:-10px;}.activity-sheet-heading p{font-size:11px}.compact-activity .activity-mini-map .route-canvas,.compact-activity .activity-mini-map .route-canvas>svg{height:145px;max-height:145px}.compact-laps td,.compact-laps tbody th,.compact-laps thead th{padding:7px 6px}.activity-sheet-heading h2{font-size:18px}.workout-modal .detail-tabs button{padding:6px 8px;font-size:11px}}
+@media(max-width:600px){.compact-laps td,.compact-laps tbody th,.compact-laps thead th{padding:7px 6px}.workout-modal .detail-tabs button{padding:6px 8px;font-size:11px}}
 
 .activity-telemetry{background:#fff;border:1px solid #e1e7f0;border-radius:10px;overflow:hidden}.activity-telemetry>header{display:flex;justify-content:space-between;align-items:center;padding:7px 10px}.activity-telemetry h3{font-size:13px;margin:0;color:#52667b}
 .activity-glance .compact-laps{margin:0 0 8px}.activity-glance .compact-lap-scroll{max-height:220px}.activity-glance-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.activity-glance-card{min-width:0;background:#fff;border:1px solid #e1e7f0;border-radius:9px;padding:7px 8px;overflow:hidden}.activity-glance-card>header{display:flex;align-items:center;gap:3px;justify-content:space-between;min-height:23px}.activity-glance-card h3{font-size:12px;font-weight:500;color:#56667a;line-height:1.2;margin:0;display:flex;align-items:center;gap:4px;min-width:0}.activity-glance-card h3 i{width:4px;height:4px;border-radius:50%;flex:none}.activity-glance-card .expand-widget{width:23px;min-width:23px;height:23px;background:#f6f8fb;flex:none}.activity-glance-value{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:4px;margin-top:2px}.activity-glance-value strong{font-size:21px;font-weight:650;letter-spacing:-.65px;font-variant-numeric:tabular-nums;line-height:1.2}.activity-glance-value>span{font-size:11px;color:#8c97a6}.activity-glance-card>p{font-size:10px;color:#8b98a9;line-height:1.3;margin:2px 0 0}.activity-microchart{width:100%;height:30px;display:block;margin-top:4px;overflow:visible}.activity-glance-group .activity-section-label{margin:9px 1px 5px}.activity-extra-sensors{font-size:11px;color:#8390a2;margin-top:8px;padding:7px;background:#fff;border:1px solid #e1e7f0;border-radius:8px}.activity-extra-sensors summary{cursor:pointer}.activity-extra-sensors p{font-size:11px}.activity-extra-sensors>div{display:flex;gap:4px;flex-wrap:wrap}.activity-extra-sensors span{padding:4px;background:#f5f7fa;border-radius:4px}.activity-expanded-value{font-size:15px;color:#7b8a9a}.activity-expanded-value strong{font-size:30px;font-variant-numeric:tabular-nums}.activity-expanded-value small{display:block;font-size:12px;margin-top:3px}.activity-glance .activity-data-note{margin-bottom:3px}
@@ -56,15 +49,14 @@
 .cycling-analysis{margin:8px 0;padding:9px;background:#fff;border:1px solid #e1e7f0;border-radius:10px;min-width:0}.cycling-analysis header,.cycling-analysis header>div,.ride-chart-heading{display:flex;align-items:center;justify-content:space-between;gap:5px}.cycling-analysis h3{font-size:12px;margin:0}.cycling-analysis h4{font-size:11px;margin:10px 0 5px}.cycling-analysis select{font-size:10px;max-width:140px;padding:4px;border:1px solid #e1e7f0;border-radius:5px;background:#f8faff}.ride-primary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:8px 0}.ride-primary>div{padding:6px;border-radius:7px;background:#f8f6fd;min-width:0}.ride-primary>div:nth-child(2){background:#fdf4f7}.ride-primary>div:nth-child(3){background:#fcf7ed}.ride-primary small,.ride-bests small{display:block;font-size:10px;color:#758194}.ride-primary strong{display:block;font-size:23px;color:#8b5bd1;font-variant-numeric:tabular-nums}.ride-primary>div:nth-child(2) strong{color:#d75570}.ride-primary>div:nth-child(3) strong{color:#b17e21}.cycling-analysis em{font-size:10px;font-weight:400;font-style:normal;margin-left:3px;color:#8390a1}.ride-signal{background:#f4f7fb;border-radius:6px;padding:7px}.ride-signal strong{display:block;font-size:11px}.ride-signal span{display:block;font-size:10px;color:#768396;line-height:1.4;margin-top:3px}.ride-signal[data-tone=watch]{background:#fff5e5;color:#a56a12}.ride-signal[data-tone=stable]{background:#edf8f2;color:#2a7657}.ride-chart-heading{font-size:10px;color:#8794a4;margin:8px 0 2px}.ride-trace>small{font-size:10px}.ride-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:7px 0;border-top:1px dotted #e2e8f0}.ride-secondary span{font-size:9px;color:#8591a2}.ride-secondary b{display:block;font-size:13px;color:#47576b}.ride-bests{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.ride-bests>div{padding:6px 4px;background:#f7f6fc;border-radius:6px}.ride-bests strong{display:block;color:#8061b4;font-size:17px;white-space:nowrap}.ride-bests span{font-size:9px;color:#8993a4;display:block}.cycling-analysis summary{font-size:11px;cursor:pointer;margin-top:9px;color:#5b6b7e}.cycling-analysis p{font-size:10px;line-height:1.5;color:#7e8b9b}
 .activity-glance .activity-glance-card{padding:5px 7px}.activity-glance .activity-glance-value strong{font-size:19px}.activity-glance .activity-microchart{height:25px;margin-top:3px}.activity-glance .activity-glance-card>p{font-size:9px}.activity-glance .activity-glance-card>.trend-badge{font-size:10px;margin-top:2px}.activity-glance .activity-glance-card>.trend-badge small{font-size:9px}.activity-glance .activity-glance-group .activity-section-label{margin:7px 1px 4px}.workout-modal .detail-tabs{margin-bottom:7px}.activity-glance .compact-laps td,.activity-glance .compact-laps th{padding-top:5px;padding-bottom:5px}
 @media(max-width:380px){.activity-glance .activity-glance-value strong{font-size:18px}}
-.route-panel .route-canvas>svg,.activity-mini-map .route-canvas>svg{filter:none;background:#f4f4f4}.route-panel .route-canvas{background:#f4f4f4}.route-panel .map-tools{padding:3px;gap:2px;background:#ffffffed;border:1px solid #e1e3e6;border-radius:10px;box-shadow:0 2px 9px #1111110b}.route-panel .map-tools button{border:0;border-radius:6px;background:transparent;color:#45505a;box-shadow:none}.route-panel .map-tools button:hover{background:#f0f1f3}.route-panel .map-attribution{background:#ffffffde;color:#68717a;border-radius:4px 0 0 0}.route-start-key,.route-finish-key{display:inline-block;box-sizing:border-box;width:7px;height:7px;margin-right:3px;vertical-align:middle}.route-start-key{border:1.5px solid #282828;border-radius:50%;background:white}.route-finish-key{border-radius:1px;background:#e13742}.session-intelligence{padding:8px;background:white;border:1px solid #e0e6ef;border-radius:10px}.session-type{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}.session-type span{display:flex;flex-direction:column;gap:2px}.session-type small{font-size:10px;color:#7b8796}.session-type select{max-width:120px;font-size:11px;padding:5px;border:1px solid #dfe5ed;border-radius:6px;background:#f8fafc}.session-method{font-size:10px;color:#788594;margin:4px 0}.session-method p{font-size:11px;line-height:1.4}.session-intelligence .coach-tile{position:relative;padding-right:30px}.session-intelligence .coach-tile>button{position:absolute;right:3px;top:3px}.sieste-v2 .workout-modal .activity-sheet-heading{padding:10px 8px}.sieste-v2 .workout-modal .detail-tabs{background:white;border:1px solid var(--v2-line);border-radius:8px;padding:3px;gap:3px}.sieste-v2 .workout-modal .detail-tabs button{font-size:11px;padding:6px 9px;border-radius:5px}.sieste-v2 .workout-modal .detail-tabs button.active{background:#e5f0e9;color:#216653;border:0}.sieste-v2 .activity-glance-value strong{font-size:20px}.sieste-v2 .lab-panel{border:1px solid var(--v2-line);border-radius:10px;padding:10px;background:white;box-shadow:none}.sieste-v2 .lab-panel h2{font-size:13px}.sieste-v2 .lab-panel .panel-head p{font-size:10px;color:#82909a}.sieste-v2 .lab-controls{font-size:11px;padding:5px 0}.sieste-v2 .lab-controls select{padding:5px 6px;font-size:11px}
-.sieste-v3 .activity-sheet-heading{padding:10px 8px 12px!important;border:0}
+.route-panel .route-canvas>svg{filter:none;background:#f4f4f4}.route-panel .route-canvas{background:#f4f4f4}.route-panel .map-tools{padding:3px;gap:2px;background:#ffffffed;border:1px solid #e1e3e6;border-radius:10px;box-shadow:0 2px 9px #1111110b}.route-panel .map-tools button{border:0;border-radius:6px;background:transparent;color:#45505a;box-shadow:none}.route-panel .map-tools button:hover{background:#f0f1f3}.route-panel .map-attribution{background:#ffffffde;color:#68717a;border-radius:4px 0 0 0}.route-start-key,.route-finish-key{display:inline-block;box-sizing:border-box;width:7px;height:7px;margin-right:3px;vertical-align:middle}.route-start-key{border:1.5px solid #282828;border-radius:50%;background:white}.route-finish-key{border-radius:1px;background:#e13742}.session-intelligence{padding:8px;background:white;border:1px solid #e0e6ef;border-radius:10px}.session-type{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}.session-type span{display:flex;flex-direction:column;gap:2px}.session-type small{font-size:10px;color:#7b8796}.session-type select{max-width:120px;font-size:11px;padding:5px;border:1px solid #dfe5ed;border-radius:6px;background:#f8fafc}.session-method{font-size:10px;color:#788594;margin:4px 0}.session-method p{font-size:11px;line-height:1.4}.session-intelligence .coach-tile{position:relative;padding-right:30px}.session-intelligence .coach-tile>button{position:absolute;right:3px;top:3px}.sieste-v2 .workout-modal .detail-tabs{background:white;border:1px solid var(--v2-line);border-radius:8px;padding:3px;gap:3px}.sieste-v2 .workout-modal .detail-tabs button{font-size:11px;padding:6px 9px;border-radius:5px}.sieste-v2 .workout-modal .detail-tabs button.active{background:#e5f0e9;color:#216653;border:0}.sieste-v2 .activity-glance-value strong{font-size:20px}.sieste-v2 .lab-panel{border:1px solid var(--v2-line);border-radius:10px;padding:10px;background:white;box-shadow:none}.sieste-v2 .lab-panel h2{font-size:13px}.sieste-v2 .lab-panel .panel-head p{font-size:10px;color:#82909a}.sieste-v2 .lab-controls{font-size:11px;padding:5px 0}.sieste-v2 .lab-controls select{padding:5px 6px;font-size:11px}
 .sieste-v3 .workout-modal .detail-tabs{margin:0 0 14px;scrollbar-width:none}
 .sieste-v3 .workout-modal .detail-tabs button{background:transparent;color:#6c7b8f}
 .sieste-v3 .activity-glance-card{border:1px solid var(--s-line);border-radius:12px;background:white;padding:12px}
 .sieste-v3 .activity-glance-value strong{font-size:24px;letter-spacing:-.6px;font-weight:700}
 .sieste-v3 :is(.unified-profile,.compact-laps,.activity-mini-map){border:1px solid var(--s-line);border-radius:14px;background:white;overflow:hidden}
 .sieste-v3 .unified-profile>header{padding-bottom:8px}
-.sieste-v3 .unified-profile h2,.sieste-v3 .activity-mini-map h2{font-size:14px;font-weight:700;letter-spacing:-.3px}
+.sieste-v3 .unified-profile h2{font-size:14px;font-weight:700;letter-spacing:-.3px}
 .sieste-v3 .unified-toggles{gap:5px;margin-bottom:10px}
 .sieste-v3 .unified-toggles button{border:1px solid transparent;border-radius:20px;background:#f0f3f8;padding:6px 10px;font-size:11px}
 .sieste-v3 .unified-modes{background:#edf1f6;border-radius:9px;padding:3px;gap:3px}
@@ -83,17 +75,8 @@
  .sieste-v3 .activity-glance-card{padding:9px;border-radius:11px}
 }
 .sieste-v3 .unified-toggles button[aria-pressed=true],.sieste-v3 .unified-segments button[aria-pressed=true]{background:var(--s-accent-soft);border-color:#c7d2fe;color:var(--s-accent)}
-.sieste-v3 .workout-modal .activity-sheet-heading{gap:8px}
-.sieste-v3 .activity-sheet-heading p{font-size:11px;margin-top:3px}
-.sieste-v3 .activity-sheet-icon{border-radius:8px}
 .sieste-v3 .workout-modal .detail-tabs{display:flex;overflow-x:auto}
 .sieste-v3 .workout-modal .detail-tabs button{flex-shrink:0}
-.sieste-v3 .workout-modal .activity-mini-map{padding:0;margin:0 0 8px}
-.sieste-v3 .workout-modal .activity-mini-map .route-panel{border:0;border-radius:0;margin:0}
-.sieste-v3 .workout-modal .activity-mini-map .route-heading{padding:5px 45px 5px 10px;min-height:38px}
-.sieste-v3 .activity-mini-map .route-heading h3{font-size:12px;font-weight:650}
-.sieste-v3 .activity-mini-map>.expand-widget{top:5px;right:7px}
-.sieste-v3 .workout-modal .activity-mini-map .route-canvas,.sieste-v3 .workout-modal .activity-mini-map .route-canvas>svg{height:155px;min-height:0;max-height:155px}
 .sieste-v3 .workout-modal .unified-profile{margin:0 0 8px;box-shadow:none}
 .sieste-v3 .workout-modal .unified-profile>header{padding:0;margin-bottom:6px}
 .sieste-v3 .workout-modal .unified-profile>header h3{font-size:13px;font-weight:650;margin:0;letter-spacing:-.2px}
@@ -110,15 +93,11 @@
 .sieste-v3 .workout-modal .activity-extra-sensors{margin:6px 0}
 @media(max-width:600px){
  .sieste-v3 .workout-modal .unified-profile{padding:8px}
- .sieste-v3 .workout-modal .activity-mini-map .route-canvas,.sieste-v3 .workout-modal .activity-mini-map .route-canvas>svg{height:130px;max-height:130px}
 }.compact-tool .route-panel{margin:8px 0}
 .sieste-v3 .workout-modal .detail-tabs{border-bottom:1px solid var(--s-line)}
 .sieste-v3 .workout-modal .detail-tabs button.active{border-radius:7px 7px 0 0}
 .sieste-v3 .workout-modal .unified-toggles button{font-size:11px}
-.sieste-v3 .workout-modal .unified-profile,.sieste-v3 .workout-modal .activity-mini-map{border-radius:14px}
-@media(max-width:650px){
- .sieste-v3 .workout-modal .activity-sheet-heading h2{font-size:18px}
-}.imported-activity-note{margin:8px 18px;font-size:11px}.effort-analysis-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;padding:5px 0 3px}
+.sieste-v3 .workout-modal .unified-profile{border-radius:14px}.imported-activity-note{margin:8px 18px;font-size:11px}.effort-analysis-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;padding:5px 0 3px}
 .effort-analysis .effort-analysis-toolbar label{display:flex;align-items:center;gap:5px;font-size:10px;color:#6d7283;margin:0}
 .effort-analysis-toolbar select{font:inherit;color:#36354b;border:1px solid #e4e4ec;background:#fff;border-radius:7px;padding:5px 6px;max-width:165px;min-height:32px}
 .effort-analysis-toolbar>span{margin-left:auto;font-size:10px;color:#777689;font-variant-numeric:tabular-nums}
@@ -154,52 +133,6 @@
 .effort-comparison-table .profile-row-badges,.effort-comparison-table .profile-row-badges>span{display:inline-flex;margin:0}
 .route-selection-status .route-fit-selection{margin-left:auto;padding:6px 8px;font-size:10px;min-height:34px}
 @media(max-width:480px){.effort-analysis-toolbar>span{width:100%;margin-left:0}.unified-profile.effort-analysis .unified-modes button{font-size:10px}.effort-navigation button{padding:6px}.effort-comparison-table td{min-width:62px}}
-.sieste-v3 .workout-modal .activity-sheet-heading{top:0;height:44px;padding:2px 0 6px!important;margin:0 0 6px;background:white}
-.sieste-v3 .workout-modal .activity-sheet-heading h2{line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sieste-v3 .workout-modal .activity-sheet-heading p{font-size:10px;line-height:1.3;margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.activity-analysis-layout{--effort-chart-height:180px;min-width:0;display:grid;gap:6px;align-items:start}
-.sieste-v3 .workout-modal .activity-analysis-layout>.activity-mini-map{position:relative;top:auto;z-index:5;margin:0;border-radius:10px;background:white;align-self:start}
-.sieste-v3 .workout-modal .activity-analysis-layout>.activity-mini-map:has(>.route-panel){position:sticky;top:50px;box-shadow:0 3px 9px #27273308}
-.sieste-v3 .workout-modal .activity-analysis-layout .route-canvas,.sieste-v3 .workout-modal .activity-analysis-layout .route-canvas>svg{height:140px;min-height:0;max-height:140px}
-.sieste-v3 .workout-modal .activity-analysis-layout>.unified-profile{margin:0;padding:7px;border-radius:10px}
-.sieste-v3 .workout-modal .activity-analysis-layout .unified-profile>header{min-height:26px;margin-bottom:2px}
-.sieste-v3 .workout-modal .activity-analysis-layout .unified-profile>header h3{font-size:12px}
-.sieste-v3 .workout-modal .activity-analysis-layout .expand-widget{width:28px;height:28px;min-height:28px;padding:5px;border-radius:6px}
-.sieste-v3 .workout-modal .activity-analysis-layout .unified-modes{padding:2px;gap:2px;margin:3px 0;border-radius:7px}
-.sieste-v3 .workout-modal .activity-analysis-layout .unified-modes button{min-height:30px;padding:4px 2px;font-size:10px;line-height:1.2}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-analysis-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 6px;padding:3px 0 0;align-items:start}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-analysis[data-mode=climbs] .effort-analysis-toolbar{grid-template-columns:minmax(0,1.5fr) minmax(0,.75fr) minmax(0,1fr)}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-analysis-toolbar label{display:flex;flex-direction:column;align-items:stretch;gap:2px;margin:0;min-width:0;font-size:9px;line-height:1.3}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-analysis-toolbar select{width:100%;max-width:none;min-width:0;min-height:30px;padding:4px 5px;font-size:10px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-analysis-toolbar>span{grid-column:1/-1;width:auto;margin:0;font-size:9px;line-height:1.4}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-segments{gap:4px;padding:4px 0 5px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-segments>button{min-width:94px;min-height:56px;padding:5px 7px;gap:2px;line-height:1.2;border-radius:7px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-segment-title{font-size:9px;gap:4px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-segments strong{font-size:12px;line-height:1.2}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-segments small{font-size:9px;line-height:1.2}
-.sieste-v3 .workout-modal .activity-analysis-layout .unified-toggles{flex-wrap:nowrap;overflow-x:auto;gap:3px;margin:0 0 2px;scrollbar-width:thin}
-.sieste-v3 .workout-modal .activity-analysis-layout .unified-toggles button{flex-shrink:0;min-height:28px;padding:4px 6px;font-size:10px;line-height:1.2}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-navigation{gap:4px;margin:2px 0 4px;min-height:30px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-navigation button{min-height:30px;padding:4px 6px;font-size:9px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-readout{padding:6px 7px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-readout>header>strong{font-size:10px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-readout>div{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px 6px;margin-top:6px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-readout b{font-size:13px}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-readout small{font-size:9px;margin-top:1px}
-.sieste-v3 .workout-modal .activity-analysis-layout .route-selection-status{flex-wrap:nowrap;justify-content:space-between;gap:6px;padding:2px 6px;font-size:10px;line-height:1.3}
-.sieste-v3 .workout-modal .activity-analysis-layout .route-selection-status>span{flex-shrink:0}
-.sieste-v3 .workout-modal .activity-analysis-layout .route-selection-status small{font-size:9px;min-width:0}
-.sieste-v3 .workout-modal .activity-analysis-layout .route-fit-selection{min-height:30px;padding:3px 6px;font-size:9px;flex-shrink:0;white-space:nowrap}
-.sieste-v3 .workout-modal .activity-analysis-layout .effort-source-note,.sieste-v3 .workout-modal .activity-analysis-layout .effort-empty{font-size:10px;line-height:1.4;margin:3px 0}
-.sieste-v3 .workout-modal .activity-analysis-layout .profile-table-toolbar{gap:4px;margin-top:5px}
-.sieste-v3 .workout-modal .activity-analysis-layout .profile-table-toolbar button{min-height:30px;padding:4px 6px;font-size:10px}
-@media(min-width:850px){
- .activity-analysis-layout.has-route:has(>.activity-mini-map>.route-panel){grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);gap:8px}
- .sieste-v3 .workout-modal .activity-analysis-layout.has-route .route-canvas,.sieste-v3 .workout-modal .activity-analysis-layout.has-route .route-canvas>svg{height:220px;max-height:220px}
-}
-@media(max-width:600px){.activity-analysis-layout{--effort-chart-height:clamp(112px,18dvh,144px)}}
-@media(max-width:350px){.activity-analysis-layout{--effort-chart-height:clamp(104px,16dvh,128px)}}
-@media(max-height:500px){.sieste-v3 .workout-modal .activity-analysis-layout>.activity-mini-map:has(>.route-panel){position:relative;top:auto}}
 .segment-share-preview .segment-share-actions{display:flex;gap:6px;margin-bottom:8px}
 .segment-share-preview .segment-share-actions button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:7px 10px;border:1px solid #dce3ef;border-radius:7px;background:#fff;color:#526477;font-size:11px}
 .segment-share-preview .segment-share-actions button:first-child{background:#6353b7;color:#fff;border-color:#6353b7}
@@ -220,14 +153,8 @@
 .sieste-v3 .big-number { margin: 6px 0; font-size: 28px; line-height: 1.15; }
 .sieste-v3 :is(.pagination,.coverage-grid>div,.rank-list button,.studio-list>button:not(.lab-button)) { padding: 10px 12px; font-size: 11px; }
 .sieste-v3 :is(.lab-chart,.studio-chart) { padding-left: 0; padding-right: 4px; }
-.sieste-v3 .activity-card-stack .activity-sheet-heading { position: relative; top: auto; flex: 0 0 auto; height: auto; min-height: 54px; margin: 0; padding: 10px var(--activity-inset) 8px!important; gap: 7px; background: #fff; }
 .sieste-v3 .activity-card-stack .workout-modal>.detail-tabs { flex: 0 0 auto; margin: 0 var(--activity-inset) 8px; }
 .sieste-v3 .activity-card-stack .activity-sheet-body { flex: 1 1 auto; min-height: 0; min-width: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 0 var(--activity-inset) var(--activity-inset); }
-.sieste-v3 .activity-card-stack .activity-sheet-body .activity-analysis-layout>.activity-mini-map:has(>.route-panel) { top: 0; }
-.sieste-v3 .workout-modal .activity-sheet-heading h2 { font-size: 17px; font-weight: 650; letter-spacing: -.35px; }
-.sieste-v3 .activity-sheet-icon { background: transparent; border: 0; width: 26px; height: 32px; padding: 2px; }
-.sieste-v3 .activity-sheet-icon svg { width: 20px; height: 20px; }
-.sieste-v3 .activity-sheet-close { width: 36px; height: 36px; border-color: var(--snap-line); }
 .sieste-v3 .workout-modal .detail-tabs { background: #f6f6f9; border: 0; padding: 3px; border-radius: 9px; margin-bottom: 8px; gap: 2px; }
 .sieste-v3 .workout-modal .detail-tabs button { min-height: 34px; padding: 5px 8px; font-size: 11px; border-radius: 7px; }
 .sieste-v3 .workout-modal .detail-tabs button.active { background: #fff; color: var(--s-accent); box-shadow: none; }
@@ -255,10 +182,6 @@
 
 }
 .sieste-v3 .lab-panel .panel-head { padding: 0 0 8px; }
-.sieste-v3 .activity-card-stack .activity-sheet-heading { background: var(--card); padding: 10px var(--activity-inset) 8px!important; min-height: 54px; border: 0; }
-.sieste-v3 .activity-card-stack .activity-sheet-heading h2 { color: var(--foreground); font-weight: 650; font-size: 17px; letter-spacing: -.025em; }
-.sieste-v3 .activity-card-stack .activity-sheet-heading p { color: var(--muted-foreground); }
-.sieste-v3 .activity-sheet-close:not([data-slot]) { width: 34px; height: 34px; border-radius: 10px; border-color: var(--border); background: var(--muted); color: var(--muted-foreground); }
 .sieste-v3 .workout-modal>.detail-tabs { background: var(--muted); border-radius: 10px; padding: 3px; }
 .sieste-v3 .workout-modal>.detail-tabs button:not([data-slot]) { min-height: 32px; padding: 5px 8px; border-radius: 7px; color: var(--muted-foreground); font-size: 11px; }
 .sieste-v3 .workout-modal>.detail-tabs button:not([data-slot]).active { background: var(--card); color: var(--primary); box-shadow: 0 1px 3px color-mix(in oklch, var(--foreground) 7%, transparent); }

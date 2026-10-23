@@ -40,10 +40,10 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  const {cards,other,family}=useMemo(()=>activityMetrics(detail),[detail]),step=detail.seriesSampled?.sampleSize,comparison=useMemo(()=>sessionTrend(detail,history),[detail,history]),vo2=useMemo(()=>vo2Trend(detail,history),[detail,history]);
  // The hero carries the headline numbers; tiles retain charts, elapsed time and elevation gain/loss.
  const headline=useMemo(()=>new Set(heroMetrics(cards,family,detail.summary).primary.map(m=>m.id)),[cards,family,detail.summary]);
- const mechanics=useMemo(()=>(MECHANICS[family]??[]).map(id=>cards.find(c=>c.id===id)).filter((c):c is ActivityMetric=>!!c&&c.value!=='—'),[cards,family]),shown=new Set(mechanics.map(m=>m.id));
+ const mechanics=useMemo(()=>(MECHANICS[family]??[]).map(id=>cards.find(c=>c.id===id)).filter((c):c is ActivityMetric=>!!c&&c.value!=='—'),[cards,family]),vo2Metric=cards.find(c=>c.id==='vo2max'&&c.value!=='—'),shown=new Set([...mechanics.map(m=>m.id),'vo2max']);
  const groups=(['Session','Technique','Conditions'] as const).map(group=>({group,metrics:cards.filter(m=>m.group===group&&!shown.has(m.id)&&!(group==='Session'&&headline.has(m.id)&&!['duration','altitude','speed','heartrate','power'].includes(m.id)))})).filter(g=>g.metrics.length>0),metricCount=groups.reduce((n,g)=>n+g.metrics.length,0);
  const lat=detail.seriesSampled?.data?.positionLat,hasRoute=Array.isArray(lat)&&lat.some(finite);
- // Summary is the route with its climbs and laps, then movement mechanics; the rest waits in folded rows.
+ // Summary is the route with its climbs and laps, then movement mechanics and Tredict VO₂max; the rest waits in folded rows.
  return <div className="activity-scroll-summary compact-activity activity-glance">
  {family==='strength_training'&&<StrengthSummary detail={detail} history={history}/>}
  {family!=='strength_training'&&(hasRoute||detail.seriesSampled?.data)&&<section className="workout-route-analysis" aria-label="Route, climbs and laps">
@@ -53,6 +53,7 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  {mechanics.length>0&&<section className="workout-mechanics" aria-labelledby="workout-mechanics-title"><header><h3 id="workout-mechanics-title">{family==='cycling'?'Pedalling':family==='running'?'Running mechanics':'Movement'}</h3></header><div className="activity-glance-grid">{mechanics.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={comparison}/>)}</div>
   {family==='running'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Compare with earlier runs<small>Your 7, 30 and 90-day averages</small></span>}><RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading}/></DeferredPanel>}
  </section>}
+ {vo2Metric&&<section className="workout-vo2" aria-label="Tredict VO₂max"><MetricCard metric={vo2Metric} step={step} comparison={vo2}/></section>}
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}
  <section className="workout-more" aria-label="More analysis">
  {family!=='strength_training'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Splits<small>{family==='cycling'?'Every 5 km':family==='swimming'?'Every 100 m':'Every kilometre'}</small></span>}><WorkoutSplits detail={detail} family={family}/></DeferredPanel>}

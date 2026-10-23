@@ -10,7 +10,7 @@ function module(path,imports={}){
  return exports;
 }
 const Silent=()=>null,silentModule={__esModule:true,default:Silent};
-const hero=module('app/workout-hero.tsx',{'lucide-react':{X:Silent},'./route-map':silentModule,'./expansion':{ExpandButton:Silent}});
+const hero=module('app/workout-hero.tsx',{'lucide-react':{X:Silent}});
 for(const [seconds,expected] of [[59.4,'0:59'],[59.6,'1:00'],[3599.6,'1:00:00'],[3601,'1:00:01']])assert.equal(hero.clock(seconds),expected);
 for(const seconds of [undefined,null,'60',0,-1,NaN,Infinity,-Infinity])assert.equal(hero.clock(seconds),null,'Invalid activity time is not formatted as a clock');
 
@@ -75,7 +75,7 @@ console.log('Workout hero: clock/pace boundaries, finite totals, sport prioritie
 const dock=module('app/workout-map-dock.tsx',{react:{},'lucide-react':{},'./route-map':silentModule,'./expansion':{ExpandButton:Silent}});
 const climb={start:10,end:40,label:'Climb 1',kind:'climb'};
 assert.equal(dock.dockState(null,false,false),'none','No selection, no dock');
-assert.equal(dock.dockState(climb,true,false),'none','The header map already shows the selection');
+assert.equal(dock.dockState(climb,true,false),'none','The route map already shows the selection');
 assert.equal(dock.dockState(climb,false,false),'open','A selection below the fold pins the map');
 assert.equal(dock.dockState(climb,false,true),'collapsed','A folded dock leaves a way back');
 
@@ -103,8 +103,8 @@ function renderDock(selection=climb){
  }
  attach(tree);layoutEffects.forEach(effect=>effect());return buttons;
 }
-assert.equal(renderDock().size,0,'Visible hero does not need a dock');
-hookValues[0]=false; // IntersectionObserver has reported that the hero scrolled away.
+assert.equal(renderDock().size,0,'A visible route map does not need a dock');
+hookValues[0]=false; // IntersectionObserver has reported that the route map scrolled away.
 let dockButtons=renderDock();assert.equal(focusMoves.length,0,'Automatic dock opening preserves chart focus');
 dockButtons.get('Hide map').props.onClick();dockButtons=renderDock();
 assert.deepEqual(focusMoves.at(-1),{label:'Show on map',options:{preventScroll:true}},'Hiding the map transfers focus to its replacement show button');
