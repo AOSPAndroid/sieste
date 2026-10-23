@@ -35,6 +35,8 @@ const metrics=module('app/activity-metrics.ts',{'./sports':sports,'./coros-nativ
 const imports=Object.fromEntries(['./deferred-panel','./workout-explorer.css','./activity-profile','./recorded-fields','./session-intelligence','./running-technique','./route-map','./activity-zones','./trend-badge','./workout-splits'].map(key=>[key,silentModule]));
 const routeCallbacks=[];
 Object.assign(imports,{
+ // Folded rows render their content here so the tiles inside them can be checked.
+ './deferred-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,typeof children==='function'?children():children)},
  react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),lazy:()=>Silent},
  'lucide-react':{Compass:Silent},
  './workout-context':{...silentModule,StrengthSummary:Silent},
