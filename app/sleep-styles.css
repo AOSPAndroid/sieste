@@ -308,13 +308,13 @@
 }
 @media (prefers-reduced-motion: reduce) { .sleep-window-column { transition: none; } }
 
-/* sieste 2026 · last night is the hero: a white card tinted violet */
-.sieste-v3 .sleep-focus .sleep-window-hero.n-hero{--n-glow:#8b5cf6;padding:20px 18px 14px;border:0;border-radius:var(--n-hero-radius);background:radial-gradient(130% 60% at 100% 0%,var(--n-tint),#fff 62%)}
-.sieste-v3 .sleep-focus .sleep-window-hero.n-hero>header small{font-size:12.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--n-kicker)}
-.sieste-v3 .sleep-focus .sleep-window-hero.n-hero>header h2{font-size:28px;font-weight:750;letter-spacing:-.045em;color:var(--n-ink)}
-.sieste-v3 .sleep-focus .sleep-window-hero.n-hero>header .expand-widget{border:0;border-radius:999px;background:var(--n-card);box-shadow:var(--n-shadow)}
-.sieste-v3 .sleep-window-hero.n-hero .sleep-window-readout strong{font-size:clamp(28px,8vw,40px);font-weight:750;letter-spacing:-.05em;line-height:1.05}
-.sieste-v3 .sleep-focus .sleep-page-heading h1{font-size:28px;font-weight:750;letter-spacing:-.045em}
-.sieste-v3 .sleep-focus .sleep-period-nav [data-slot=button]{border:0;border-radius:999px;background:var(--n-card);box-shadow:var(--n-shadow)}
+/* sieste 2026 · last night leads the page as a plain card */
+.sieste-v3 .sleep-focus .sleep-window-hero.n-hero{padding:18px 16px 12px;border:0;border-radius:var(--n-hero-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 .sleep-focus .sleep-window-hero.n-hero>header small{font-size:12.5px;font-weight:500;color:var(--n-muted)}
+.sieste-v3 .sleep-focus .sleep-window-hero.n-hero>header h2{font-size:20px;font-weight:700;letter-spacing:-.03em;color:var(--n-ink)}
+.sieste-v3 .sleep-focus .sleep-window-hero.n-hero>header .expand-widget{border:0;border-radius:999px;background:transparent;box-shadow:none}
+.sieste-v3 .sleep-window-hero.n-hero .sleep-window-readout strong{font-size:clamp(24px,7vw,30px);font-weight:650;letter-spacing:-.05em;line-height:1.05}
+.sieste-v3 .sleep-focus .sleep-page-heading h1{font-size:24px;font-weight:700;letter-spacing:-.035em}
+.sieste-v3 .sleep-focus .sleep-period-nav [data-slot=button]{border:0;border-radius:999px;background:transparent;box-shadow:none}
 .sieste-v3 .sleep-focus>details{align-self:stretch;border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
-.sieste-v3 .sleep-focus>details>summary{min-height:54px;font-size:14.5px;font-weight:650;color:var(--n-ink)}
+.sieste-v3 .sleep-focus>details>summary{min-height:52px;font-size:14.5px;font-weight:600;color:var(--n-ink)}

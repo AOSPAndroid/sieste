@@ -1,13 +1,13 @@
-/* sieste 2026 · one light surface language for every page.
-   White cards on a quiet ground; each page's headline panel is a larger white
-   card with big numbers and a soft tint of the page colour. The nav is a
-   frosted white pill. Unlayered on purpose: it sits above the legacy layers
+/* sieste 2026 · one flat, light surface language for every page.
+   White cards with hairline borders on a quiet ground, no tints or shadows;
+   each page's headline panel is the first card, with larger numbers. The nav
+   is a plain white pill. Unlayered on purpose: it sits above the legacy layers
    without !important. Page-specific parts live with each page's stylesheet. */
 .sieste-v3{
- --n-ground:#f3f4f7;--n-card:#fff;--n-ink:#0b1220;--n-muted:#5b6678;--n-faint:#8a94a6;
- --n-line:rgba(11,18,32,.07);--n-radius:22px;--n-hero-radius:28px;
- --n-shadow:0 1px 2px rgba(11,18,32,.04),0 10px 30px -14px rgba(11,18,32,.16);
- --n-float:0 1px 2px rgba(11,18,32,.06),0 16px 36px -14px rgba(11,18,32,.28);
+ --n-ground:#f7f7f8;--n-card:#fff;--n-ink:#0b1220;--n-muted:#5b6678;--n-faint:#8a94a6;
+ --n-line:rgba(11,18,32,.08);--n-radius:16px;--n-hero-radius:16px;
+ --n-shadow:0 0 0 1px var(--n-line);
+ --n-float:0 0 0 1px var(--n-line),0 6px 18px -12px rgba(11,18,32,.18);
  --s-ink:var(--n-ink);--s-muted:var(--n-muted);--s-faint:var(--n-faint);--s-canvas:var(--n-ground);--s-line:#e6e8ee;
 }
 html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{background:var(--n-ground)}
@@ -16,61 +16,62 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 /* Top bar */
 .sieste-v3 .sieste-topbar{background:transparent;border:0;box-shadow:none}
 .sieste-v3 .sieste-topbar .v2-current-page{font-size:13px;font-weight:600;color:var(--n-muted)}
-.sieste-v3 .sieste-topbar .sieste-account{width:40px;height:40px;border:0;border-radius:999px;background:var(--n-card);box-shadow:var(--n-shadow);color:var(--n-ink)}
+.sieste-v3 .sieste-topbar .sieste-account{width:40px;height:40px;border:0;border-radius:999px;background:transparent;box-shadow:none;color:var(--n-ink)}
 
-/* Hero: each page's headline panel, a white card tinted with the page colour */
-.sieste-v3 .n-hero{--n-tint:color-mix(in srgb,var(--n-glow,#6366f1) 14%,#fff);--n-kicker:color-mix(in srgb,var(--n-glow,#6366f1) 80%,#0b1220);position:relative;isolation:isolate;overflow:hidden;border:0;border-radius:var(--n-hero-radius);background:radial-gradient(130% 90% at 100% 0%,var(--n-tint),#fff 62%);color:var(--n-ink);box-shadow:var(--n-shadow),inset 0 0 0 1px color-mix(in srgb,var(--n-glow,#6366f1) 10%,transparent)}
+/* Hero: each page's headline panel, a plain card that leads the page */
+.sieste-v3 .n-hero{--n-kicker:var(--n-muted);position:relative;overflow:hidden;border:0;border-radius:var(--n-hero-radius);background:var(--n-card);color:var(--n-ink);box-shadow:var(--n-shadow)}
 
 /* Cards */
 .sieste-v3 main :where([data-slot=card],.weekly-volume,.fatigue-recovery,.home-data-fold,.home-method,.connect-banner,.workspace-tools-panel){border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow);--tw-ring-shadow:0 0 #0000}
 .sieste-v3 main [data-slot=card]{--tw-ring-color:transparent}
-.sieste-v3 main :where([data-slot=card-title],.volume-heading h2,.fatigue-recovery>header h2){font-size:17px;font-weight:750;letter-spacing:-.025em;color:var(--n-ink)}
+.sieste-v3 main :where([data-slot=card-title],.volume-heading h2,.fatigue-recovery>header h2){font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--n-ink)}
 
 /* Pills: segmented controls and quiet actions read as chips */
 .sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group]{gap:4px;padding:4px;border:0;border-radius:999px;background:rgba(11,18,32,.055);box-shadow:none}
 .sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item]{border:0!important;border-radius:999px!important;background:transparent;color:var(--n-muted);font-weight:600;box-shadow:none}
-.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item][data-state=on]{background:var(--n-card);color:var(--n-ink);box-shadow:0 1px 2px rgba(11,18,32,.08),0 4px 12px -6px rgba(11,18,32,.25)}
-.sieste-v3 .home-toolbar-actions>[data-slot=button]{border:0;border-radius:999px;background:var(--n-card);box-shadow:var(--n-shadow);color:var(--n-ink)}
+.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item][data-state=on]{background:var(--n-card);color:var(--n-ink);box-shadow:0 0 0 1px var(--n-line)}
+.sieste-v3 .home-toolbar-actions>[data-slot=button]{border:0;border-radius:999px;background:transparent;box-shadow:none;color:var(--n-muted)}
+.sieste-v3 .home-toolbar-actions>[data-slot=button]:hover{background:rgba(11,18,32,.05);color:var(--n-ink)}
 
-/* Floating nav: frosted white pill, the active page shows its label */
-.sieste-v3 .mini-dock{gap:4px;padding:6px;border:0;border-radius:999px;background:rgba(255,255,255,.86);box-shadow:var(--n-float),inset 0 0 0 1px rgba(11,18,32,.05);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6)}
+/* Floating nav: plain white pill, the active page shows its label */
+.sieste-v3 .mini-dock{gap:4px;padding:6px;border:0;border-radius:999px;background:rgba(255,255,255,.94);box-shadow:var(--n-float);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .sieste-v3 .mini-dock>button{display:flex;align-items:center;gap:7px;width:auto;height:44px;padding:0 14px;border-radius:999px;background:transparent;color:var(--n-muted)}
 .sieste-v3 .mini-dock>button small{display:none;font-size:13.5px;font-weight:650;letter-spacing:-.01em}
 .sieste-v3 .mini-dock>button svg{width:19px;height:19px}
 .sieste-v3 .mini-dock>button:hover,.sieste-v3 .mini-dock>button:not([aria-current=page]):hover{background:rgba(11,18,32,.05);color:var(--n-ink)}
-.sieste-v3 .mini-dock>button[aria-current=page],.sieste-v3 .mini-dock>button[aria-current=page]:hover{padding:0 16px;background:color-mix(in srgb,#6366f1 12%,#fff);color:#3730a3}
+.sieste-v3 .mini-dock>button[aria-current=page],.sieste-v3 .mini-dock>button[aria-current=page]:hover{padding:0 16px;background:rgba(11,18,32,.06);color:var(--n-ink)}
 .sieste-v3 .mini-dock>button[aria-current=page] small{display:inline}
 .sieste-v3 .mini-dock>button:active,.sieste-v3 .mini-dock>button[aria-current=page]:active{background:rgba(11,18,32,.08)}
-.sieste-v3 .floating-sync{border:0;border-radius:999px;background:rgba(255,255,255,.86);color:var(--n-ink);box-shadow:var(--n-float),inset 0 0 0 1px rgba(11,18,32,.05);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.sieste-v3 .floating-sync{border:0;border-radius:999px;background:rgba(255,255,255,.94);color:var(--n-ink);box-shadow:var(--n-float);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .sieste-v3 .floating-sync:hover{background:#fff;color:var(--n-ink)}
 
-/* Home · today's health is the hero */
+/* Home · today's health leads the page */
 .sieste-v3 .snapshot-home-focus{display:flex;flex-direction:column;gap:12px}
 .sieste-v3 .home-toolbar time{font-size:13px;font-weight:600;color:var(--n-muted)}
-.sieste-v3 main .health-headlines{--n-glow:#6366f1;padding:20px 18px 18px}
-.sieste-v3 main .health-headlines [data-slot=card-title] h2{margin:0;font-size:26px;font-weight:750;letter-spacing:-.04em;color:var(--n-ink)}
-.sieste-v3 main .health-headlines [data-slot=badge]{border:0;border-radius:999px;background:rgba(255,255,255,.8);color:var(--n-kicker);box-shadow:0 1px 2px rgba(11,18,32,.06)}
+.sieste-v3 main .health-headlines{padding:18px 16px 16px}
+.sieste-v3 main .health-headlines [data-slot=card-title] h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.03em;color:var(--n-ink)}
+.sieste-v3 main .health-headlines [data-slot=badge]{border:0;border-radius:999px;background:transparent;color:var(--n-muted);box-shadow:none}
 .sieste-v3 main .health-headline-grid{gap:0;padding:0}
 .sieste-v3 main .health-headline{border:0;border-radius:0;background:transparent;box-shadow:none;text-align:left}
-.sieste-v3 main .health-headline:hover{background:rgba(11,18,32,.025)}
+.sieste-v3 main .health-headline:hover{background:rgba(11,18,32,.02)}
 .sieste-v3 main .health-headline-label{font-size:12px;font-weight:500;color:var(--n-muted)}
-.sieste-v3 main .health-metric-icon{background:transparent;color:var(--n-kicker)}
-.sieste-v3 main .health-headline .live-value{font-weight:750;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
-.sieste-v3 main .health-headline.primary .live-value{font-size:clamp(30px,8.4vw,44px);line-height:1}
-.sieste-v3 main .health-headline.secondary .live-value{font-size:20px;line-height:1.1}
+.sieste-v3 main .health-metric-icon{background:transparent;color:var(--n-faint)}
+.sieste-v3 main .health-headline .live-value{font-weight:650;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.sieste-v3 main .health-headline.primary .live-value{font-size:clamp(26px,7vw,32px);line-height:1.05}
+.sieste-v3 main .health-headline.secondary .live-value{font-size:18px;line-height:1.1}
 .sieste-v3 main .health-headline .live-value small{font-size:12.5px;font-weight:600;letter-spacing:0;color:var(--n-muted)}
 .sieste-v3 main .health-headline.secondary{border-top:1px solid var(--n-line)}
-.sieste-v3 .health-scroll-strip{border:0;border-radius:999px;background:rgba(255,255,255,.86);box-shadow:var(--n-float);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.sieste-v3 .health-scroll-strip{border:0;border-radius:999px;background:rgba(255,255,255,.94);box-shadow:var(--n-float);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 
 /* Notices sit on the ground as soft cards */
-.sieste-v3 main :where(.notice,.activity-retrieved-notice,.workout-undo){border:0;border-radius:16px;background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 main :where(.notice,.activity-retrieved-notice,.workout-undo){border:0;border-radius:12px;background:var(--n-card);box-shadow:var(--n-shadow)}
 .sieste-v3 .device-cache-note{color:var(--n-faint)}
 
 /* Account sheet */
-.sieste-v3 .account-modal{border:0;border-radius:var(--n-hero-radius);background:var(--n-ground);box-shadow:0 30px 80px -30px rgba(11,18,32,.45);overflow:hidden auto;padding:0}
-.sieste-v3 .account-modal-header{margin:0;padding:22px 20px 22px;border:0;background:radial-gradient(130% 120% at 100% 0%,color-mix(in srgb,#6366f1 14%,#fff),#fff 62%);box-shadow:0 1px 0 var(--n-line)}
+.sieste-v3 .account-modal{border:0;border-radius:20px;background:var(--n-ground);box-shadow:0 0 0 1px var(--n-line),0 24px 60px -30px rgba(11,18,32,.35);overflow:hidden auto;padding:0}
+.sieste-v3 .account-modal-header{margin:0;padding:22px 20px 22px;border:0;background:var(--n-card);box-shadow:0 1px 0 var(--n-line)}
 .sieste-v3 .account-modal-header p{margin:6px 0 0;font-size:13.5px;color:var(--n-muted)}
-.sieste-v3 .account-modal-header h2{margin:0;font-size:26px;font-weight:750;letter-spacing:-.04em;color:var(--n-ink)}
+.sieste-v3 .account-modal-header h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.04em;color:var(--n-ink)}
 .sieste-v3 .account-modal-header [data-slot=button]{border:0;border-radius:999px;background:rgba(11,18,32,.05);color:var(--n-ink)}
 .sieste-v3 .account-modal-content{display:flex;flex-direction:column;gap:12px;padding:16px 14px 22px}
 .sieste-v3 .account-modal-content>:where(p){margin:0 6px;font-size:13px;color:var(--n-muted)}
@@ -83,5 +84,5 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 .sieste-v3 .account-modal-content :where(.primary-button){border:0;border-radius:999px;background:var(--n-ink);color:#fff}
 
 @media (min-width:720px){
- .sieste-v3 main .health-headlines{padding:26px 26px 22px}
+ .sieste-v3 main .health-headlines{padding:22px 22px 18px}
 }

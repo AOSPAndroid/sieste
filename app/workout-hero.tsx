@@ -1,10 +1,7 @@
 "use client";
-import type {ReactNode,Ref} from 'react';
+import type {ReactNode} from 'react';
 import {X} from 'lucide-react';
 import type {ActivityMetric} from './activity-metrics';
-import RouteMap from './route-map';
-import {ExpandButton} from './expansion';
-import type {RouteSelection} from './route-geometry';
 import type {SampledDetail} from './workout-splits-data';
 
 // Headline numbers chosen per sport; the first three available become the large
@@ -44,16 +41,12 @@ export function clock(seconds:unknown){
 }
 const display=(m:ActivityMetric,duration?:number)=>m.id==='duration'?clock(duration)??m.value:m.id==='altitude'?m.value.replace(/^↑\s*/,'').split(' · ')[0]:m.value;
 
-// The sheet's header: the recorded route fills the top when there is GPS, the
-// title and headline numbers sit on a dark band that the map fades into.
-export default function WorkoutHero({detail,cards,family,sportName,title,when,icon,onClose,loading,selection=null,mapRef}:{selection?:RouteSelection|null;mapRef?:Ref<HTMLDivElement>;detail:SampledDetail&Record<string,unknown>;cards:ActivityMetric[];family:string;sportName:string;title:string;when:string;icon:ReactNode;onClose:()=>void;loading?:boolean}){
+// The sheet's header: sport, date, title and the headline numbers. The route
+// map lives with the climbs and laps it illustrates, further down.
+export default function WorkoutHero({detail,cards,family,sportName,title,when,icon,onClose,loading}:{detail:SampledDetail&Record<string,unknown>;cards:ActivityMetric[];family:string;sportName:string;title:string;when:string;icon:ReactNode;onClose:()=>void;loading?:boolean}){
  const summary=detail.summary??{},{primary,secondary}=heroMetrics(cards,family,summary);
- const lat=detail.seriesSampled?.data?.positionLat,hasRoute=Array.isArray(lat)&&lat.some(finite);
- return <header className={`workout-hero ${hasRoute?'has-route':'no-route'}`}>
-  {hasRoute&&<a className="workout-hero-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap</a>}
-  {hasRoute&&<div ref={mapRef} className="workout-hero-map" aria-hidden="true" inert><RouteMap detail={detail} selection={selection} compact/></div>}
+ return <header className="workout-hero">
   <div className="workout-hero-actions">
-   {hasRoute&&<ExpandButton title="Recorded route"><RouteMap detail={detail} selection={selection}/></ExpandButton>}
    <button type="button" className="workout-hero-close" aria-label="Close workout" onClick={onClose}><X size={18}/></button>
   </div>
   <div className="workout-hero-body">
