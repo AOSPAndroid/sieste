@@ -1,4 +1,4 @@
-export type WeatherHour={time:number;temperature:number|null;rainChance:number|null;rain:number|null;wind:number|null;direction:number|null;gust:number|null;code:number|null;daylight:number|null};
+export type WeatherHour={time:number;temperature:number|null;rainChance:number|null;rain:number|null;wind:number|null;direction:number|null;gust:number|null;code:number|null;daylight:number|null;models?:{rainy:number;total:number}};
 export type WeatherRules={minTemp:number;maxTemp:number;rainChance:number;wind:number;gust:number};
 export const defaultWeatherRules:WeatherRules={minTemp:8,maxTemp:30,rainChance:20,wind:20,gust:35};
 export type WeatherGrade='good'|'mixed'|'poor'|'unknown';
@@ -10,6 +10,43 @@ export function parseWeather(payload:any):{hours:WeatherHour[];timezone:string;s
  const timezone=typeof payload.timezone==='string'?payload.timezone:'UTC';new Intl.DateTimeFormat('en-GB',{timeZone:timezone});
  const hours:WeatherHour[]=h.time.flatMap((time:unknown,i:number)=>typeof time!=='number'||!Number.isFinite(time)?[]:[{time,temperature:num(h.temperature_2m?.[i]),rainChance:num(h.precipitation_probability?.[i]),rain:num(h.precipitation?.[i]),wind:num(h.wind_speed_10m?.[i]),direction:num(h.wind_direction_10m?.[i]),gust:num(h.wind_gusts_10m?.[i]),code:num(h.weather_code?.[i]),daylight:num(h.is_day?.[i])}]);
  if(!hours.length)throw new Error('No hourly forecast was returned.');const sun:SunDay[]=(Array.isArray(payload.daily?.time)?payload.daily.time:[]).flatMap((t:unknown,i:number)=>typeof t==='number'&&Number.isFinite(t)?[{date:weatherDay(t,timezone),sunrise:num(payload.daily.sunrise?.[i]),sunset:num(payload.daily.sunset?.[i])}]:[]);return {hours:hours.sort((a,b)=>a.time-b.time),timezone,sun};
+}
+// Independent forecast models served by Open-Meteo. Each covers its own horizon,
+// so later days are blended from fewer models.
+export const weatherSources=[
+ {id:'ecmwf_ifs025',name:'ECMWF',from:'European Centre'},
+ {id:'icon_seamless',name:'ICON',from:'DWD · Germany'},
+ {id:'gfs_seamless',name:'GFS',from:'NOAA · USA'},
+ {id:'meteofrance_seamless',name:'Météo-France',from:'AROME · ARPEGE'},
+ {id:'ukmo_seamless',name:'Met Office',from:'UK'},
+] as const;
+export type WeatherSourceId=typeof weatherSources[number]['id'];
+export type WeatherSource='blend'|WeatherSourceId;
+const median=(values:number[])=>{if(!values.length)return null;const v=[...values].sort((a,b)=>a-b),m=Math.floor(v.length/2);return v.length%2?v[m]:(v[m-1]+v[m])/2};
+const mean=(values:number[])=>values.length?values.reduce((a,b)=>a+b,0)/values.length:null;
+// Directions average on the circle, so 350° and 10° give 0°, not 180°.
+const bearing=(degrees:number[])=>{if(!degrees.length)return null;const x=degrees.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0),y=degrees.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0);if(Math.hypot(x,y)<1e-9)return null;return (Math.atan2(y,x)*180/Math.PI+360)%360};
+// The most common weather code; a tie goes to the more severe (higher) code.
+const commonCode=(codes:number[])=>{if(!codes.length)return null;const counts=new Map<number,number>();codes.forEach(c=>counts.set(c,(counts.get(c)??0)+1));return [...counts].sort((a,b)=>b[1]-a[1]||b[0]-a[0])[0][0]};
+const raining=(h:WeatherHour)=>(h.rain!==null&&h.rain>=0.1)||(h.rainChance!==null&&h.rainChance>=50);
+/** One model's view of a multi-model payload, with the model suffix removed from each field. */
+type MultiModelPayload={hourly?:Record<string,unknown>;daily?:Record<string,unknown>;[key:string]:unknown};
+export function modelPayload(payload:MultiModelPayload,id:string){
+ const pick=(block?:Record<string,unknown>)=>block&&Object.fromEntries(Object.entries(block).flatMap(([k,v])=>k==='time'?[[k,v]]:k.endsWith('_'+id)?[[k.slice(0,-id.length-1),v]]:[]));
+ return {...payload,hourly:pick(payload?.hourly),daily:pick(payload?.daily)};
+}
+/** Each model's hours plus a blend: medians for amounts, mean rain chance, circular mean wind direction. */
+export function parseWeatherSources(payload:MultiModelPayload){
+ const sources:Partial<Record<WeatherSourceId,WeatherHour[]>>={};let timezone='UTC',sun:SunDay[]=[];
+ for(const {id} of weatherSources){try{const parsed=parseWeather(modelPayload(payload,id));if(parsed.hours.some(h=>h.temperature!==null)){sources[id]=parsed.hours;timezone=parsed.timezone;if(!sun.some(d=>d.sunrise!==null))sun=parsed.sun}}catch{}}
+ const models=Object.values(sources) as WeatherHour[][];
+ if(!models.length)throw new Error('The forecast is unavailable. Please try again.');
+ const times=[...new Set(models.flatMap(m=>m.map(h=>h.time)))].sort((a,b)=>a-b),byTime=models.map(m=>new Map(m.map(h=>[h.time,h])));
+ const hours:WeatherHour[]=times.map(time=>{
+  const at=byTime.map(m=>m.get(time)).filter((h):h is WeatherHour=>!!h&&h.temperature!==null),values=(key:keyof WeatherHour)=>at.map(h=>h[key]).filter((v):v is number=>typeof v==='number');
+  return {time,temperature:median(values('temperature')),rainChance:mean(values('rainChance')),rain:median(values('rain')),wind:median(values('wind')),direction:bearing(values('direction')),gust:median(values('gust')),code:commonCode(values('code')),daylight:byTime.map(m=>m.get(time)?.daylight).find(v=>typeof v==='number')??null,models:{rainy:at.filter(raining).length,total:at.length}};
+ });
+ return {hours,timezone,sun,sources};
 }
 export function weatherAssessment(h:WeatherHour,rules:WeatherRules=defaultWeatherRules):{grade:WeatherGrade;reasons:string[]}{
  const reasons:string[]=[];let poor=false;
@@ -53,6 +90,14 @@ export function rainSignal(h:WeatherHour):'forecast'|'possible'|null{
 
 // Summarise the chosen ride, or that day's remaining daylight. Never use midnight
 // as a proxy for a future day's cycling conditions.
+/** Whether the blended models agree about rain across these hours; null for a single model. */
+export function modelAgreement(hours:WeatherHour[]){
+ const rated=hours.filter(h=>h.models&&h.models.total>=2);if(!rated.length)return null;
+ const total=Math.max(...rated.map(h=>h.models!.total)),wet=rated.filter(h=>h.models!.rainy>0);
+ if(!wet.length)return {kind:'dry' as const,total,rainy:0,start:null,end:null};
+ const rainy=Math.max(...wet.map(h=>h.models!.rainy)),start=wet[0].time,end=wet.at(-1)!.time+3600;
+ return {kind:wet.every(h=>h.models!.rainy===h.models!.total)?'wet' as const:'split' as const,total,rainy,start,end};
+}
 export function ridingOutlook(dayHours:WeatherHour[],best:ReturnType<typeof bestRidingWindow>,rules:WeatherRules=defaultWeatherRules){
  const daylight=dayHours.filter(h=>h.daylight===1),hours=best?.hours??(daylight.length?daylight:dayHours);
  if(!hours.length)return null;
@@ -66,5 +111,5 @@ export function ridingOutlook(dayHours:WeatherHour[],best:ReturnType<typeof best
  const risk=hours.some(h=>rainSignal(h)==='forecast')?'forecast':hours.some(h=>rainSignal(h)==='possible')?'possible':null;
  return {start:hours[0].time,end:best?.end??hours.at(-1)!.time,scope:best?'Ride window':daylight.length?'Daylight outlook':'Remaining hours',minTemp,
   hour:{...hours[0],temperature:peak('temperature'),rainChance:peak('rainChance'),rain:peak('rain'),wind:peak('wind'),gust:peak('gust'),direction:windHour.direction},
-  rain: risk,assessment:{grade,reasons:reasons.length?reasons:['Dry outlook · light wind · daylight']}};
+  rain: risk,models:modelAgreement(hours),assessment:{grade,reasons:reasons.length?reasons:['Dry outlook · light wind · daylight']}};
 }

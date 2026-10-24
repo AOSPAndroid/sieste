@@ -76,3 +76,31 @@ const missing=tomorrow.map(v=>({...v,rainChance:null}));
 assert.equal(ridingOutlook(missing,undefined,r).assessment.grade,'unknown');
 assert.equal(ridingOutlook(missing,undefined,r).hour.rainChance,null);
 console.log('Selected-day outlook: tomorrow after sunset, full-window peaks, rainy daylight, missing data and insufficient duration passed.');
+
+// Several models: each is read on its own, then blended hour by hour.
+const {parseWeatherSources,modelAgreement}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const t0=Date.parse('2026-09-20T10:00:00Z')/1000,times=[t0,t0+3600];
+const field=(name,values)=>Object.fromEntries(Object.entries(values).map(([m,v])=>[`${name}_${m}`,v]));
+const multi={timezone:'Europe/Paris',hourly:{time:times,
+ ...field('temperature_2m',{ecmwf_ifs025:[10,11],icon_seamless:[12,13],gfs_seamless:[14,15],meteofrance_seamless:[null,null]}),
+ ...field('precipitation_probability',{ecmwf_ifs025:[10,80],icon_seamless:[20,70],gfs_seamless:[30,null]}),
+ ...field('precipitation',{ecmwf_ifs025:[0,1.2],icon_seamless:[0,0.4],gfs_seamless:[0,0]}),
+ ...field('wind_speed_10m',{ecmwf_ifs025:[10,10],icon_seamless:[20,20],gfs_seamless:[30,30]}),
+ ...field('wind_direction_10m',{ecmwf_ifs025:[350,350],icon_seamless:[10,10],gfs_seamless:[0,0]}),
+ ...field('weather_code',{ecmwf_ifs025:[2,61],icon_seamless:[3,61],gfs_seamless:[3,3]}),
+ ...field('is_day',{ecmwf_ifs025:[1,1],icon_seamless:[1,1],gfs_seamless:[1,1]})},
+ daily:{time:[t0-36000],...field('sunrise',{ecmwf_ifs025:[t0-10000]}),...field('sunset',{ecmwf_ifs025:[t0+30000]})}};
+const blended=parseWeatherSources(multi);
+assert.deepEqual(Object.keys(blended.sources).sort(),['ecmwf_ifs025','gfs_seamless','icon_seamless'],'A model with no readings is left out');
+assert.equal(blended.hours[0].temperature,12,'Temperature is the median across models');
+assert.equal(blended.hours[0].wind,20);
+assert.equal(blended.hours[1].rainChance,75,'Rain chance averages the models that report one');
+assert.ok(Math.abs(((blended.hours[0].direction+180)%360)-180)<1e-6,'350°, 10° and 0° average to north, not south');
+assert.equal(blended.hours[0].code,3,'The most common weather code wins');
+assert.deepEqual(blended.hours[1].models,{rainy:2,total:3},'Two of three models expect rain in the second hour');
+assert.equal(blended.sun[0].sunrise,t0-10000);
+assert.equal(modelAgreement([blended.hours[0]]).kind,'dry');
+assert.deepEqual(modelAgreement(blended.hours),{kind:'split',total:3,rainy:2,start:t0+3600,end:t0+7200});
+assert.equal(modelAgreement(parseWeather({hourly:{time:[t0],temperature_2m:[10]}}).hours),null,'A single model has nothing to agree with');
+assert.throws(()=>parseWeatherSources({hourly:{time:times}}),'No model readings fails clearly');
+console.log('Weather sources: per-model split, median/mean blend, circular wind direction, rain agreement passed.');

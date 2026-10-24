@@ -185,3 +185,11 @@
 .sieste-v3 .weather-recon .weather-legend .weather-key-possible>i{background:#9cc9ee}
 .sieste-v3 .weather-recon .weather-legend .weather-key-ride>i{background:#1fb56a}
 .sieste-v3 .weather-recon .weather-legend .weather-key-over>b{color:#b45309;font-weight:700}
+
+/* Forecast source: a blend of independent models, or any one of them */
+.sieste-v3 .weather-recon .weather-source-picker{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12.5px;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-source-picker select{height:32px;max-width:100%;padding:0 30px 0 12px;border:0;border-radius:999px;background:rgba(11,18,32,.055) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%235b6678' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m1 1 4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--n-ink);font-family:inherit;font-size:13px;font-weight:600;-webkit-appearance:none;appearance:none;cursor:pointer}
+.sieste-v3 .weather-recon .weather-models{display:inline-flex;align-items:center;gap:6px;margin:8px 0 0!important;padding:4px 10px;border-radius:999px;font-size:12px!important;font-weight:600;line-height:1.3}
+.sieste-v3 .weather-recon .weather-models.is-dry{background:#effaf3;color:#13804a!important}
+.sieste-v3 .weather-recon .weather-models.is-wet{background:#eef6fd;color:#0f5f9c!important}
+.sieste-v3 .weather-recon .weather-models.is-split{background:#fff7ea;color:#9a5b05!important}
