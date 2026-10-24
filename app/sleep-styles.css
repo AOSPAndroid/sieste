@@ -317,3 +317,4 @@
 .sieste-v3 .sleep-focus .sleep-period-nav [data-slot=button]{border:0;border-radius:999px;background:transparent;box-shadow:none}
 .sieste-v3 .sleep-focus>details{align-self:stretch;border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
 .sieste-v3 .sleep-focus>details>summary{min-height:52px;font-size:14.5px;font-weight:600;color:var(--n-ink)}
+.sieste-v3 .sleep-focus .sleep-page-heading [data-slot=toggle-group-item]{min-height:28px}

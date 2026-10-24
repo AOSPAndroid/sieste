@@ -27,10 +27,12 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 .sieste-v3 main :where([data-slot=card-title],.volume-heading h2,.fatigue-recovery>header h2){font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--n-ink)}
 
 /* Pills: segmented controls and quiet actions read as chips */
-.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group]{gap:4px;padding:4px;border:0;border-radius:999px;background:rgba(11,18,32,.055);box-shadow:none}
-.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item]{border:0!important;border-radius:999px!important;background:transparent;color:var(--n-muted);font-weight:600;box-shadow:none}
-.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item][data-state=on]{background:var(--n-card);color:var(--n-ink);box-shadow:0 0 0 1px var(--n-line)}
+.sieste-v3 main :is(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group]{gap:2px;padding:3px;height:auto;border:0;border-radius:999px;background:rgba(11,18,32,.055);box-shadow:none}
+.sieste-v3 main :is(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item]{height:28px;min-height:28px;padding:0 11px;border:0!important;border-radius:999px!important;background:transparent;color:var(--n-muted);font-size:13px;font-weight:600;box-shadow:none}
+.sieste-v3 main :is(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item][data-state=on]{background:var(--n-card);color:var(--n-ink);box-shadow:0 0 0 1px var(--n-line)}
 .sieste-v3 .home-toolbar-actions>[data-slot=button]{border:0;border-radius:999px;background:transparent;box-shadow:none;color:var(--n-muted)}
+.sieste-v3 .home-toolbar .home-more-menu>summary{border:0;border-radius:999px;background:transparent;box-shadow:none;color:var(--n-muted)}
+.sieste-v3 .home-toolbar .home-more-menu>summary:hover,.sieste-v3 .home-toolbar .home-more-menu[open]>summary{background:rgba(11,18,32,.05);color:var(--n-ink)}
 .sieste-v3 .home-toolbar-actions>[data-slot=button]:hover{background:rgba(11,18,32,.05);color:var(--n-ink)}
 
 /* Floating nav: plain white pill, the active page shows its label */
