@@ -37,7 +37,9 @@ const routeCallbacks=[];
 Object.assign(imports,{
  // Folded rows render their content here so the tiles inside them can be checked.
  './deferred-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,typeof children==='function'?children():children)},
- react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),lazy:()=>Silent},
+ react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),useRef:initial=>({current:initial}),lazy:()=>Silent},
+ './workout-insights':{workoutInsights:()=>({insights:[],mode:null})},
+ './running-technique-data':{runningTechnique:()=>({rows:[],windows:[]})},
  'lucide-react':{Compass:Silent},
  './workout-context':{...silentModule,StrengthSummary:Silent},
  './workout-hero':hero,'./sports':sports,'./activity-metrics':metrics,
@@ -114,3 +116,19 @@ dockButtons.get('Hide map').props.onClick();renderDock();const movesBeforeSelect
 assert.ok(renderDock({...climb,revision:1}).has('Hide map'),'A new section reopens a folded map');
 assert.equal(focusMoves.length,movesBeforeSelection,'A new chart selection retains focus on the chart control');
 console.log('Workout map dock: manual fold/unfold retains keyboard focus; automatic opening preserves chart focus.');
+
+// The section view a workout opens on, and the signals that choose it.
+const insights=module('app/workout-insights.ts',{'./effort-profile-data':{},'./activity-terrain-data':{},'./session-intelligence-data':{}});
+const pick=o=>insights.sectionMode({label:'Easy',efforts:0,climbs:0,gain:0,laps:0,structuredLaps:false,...o});
+assert.equal(pick({label:'Intervals',efforts:5,climbs:4,gain:200}),'efforts','Interval work opens on its efforts even on a hilly route');
+assert.equal(pick({efforts:4,climbs:4,gain:132}),'climbs','A hilly easy run opens on climbs');
+assert.equal(pick({efforts:4,climbs:1,gain:20,laps:6,structuredLaps:true}),'laps','Hand-pressed laps beat incidental efforts');
+assert.equal(pick({efforts:4,climbs:1,gain:20,laps:13}),'efforts','Auto laps do not carry the session');
+assert.equal(pick({}),null,'Nothing found, nothing to open');
+assert.equal(insights.lapsVary([{distance:1000},{distance:1000},{distance:1000},{distance:400}]),false,'Even auto laps (last one partial) are not structure');
+assert.equal(insights.lapsVary([{summary:{distance:2000}},{distance:400},{distance:2000},{distance:400},{distance:300}]),true);
+const streams=data=>({seriesSampled:{data}});
+assert.equal(insights.effortSensor(streams({power:[0,210],speed:[8]}),'cycling'),'power');
+assert.equal(insights.effortSensor(streams({heartrate:[0,0],speed:[3]}),'cycling'),'speed','Empty heart-rate samples do not count');
+assert.equal(insights.effortSensor(streams({speed:[3.4],power:[220]}),'running'),'speed','Runs are read by pace');
+console.log('Workout insights: section view choice, structured laps and effort source passed.');
