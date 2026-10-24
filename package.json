@@ -26,6 +26,7 @@
     "test:garmin": "node scripts/test-garmin-oauth.mjs",
     "test:workouts": "node scripts/test-workout-splits.mjs && node scripts/test-workout-hero.mjs && node scripts/test-workout-replay.mjs && node scripts/test-workout-comparison.mjs && node scripts/test-workout-context.mjs && node scripts/test-route-selection.mjs",
     "test:power": "node scripts/test-cycling-power.mjs && node scripts/test-activity-metrics.mjs && node scripts/test-activity-share.mjs",
+    "test:weather": "node scripts/test-weather-recon.mjs",
     "test:server-performance": "node scripts/test-server-performance.mjs && node scripts/test-background-sync.mjs && node scripts/test-athena.mjs && node scripts/test-sync-worker.mjs && node scripts/test-background-worker-batches.mjs && node scripts/test-coros-backfill.mjs"
   },
   "dependencies": {

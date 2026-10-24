@@ -152,3 +152,52 @@
 .sieste-v3 .weather-recon .weather-days [data-slot=button]{border-radius:16px}
 .sieste-v3 .weather-recon .weather-days [data-slot=button][aria-pressed=true]{background:var(--n-card);box-shadow:0 0 0 1px var(--n-line)}
 .sieste-v3 .weather-recon .weather-overview.n-hero .weather-window:not(.has-window) strong{font-size:20px;font-weight:650;letter-spacing:-.02em}
+
+/* Hourly outlook: one line per hour; rain shows in blue, best riding hours in green */
+.sieste-v3 .weather-recon .weather-hour-head,.sieste-v3 .weather-recon .weather-hour{grid-template-columns:minmax(64px,1fr) minmax(56px,.9fr) minmax(86px,1.4fr) minmax(48px,.8fr) minmax(40px,.6fr);gap:6px;padding:0 14px}
+.sieste-v3 .weather-recon .weather-hour-head{min-height:34px;font-size:11px;font-weight:600;background:transparent;color:var(--n-muted);border-bottom:1px solid var(--n-line)}
+.sieste-v3 .weather-recon .weather-hour{position:relative;min-height:46px;font-size:14px;font-variant-numeric:tabular-nums;border-top:1px solid var(--n-line);background:transparent;box-shadow:none}
+.sieste-v3 .weather-recon .weather-hour-head+.weather-hour{border-top:0}
+.sieste-v3 .weather-recon .weather-hour>span:first-child{font-weight:600;color:var(--n-ink)}
+.sieste-v3 .weather-recon .weather-temperature-cell{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-weight:600}
+.sieste-v3 .weather-recon .weather-rain-cell{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:1px;color:var(--n-faint)}
+.sieste-v3 .weather-recon .weather-rain-cell>span{display:flex;align-items:center;gap:8px}
+.sieste-v3 .weather-recon .weather-rain-cell b{min-width:34px;font-weight:600;text-align:right}
+.sieste-v3 .weather-recon .weather-rain-cell small{font-size:11px;color:#1a6fb0}
+.sieste-v3 .weather-recon .weather-rain-bar{display:block;width:36px;height:6px;border-radius:999px;background:rgba(11,18,32,.07);overflow:hidden}
+.sieste-v3 .weather-recon .weather-rain-bar>i{display:block;height:100%;border-radius:inherit;background:#9cc9ee}
+.sieste-v3 .weather-recon .weather-wind-cell{display:flex;align-items:center;justify-content:flex-end;gap:3px}
+.sieste-v3 .weather-recon .weather-wind-cell svg{width:13px;height:13px;color:var(--n-faint)}
+.sieste-v3 .weather-recon .weather-hour .is-over{color:#b45309;font-weight:700}
+.sieste-v3 .weather-recon .weather-hour.has-rain-possible{box-shadow:inset 3px 0 #9cc9ee}
+.sieste-v3 .weather-recon .weather-hour.has-rain-possible .weather-rain-cell{color:#1a6fb0}
+.sieste-v3 .weather-recon .weather-hour.has-rain-forecast{background:#eef6fd;box-shadow:inset 3px 0 #1a8fd0}
+.sieste-v3 .weather-recon .weather-hour.has-rain-forecast .weather-rain-cell{color:#0f5f9c}
+.sieste-v3 .weather-recon .weather-hour.has-rain-forecast .weather-rain-bar>i{background:#1a8fd0}
+.sieste-v3 .weather-recon .weather-hour.is-best-ride{background:#effaf3;box-shadow:inset 3px 0 #1fb56a}
+.sieste-v3 .weather-recon .weather-hour.is-best-ride>span:first-child{color:#13804a}
+.sieste-v3 .weather-recon .weather-hour.is-best-ride>span:first-child>svg{color:#13804a}
+.sieste-v3 .weather-recon .weather-hours-footer>span{font-size:11.5px;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:12px;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-legend>span{display:inline-flex;align-items:center;gap:6px}
+.sieste-v3 .weather-recon .weather-legend>span>i{display:block;width:3px;height:14px;border-radius:2px}
+.sieste-v3 .weather-recon .weather-legend .weather-key-rain>i{background:#1a8fd0}
+.sieste-v3 .weather-recon .weather-legend .weather-key-possible>i{background:#9cc9ee}
+.sieste-v3 .weather-recon .weather-legend .weather-key-ride>i{background:#1fb56a}
+.sieste-v3 .weather-recon .weather-legend .weather-key-over>b{color:#b45309;font-weight:700}
+
+/* Forecast source: a blend of independent models, or any one of them */
+.sieste-v3 .weather-recon .weather-source-picker{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12.5px;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-source-picker select{height:32px;max-width:100%;padding:0 30px 0 12px;border:0;border-radius:999px;background:rgba(11,18,32,.055) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%235b6678' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m1 1 4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--n-ink);font-family:inherit;font-size:13px;font-weight:600;-webkit-appearance:none;appearance:none;cursor:pointer}
+.sieste-v3 .weather-recon .weather-models{display:inline-flex;align-items:center;gap:6px;margin:8px 0 0!important;padding:4px 10px;border-radius:999px;font-size:12px!important;font-weight:600;line-height:1.3}
+.sieste-v3 .weather-recon .weather-models.is-dry{background:#effaf3;color:#13804a!important}
+.sieste-v3 .weather-recon .weather-models.is-wet{background:#eef6fd;color:#0f5f9c!important}
+.sieste-v3 .weather-recon .weather-models.is-split{background:#fff7ea;color:#9a5b05!important}
+@media(max-width:400px){
+ .sieste-v3 .weather-recon .weather-hour-head,.sieste-v3 .weather-recon .weather-hour{grid-template-columns:minmax(46px,1fr) minmax(42px,.9fr) minmax(66px,1.4fr) minmax(38px,.8fr) minmax(32px,.6fr);gap:4px;padding-inline:10px}
+ .sieste-v3 .weather-recon .weather-hour{font-size:13px}
+ .sieste-v3 .weather-recon .weather-temperature-cell{gap:4px}
+ .sieste-v3 .weather-recon .weather-rain-cell>span{gap:5px}
+ .sieste-v3 .weather-recon .weather-rain-cell b{min-width:30px}
+ .sieste-v3 .weather-recon .weather-rain-bar{width:26px}
+}

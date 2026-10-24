@@ -10,7 +10,7 @@ function module(path,imports={}){
  return exports;
 }
 const Silent=()=>null,silentModule={__esModule:true,default:Silent};
-const hero=module('app/workout-hero.tsx',{'lucide-react':{X:Silent},'./route-map':silentModule,'./expansion':{ExpandButton:Silent}});
+const hero=module('app/workout-hero.tsx',{'lucide-react':{X:Silent}});
 for(const [seconds,expected] of [[59.4,'0:59'],[59.6,'1:00'],[3599.6,'1:00:00'],[3601,'1:00:01']])assert.equal(hero.clock(seconds),expected);
 for(const seconds of [undefined,null,'60',0,-1,NaN,Infinity,-Infinity])assert.equal(hero.clock(seconds),null,'Invalid activity time is not formatted as a clock');
 
@@ -37,7 +37,9 @@ const routeCallbacks=[];
 Object.assign(imports,{
  // Folded rows render their content here so the tiles inside them can be checked.
  './deferred-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,typeof children==='function'?children():children)},
- react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),lazy:()=>Silent},
+ react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),useRef:initial=>({current:initial}),lazy:()=>Silent},
+ './workout-insights':{workoutInsights:()=>({insights:[],mode:null})},
+ './running-technique-data':{runningTechnique:()=>({rows:[],windows:[]})},
  'lucide-react':{Compass:Silent},
  './workout-context':{...silentModule,StrengthSummary:Silent},
  './workout-hero':hero,'./sports':sports,'./activity-metrics':metrics,
@@ -75,7 +77,7 @@ console.log('Workout hero: clock/pace boundaries, finite totals, sport prioritie
 const dock=module('app/workout-map-dock.tsx',{react:{},'lucide-react':{},'./route-map':silentModule,'./expansion':{ExpandButton:Silent}});
 const climb={start:10,end:40,label:'Climb 1',kind:'climb'};
 assert.equal(dock.dockState(null,false,false),'none','No selection, no dock');
-assert.equal(dock.dockState(climb,true,false),'none','The header map already shows the selection');
+assert.equal(dock.dockState(climb,true,false),'none','The route map already shows the selection');
 assert.equal(dock.dockState(climb,false,false),'open','A selection below the fold pins the map');
 assert.equal(dock.dockState(climb,false,true),'collapsed','A folded dock leaves a way back');
 
@@ -103,8 +105,8 @@ function renderDock(selection=climb){
  }
  attach(tree);layoutEffects.forEach(effect=>effect());return buttons;
 }
-assert.equal(renderDock().size,0,'Visible hero does not need a dock');
-hookValues[0]=false; // IntersectionObserver has reported that the hero scrolled away.
+assert.equal(renderDock().size,0,'A visible route map does not need a dock');
+hookValues[0]=false; // IntersectionObserver has reported that the route map scrolled away.
 let dockButtons=renderDock();assert.equal(focusMoves.length,0,'Automatic dock opening preserves chart focus');
 dockButtons.get('Hide map').props.onClick();dockButtons=renderDock();
 assert.deepEqual(focusMoves.at(-1),{label:'Show on map',options:{preventScroll:true}},'Hiding the map transfers focus to its replacement show button');
@@ -114,3 +116,33 @@ dockButtons.get('Hide map').props.onClick();renderDock();const movesBeforeSelect
 assert.ok(renderDock({...climb,revision:1}).has('Hide map'),'A new section reopens a folded map');
 assert.equal(focusMoves.length,movesBeforeSelection,'A new chart selection retains focus on the chart control');
 console.log('Workout map dock: manual fold/unfold retains keyboard focus; automatic opening preserves chart focus.');
+
+// The section view a workout opens on, and the signals that choose it.
+const insights=module('app/workout-insights.ts',{'./effort-profile-data':{},'./activity-terrain-data':{},'./session-intelligence-data':{}});
+const pick=o=>insights.sectionMode({label:'Easy',efforts:0,climbs:0,gain:0,laps:0,structuredLaps:false,...o});
+assert.equal(pick({label:'Intervals',efforts:5,climbs:4,gain:200}),'efforts','Interval work opens on its efforts even on a hilly route');
+assert.equal(pick({efforts:4,climbs:4,gain:132}),'climbs','A hilly easy run opens on climbs');
+assert.equal(pick({efforts:4,climbs:1,gain:20,laps:6,structuredLaps:true}),'laps','Hand-pressed laps beat incidental efforts');
+assert.equal(pick({efforts:4,climbs:1,gain:20,laps:13}),'efforts','Auto laps do not carry the session');
+assert.equal(pick({}),null,'Nothing found, nothing to open');
+assert.equal(insights.lapsVary([{distance:1000},{distance:1000},{distance:1000},{distance:400}]),false,'Even auto laps (last one partial) are not structure');
+assert.equal(insights.lapsVary([{summary:{distance:2000}},{distance:400},{distance:2000},{distance:400},{distance:300}]),true);
+const streams=data=>({seriesSampled:{data}});
+assert.equal(insights.effortSensor(streams({power:[0,210],speed:[8]}),'cycling'),'power');
+assert.equal(insights.effortSensor(streams({heartrate:[0,0],speed:[3]}),'cycling'),'speed','Empty heart-rate samples do not count');
+assert.equal(insights.effortSensor(streams({speed:[3.4],power:[220]}),'running'),'speed','Runs are read by pace');
+console.log('Workout insights: section view choice, structured laps and effort source passed.');
+
+// Sparse recording intervals must not create a split that never happened.
+const pacingInsights=module('app/workout-insights.ts',{
+ './effort-profile-data':{effortProfile:()=>({efforts:[],laps:[]})},
+ './activity-terrain-data':{activityClimbAnalysis:()=>({climbs:[]})},
+ './session-intelligence-data':{classifySession:()=>({label:'Other'}),runningSignals:()=>({})},
+});
+const pacing=distance=>pacingInsights.workoutInsights({seriesSampled:{sampleSize:30,data:{distance}}},'running').insights.find(i=>i.id==='pacing');
+const steadyDistance=Array.from({length:12},(_,i)=>i*100);
+assert.equal(pacing(steadyDistance)?.title,'Even pacing','A midpoint between samples preserves a constant-speed run');
+assert.equal(pacing([0,100,200,300,400,500,600,800,1000,1200,1400,1600])?.title,'Negative split','Recorded acceleration still produces a negative split');
+assert.equal(pacing(steadyDistance.map((d,i)=>i===6?null:d)),undefined,'Missing distance samples cannot establish whole-session pacing');
+assert.equal(pacing([0,100,200,300,400,500,600,700,800,0,200,400,600,800,1000,1200]),undefined,'A distance reset cannot produce a pacing comparison');
+console.log('Workout pacing: interpolated midpoint, acceleration, missing data and counter resets passed.');
