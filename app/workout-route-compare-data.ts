@@ -4,7 +4,6 @@ const positive=(value:unknown):value is number=>finite(value)&&value>0;
 type RouteSample={distance:number;lat:number;lon:number;time:number;moving:number;speed:number|null;power:number|null;hr:number|null;index:number};
 export type RouteComparisonPoint={km:number;currentSpeed:number|null;priorSpeed:number|null;currentPower:number|null;priorPower:number|null;currentHR:number|null;priorHR:number|null;delta:number|null;currentTime:number;priorTime:number};
 export type RouteComparison={matched:boolean;reason:string;points:RouteComparisonPoint[];overlap:number;medianGap:number|null;movingTimeAvailable:boolean;commonDistance:number;delta:number|null};
-export type RouteCandidate={activity:Record<string,any>;distance:number;score:number};
 
 /** Summary similarity is only a shortlist; it does not claim the route matches. */
 export function routeCandidates(detail:Record<string,any>,history:Record<string,any>[]){

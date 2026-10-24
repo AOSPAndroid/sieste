@@ -85,7 +85,6 @@
 .sieste-v3 .sleep-window-readout strong,.sieste-v3 .sleep-window-readout>b{color:#253247;font-size:12px}
 .sieste-v3 .sleep-window-readout span{display:inline-flex;align-items:center;gap:4px}
 .sieste-v3 .sleep-window-readout i{width:6px;height:6px;border-radius:50%;background:#7560aa}
-.sieste-v3 .sleep-window-readout .wake-key{background:#ae772d}
 .sieste-v3 .sleep-window-plot .sleep-timing-caption{font-size:10px;line-height:1.3;margin:3px 0 6px;color:#64748b}
 .sieste-v3 .sleep-window-plot g[role=button]{cursor:pointer;outline:none}
 .sieste-v3 .sleep-window-plot g[role=button]:focus-visible>rect:first-child{stroke:#4f46e5;stroke-width:1.5}
