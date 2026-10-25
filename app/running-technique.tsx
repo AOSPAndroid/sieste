@@ -57,13 +57,13 @@ export default function RunningTechnique({
   return (
     <section
       className="running-technique"
-      aria-label="Running technique over time"
+      aria-label="Running economy"
       aria-busy={loading}
     >
       <header>
         <div>
-          <h3>Running technique · over time</h3>
-          <p>This run against your earlier running averages</p>
+          <h3>Running economy</h3>
+          <p>Technique and the cost of each kilometre against your weekly, monthly and yearly averages</p>
         </div>
         <div
           className="technique-scope"

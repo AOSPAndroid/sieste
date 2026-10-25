@@ -1,4 +1,5 @@
 import type {AthleteData as Data} from './analytics';
+import {encode,ROUTE_VERSION,type LatLon} from './route-signature';
 let cached:Data|undefined;
 export function demoData():Data{
  if(cached)return cached;
@@ -11,5 +12,10 @@ demo.extra={efforts:{trainingEfforts:{}},bodyvalues:{bodyvalues:[]},capacity:{ca
 demo.sources=Object.fromEntries(Object.keys(demo.extra).map(k=>[k,{status:'synced'}]));
 demo.activities.forEach((a,i)=>{a.analyzed=true;const s=a.summary!;a.hrHistogram={secondsByBpm:{125:s.duration*.45,140:s.duration*.3,155:s.duration*.15,170:s.duration*.08,185:s.duration*.02},validSeconds:s.duration,missingSeconds:0,sampleSeconds:5};s.heartrateMax=(s.heartrate??140)+22;s.calories=Math.round(s.duration/60*8);s.effort={heartrate:45+i%60};s.intensityDistribution={heartrate:{0:s.duration*.78,1:s.duration*.17,2:s.duration*.05}};s.zonesDistribution={heartrate:[s.duration*.78,s.duration*.17,s.duration*.05]};if(i%9===0){a.sportType='misc';a.subSportType='strength_training';a.title='Strength & conditioning';s.sets=14+i%8;s.aerobicTrainingEffect=1.2;s.anaerobicTrainingEffect=2.3;delete s.distance;delete s.power}else if(a.sportType==='running'){s.vo2max=57.2+Math.sin(i*.2)*2-i*.008;s.groundContactTime=214+i%13;s.flightTime=118+i%8;s.stepLength=110+i%12;s.cadence=176+i%9;s.runningEffectiveness=.99+i%4*.01;s.speedAerobicFactor=44+i%5;s.pace=280+i%30}s.powerMax=s.power?s.power+160:undefined;demo.extra!.efforts.trainingEfforts[tag(new Date(a.date))]=[[45+i%60]]});
 for(let i=364;i>=0;i-=3){const d=new Date(end);d.setUTCDate(d.getUTCDate()-i);demo.extra.bodyvalues.bodyvalues.push({timestamp:d.toISOString(),weightInKilograms:72+Math.sin(i*.13)*.6,hrRestDynamic:46+i%7,bodyFatInPercent:11.5+i%4*.2})}
+ // Illustrative stored routes, climbs and bests: every demo session follows the same loop
+ // as its demo detail, so same-route, climb and record views have something to show.
+ const loop:LatLon[]=[...Array(33)].map((_,k)=>[48.86+.012*Math.cos(k/32*Math.PI*2),2.29+.02*Math.sin(k/32*Math.PI*2)]),line=encode(loop.map(([a,b])=>[Math.round(a*1e5)/1e5,Math.round(b*1e5)/1e5] as LatLon));
+ demo.activities.forEach((a,i)=>{const s=a.summary!,family=a.sportType==='running'?'running':a.sportType==='cycling'?'cycling':null;if(!family||!s.distance)return;const key=family==='cycling'?'power':'speed',base=family==='cycling'?s.power:s.distance/s.duration;if(!base)return;const lift=1+.03*Math.sin(i*.7);
+  a.evidence={version:1,sampleSeconds:5,best:{[key]:[[60,1.3],[300,1.12],[1200,1.04],[3600,1]].map(([seconds,f])=>({seconds,value:base*f*lift,start:0}))},routeVersion:ROUTE_VERSION,route:{line,distance:Math.round(s.distance),start:loop[0],end:loop[32]},climbs:[{at:0,start:loop[0],end:loop[3],gain:30,seconds:Math.round(470*(1.05-.05*lift)),distance:1590,grade:1.9}]} as typeof a.evidence});
  cached=demo;return demo;
 }

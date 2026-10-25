@@ -27,22 +27,24 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 .sieste-v3 main :where([data-slot=card-title],.volume-heading h2,.fatigue-recovery>header h2){font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--n-ink)}
 
 /* Pills: segmented controls and quiet actions read as chips */
-.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group]{gap:4px;padding:4px;border:0;border-radius:999px;background:rgba(11,18,32,.055);box-shadow:none}
-.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item]{border:0!important;border-radius:999px!important;background:transparent;color:var(--n-muted);font-weight:600;box-shadow:none}
-.sieste-v3 main :where(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item][data-state=on]{background:var(--n-card);color:var(--n-ink);box-shadow:0 0 0 1px var(--n-line)}
+.sieste-v3 main :is(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group]{gap:2px;padding:3px;height:auto;border:0;border-radius:999px;background:rgba(11,18,32,.055);box-shadow:none}
+.sieste-v3 main :is(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item]{height:28px;min-height:28px;padding:0 11px;border:0!important;border-radius:999px!important;background:transparent;color:var(--n-muted);font-size:13px;font-weight:600;box-shadow:none}
+.sieste-v3 main :is(.home-toolbar,.sleep-page-heading,.log-heat-toolbar,.vo2-home) [data-slot=toggle-group-item][data-state=on]{background:var(--n-card);color:var(--n-ink);box-shadow:0 0 0 1px var(--n-line)}
 .sieste-v3 .home-toolbar-actions>[data-slot=button]{border:0;border-radius:999px;background:transparent;box-shadow:none;color:var(--n-muted)}
+.sieste-v3 .home-toolbar .home-more-menu>summary{border:0;border-radius:999px;background:transparent;box-shadow:none;color:var(--n-muted)}
+.sieste-v3 .home-toolbar .home-more-menu>summary:hover,.sieste-v3 .home-toolbar .home-more-menu[open]>summary{background:rgba(11,18,32,.05);color:var(--n-ink)}
 .sieste-v3 .home-toolbar-actions>[data-slot=button]:hover{background:rgba(11,18,32,.05);color:var(--n-ink)}
 
 /* Floating nav: plain white pill, the active page shows its label */
-.sieste-v3 .mini-dock{gap:4px;padding:6px;border:0;border-radius:999px;background:rgba(255,255,255,.94);box-shadow:var(--n-float);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
-.sieste-v3 .mini-dock>button{display:flex;align-items:center;gap:7px;width:auto;height:44px;padding:0 14px;border-radius:999px;background:transparent;color:var(--n-muted)}
-.sieste-v3 .mini-dock>button small{display:none;font-size:13.5px;font-weight:650;letter-spacing:-.01em}
-.sieste-v3 .mini-dock>button svg{width:19px;height:19px}
+.sieste-v3 .mini-dock{gap:2px;padding:4px;border:0;border-radius:999px;background:rgba(255,255,255,.94);box-shadow:var(--n-float);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.sieste-v3 .mini-dock>button{display:flex;flex-direction:row;align-items:center;gap:6px;width:auto;min-width:40px;height:40px;min-height:40px;padding:0 11px;border-radius:999px;background:transparent;color:var(--n-muted)}
+.sieste-v3 .mini-dock>button small{display:none;font-size:13px;line-height:1;font-weight:650;letter-spacing:-.01em}
+.sieste-v3 .mini-dock>button svg{width:18px;height:18px;flex:none}
 .sieste-v3 .mini-dock>button:hover,.sieste-v3 .mini-dock>button:not([aria-current=page]):hover{background:rgba(11,18,32,.05);color:var(--n-ink)}
-.sieste-v3 .mini-dock>button[aria-current=page],.sieste-v3 .mini-dock>button[aria-current=page]:hover{padding:0 16px;background:rgba(11,18,32,.06);color:var(--n-ink)}
+.sieste-v3 .mini-dock>button[aria-current=page],.sieste-v3 .mini-dock>button[aria-current=page]:hover{padding:0 13px;background:rgba(11,18,32,.06);color:var(--n-ink)}
 .sieste-v3 .mini-dock>button[aria-current=page] small{display:inline}
 .sieste-v3 .mini-dock>button:active,.sieste-v3 .mini-dock>button[aria-current=page]:active{background:rgba(11,18,32,.08)}
-.sieste-v3 .floating-sync{border:0;border-radius:999px;background:rgba(255,255,255,.94);color:var(--n-ink);box-shadow:var(--n-float);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.sieste-v3 .floating-sync{width:48px;height:48px;min-width:48px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:var(--n-ink);box-shadow:var(--n-float);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .sieste-v3 .floating-sync:hover{background:#fff;color:var(--n-ink)}
 
 /* Home · today's health leads the page */
@@ -85,4 +87,10 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 
 @media (min-width:720px){
  .sieste-v3 main .health-headlines{padding:22px 22px 18px}
+}
+/* Wide screens: the nav is a side rail, too narrow for labels */
+@media (min-width:1050px){
+ .sieste-v3 .mini-dock{gap:6px;padding:8px 6px;border-radius:24px}
+ .sieste-v3 .mini-dock>button,.sieste-v3 .mini-dock>button[aria-current=page]{width:44px;min-width:44px;height:44px;padding:0;justify-content:center}
+ .sieste-v3 .mini-dock>button[aria-current=page] small{display:none}
 }

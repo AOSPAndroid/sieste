@@ -5,7 +5,7 @@ import {Copy,Download,Share2} from 'lucide-react';
 import type {AthleteData} from './analytics';
 import {weekOverview,localDate} from './week-overview';
 import {sportFamily,sportName,runningPace,workoutSpeed} from './sports';
-import {useCalendarDetails} from './calendar-details';
+import {previewFallbacks,useCalendarDetails} from './calendar-details';
 import {lapPreview} from './calendar-preview';
 import {lapElevation} from './lap-elevation';
 import {cyclingPowerStats} from './cycling-power-data';
@@ -31,8 +31,8 @@ const sportInk:Record<string,string>={running:'#2563eb',cycling:'#7c3aed',streng
 export default function HomeSnapshot({data,dates,now,token,isDemo}:{data:AthleteData;dates:Date[];now:Date;token:string;isDemo:boolean}){
  const [asset,setAsset]=useState<{url:string;blob:Blob}|null>(null),[message,setMessage]=useState('Preparing image…');
  const end=dates.at(-1)!,filename=`sieste-${localDate(end)}-${dates.length}days.png`;
- const keys=dates.map(localDate),signature=data.activities.filter(a=>keys.includes(localDate(new Date(a.date)))&&new Date(a.date)<=now).map(a=>a.id).sort().join('|');
- const details=useCalendarDetails(signature,token,isDemo,data.syncedAt),detailJson=JSON.stringify(details);
+ const keys=dates.map(localDate),shown=data.activities.filter(a=>keys.includes(localDate(new Date(a.date)))&&new Date(a.date)<=now),signature=shown.map(a=>a.id).sort().join('|');
+ const details=useCalendarDetails(signature,token,isDemo,data.syncedAt,previewFallbacks(shown)),detailJson=JSON.stringify(details);
  const pending=!isDemo&&!!token&&signature.split('|').filter(Boolean).some(id=>!details[id]);
  useEffect(()=>{let active=true,url='';
   setAsset(null);setMessage(pending?'Loading recorded laps…':'Preparing image…');if(pending)return;

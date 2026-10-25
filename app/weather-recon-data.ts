@@ -116,3 +116,31 @@ export function ridingOutlook(dayHours:WeatherHour[],best:ReturnType<typeof best
   hour:{...hours[0],temperature:peak('temperature'),rainChance:peak('rainChance'),rain:peak('rain'),wind:peak('wind'),gust:peak('gust'),direction:windHour.direction},
   rain: risk,models:modelAgreement(hours),assessment:{grade,reasons:reasons.length?reasons:['Dry outlook · light wind · daylight']}};
 }
+// Next two hours in 15-minute steps, for deciding whether to head out now.
+export type NowcastSlot={time:number;rain:number|null;chance:number|null};
+export function parseNowcast(payload:unknown):NowcastSlot[]{
+ const m=(payload as {minutely_15?:Record<string,unknown[]>}|null)?.minutely_15,time=Array.isArray(m?.time)?m.time:[];
+ return time.flatMap((t,i)=>typeof t==='number'&&Number.isFinite(t)?[{time:t,rain:num(m?.precipitation?.[i]),chance:num(m?.precipitation_probability?.[i])}]:[]).sort((a,b)=>a.time-b.time);
+}
+const wetSlot=(s:NowcastSlot)=>(s.rain!==null&&s.rain>=.1)||(s.chance!==null&&s.chance>=50);
+/** One sentence: dry, raining until when, or dry until when and for how long. */
+export function nowcastSummary(slots:NowcastSlot[],timezone:string){
+ const known=slots.slice(0,8);
+ if(known.length<8||known.some((s,i)=>(s.rain===null&&s.chance===null)||(i>0&&s.time-known[i-1].time!==900)))return null;
+ const end=known.at(-1)!.time+900,firstWet=known.findIndex(wetSlot);
+ if(firstWet<0)return {kind:'dry' as const,text:'Dry for the next 2 hours'};
+ if(firstWet===0){const dry=known.findIndex(s=>!wetSlot(s));return {kind:'wet' as const,text:dry<0?'Rain for the next 2 hours':`Raining now · drying from ${weatherTime(known[dry].time,timezone)}`}}
+ const after=known.slice(firstWet),stop=after.findIndex(s=>!wetSlot(s)),minutes=(stop<0?end-after[0].time:after[stop].time-after[0].time)/60;
+ return {kind:'later' as const,text:`Dry until ${weatherTime(known[firstWet].time,timezone)}, then rain${stop<0?' for the rest of the 2 hours':` for about ${minutes} min`}`};
+}
+
+/**
+ * What a rain percentage means, in words: the chance that at least 0.1 mm
+ * falls at this spot during that hour (not how much of the hour is wet).
+ */
+export function rainPhrase(chance:number|null,mm:number|null){
+ if(chance===null)return 'Rain chance unavailable';
+ const tenths=Math.round(chance/10),odds=chance<5?'Almost no chance':tenths>=10?'Rain is all but certain':`About ${Math.max(1,tenths)} in 10 chance`;
+ const amount=mm!==null&&mm>=.1?` · ${mm.toFixed(1)} mm expected`:'';
+ return `${odds} of rain this hour${amount}`;
+}
