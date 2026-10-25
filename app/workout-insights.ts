@@ -1,12 +1,6 @@
-import {effortProfile} from './effort-profile-data';
-import {activityClimbAnalysis,paceFromSpeed} from './activity-terrain-data';
-import {classifySession,runningSignals} from './session-intelligence-data';
-
-// Reads the analyses the activity page already runs (session type, efforts,
-// climbs, laps, pacing, heart-rate drift) and keeps the few facts worth
-// reading first, plus which section view tells this session's story best.
+// How hard each part of a workout was, and which section view (efforts,
+// climbs or laps) tells the session's story best.
 export type SectionMode='efforts'|'climbs'|'laps';
-export type Insight={id:string;title:string;detail:string;mode?:SectionMode};
 const valid=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
 type Lap={distance?:unknown;summary?:{distance?:unknown}};
 type WorkoutLike={seriesSampled?:{sampleSize?:unknown;data?:Record<string,unknown>};laps?:Lap[];sessionLabel?:string|null;[key:string]:unknown};
@@ -37,59 +31,18 @@ export function sectionMode({label,efforts,climbs,gain,laps,structuredLaps}:{lab
  return efforts?'efforts':climbs?'climbs':laps?'laps':null;
 }
 
-function outputLabel(sensor:string,family:string,v:number){
- if(sensor==='power')return `${Math.round(v)} W`;
- if(sensor==='heartrate')return `${Math.round(v)} bpm`;
- return footFamilies.includes(family)?`${paceFromSpeed(v,1000)} /km`:family==='swimming'?`${paceFromSpeed(v,100)} /100m`:`${(v*3.6).toFixed(1)} km/h`;
-}
-
-// Halves by distance: seconds for each half from the sampled distance stream.
-function halves(detail:WorkoutLike){
- const step=detail.seriesSampled?.sampleSize,distance=detail.seriesSampled?.data?.distance;
- if(!valid(step)||step<=0||!Array.isArray(distance))return null;
- const points=distance.map((d:unknown,i:number)=>valid(d)?{d,t:i*step}:null).filter(Boolean) as {d:number;t:number}[];
- if(points.length<10)return null;
- const total=points.at(-1)!.d-points[0].d;if(total<1000)return null;
- const half=points.find(p=>p.d-points[0].d>=total/2)!,first=half.t-points[0].t,second=points.at(-1)!.t-half.t;
- return first>0&&second>0?{first,second,total}:null;
-}
-
-export function workoutInsights(detail:WorkoutLike,family:string){
- const insights:Insight[]=[];
- if(!detail?.seriesSampled?.data&&!detail?.laps?.length)return {insights,mode:null as SectionMode|null};
- const classified=classifySession(detail),label=detail.sessionLabel??classified.label;
- const sensor=effortSensor(detail,family),profile=effortProfile(detail,sensor,family),efforts=profile.efforts;
- const terrain=family==='cycling'||footFamilies.includes(family)?activityClimbAnalysis(detail,family):{climbs:[]as {start:number;end:number;gain:number;grade:number}[]};
- const climbs=terrain.climbs,gain=climbs.reduce((n,c)=>n+c.gain,0),laps=detail.laps?.length??profile.laps.length;
- const mode=sectionMode({label,efforts:efforts.length,climbs:climbs.length,gain,laps,structuredLaps:lapsVary(detail.laps)});
- if(!['Unclassified','Other'].includes(label))insights.push({id:'type',title:`${label} session`,detail:detail.sessionLabel?'Your label':classified.confidence==='Low'?'Suggested · low confidence':'Suggested from the workout'});
- const effortInsight=():Insight|null=>{
-  if(efforts.length<2)return null;
-  const means=efforts.map(e=>e.mean).filter(valid);if(means.length<2)return null;
-  // Faster pace, more power or a higher heart rate all read as "more" here.
-  const lo=Math.min(...means),hi=Math.max(...means),avg=means.reduce((a,b)=>a+b,0)/means.length,spread=(hi-lo)/avg*100;
-  const paced=sensor==='speed'&&(footFamilies.includes(family)||family==='swimming'),metres=family==='swimming'?100:1000;
-  const range=paced?`${paceFromSpeed(hi,metres)}–${paceFromSpeed(lo,metres)} /${family==='swimming'?'100m':'km'}`:`${outputLabel(sensor,family,lo).split(' ')[0]}–${outputLabel(sensor,family,hi)}`;
-  const fade=means.length>=3?(means.at(-1)!/means[0]-1)*100:0;
-  const detail=sensor!=='heartrate'&&fade<=-3?`Last one ${Math.abs(fade).toFixed(0)}% down on the first`:spread<=3?`Even: within ${Math.max(1,Math.round(spread))}%`:`${Math.round(spread)}% between strongest and weakest`;
-  return {id:'efforts',title:`${efforts.length} efforts · ${range}`,detail,mode:'efforts'};
- };
- const climbInsight=():Insight|null=>{
-  if(!climbs.length)return null;
-  const biggest=climbs.reduce((a,c)=>c.gain>a.gain?c:a);
-  return {id:'climbs',title:`${climbs.length} climb${climbs.length>1?'s':''} · +${Math.round(gain)} m`,detail:`Biggest +${Math.round(biggest.gain)} m at ${biggest.grade.toFixed(1)}%`,mode:'climbs'};
- };
- const sections=[effortInsight(),climbInsight()].filter((i):i is Insight=>!!i).sort((a,b)=>(a.mode===mode?-1:0)-(b.mode===mode?-1:0));
- insights.push(...sections);
- const split=halves(detail);
- if(split&&family!=='swimming'){
-  const change=(split.second/split.first-1)*100,perKm=Math.abs(split.second-split.first)/(split.total/2000);
-  const amount=footFamilies.includes(family)?`${Math.round(perKm)} s/km`:`${Math.abs(change).toFixed(0)}%`;
-  insights.push(Math.abs(change)<2?{id:'pacing',title:'Even pacing',detail:'Both halves within 2%'}:{id:'pacing',title:change<0?'Negative split':'Positive split',detail:`Second half ${amount} ${change<0?'faster':'slower'}`});
- }
- if(family==='running'){
-  const signals=runningSignals(detail);
-  if(valid(signals.drift))insights.push({id:'drift',title:`Heart-rate drift ${signals.drift>=0?'+':''}${signals.drift.toFixed(1)}%`,detail:signals.drift<5?'Steady: little cost at the same pace':'Rising cost at the same pace late on'});
- }
- return {insights:insights.slice(0,4),mode};
+export const intensityColors=['#60a5fa','#34d399','#facc15','#fb923c','#ef4444'];
+/**
+ * One level per sample (0 easy … 4 hardest) from the effort stream, smoothed
+ * over 30 s and split at this workout's own 20/40/60/80th percentiles, so the
+ * route shows where you pushed relative to the rest of the session.
+ */
+export function intensityLevels(detail:WorkoutLike,family:string){
+ const sensor=effortSensor(detail,family),step=detail.seriesSampled?.sampleSize,raw=detail.seriesSampled?.data?.[sensor];
+ if(!valid(step)||step<=0||!Array.isArray(raw))return null;
+ // Stopped samples (no speed, no power) are gaps, not easy riding.
+ const values=raw.map(v=>valid(v)&&v>0?v:null),half=Math.max(0,Math.round(15/step)),smooth:(number|null)[]=values.map((v,i)=>{if(v===null)return null;let sum=0,n=0;for(let j=Math.max(0,i-half);j<=Math.min(values.length-1,i+half);j++){const x=values[j];if(x!==null){sum+=x;n++}}return n?sum/n:null});
+ const sorted=smooth.filter(valid).sort((a,b)=>a-b);if(sorted.length<10||sorted[0]===sorted.at(-1))return null;
+ const cuts=[.2,.4,.6,.8].map(q=>sorted[Math.min(sorted.length-1,Math.floor(q*sorted.length))]);
+ return {sensor,levels:smooth.map(v=>v===null?null:cuts.filter(c=>v>c).length)};
 }

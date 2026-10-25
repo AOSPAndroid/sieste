@@ -46,3 +46,17 @@ export function routeCursorPoint(points:RoutePoint[],sampleIndex:number|null){
  while(low<=high){const middle=(low+high)>>>1,point=points[middle];if(point.index===sampleIndex)return point;if(point.index<sampleIndex)low=middle+1;else high=middle-1}
  return null;
 }
+/** Route pieces of one intensity level each; neighbouring pieces share their boundary point so the line stays unbroken. */
+export function intensitySegments(segments:RoutePoint[][],levels:ReadonlyArray<number|null>){
+ const runs:{level:number;points:RoutePoint[]}[]=[];
+ for(const segment of segments){let run:{level:number;points:RoutePoint[]}|null=null;
+  for(const point of segment){const level=levels[point.index];
+   if(typeof level!=='number'){if(run&&run.points.length>1)runs.push(run);run=null;continue}
+   if(run&&run.level===level){run.points.push(point);continue}
+   if(run){run.points.push(point);if(run.points.length>1)runs.push(run)}
+   run={level,points:[point]};
+  }
+  if(run&&run.points.length>1)runs.push(run);
+ }
+ return runs;
+}

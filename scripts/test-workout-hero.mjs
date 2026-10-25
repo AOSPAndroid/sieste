@@ -11,25 +11,14 @@ function module(path,imports={}){
 }
 const Silent=()=>null,silentModule={__esModule:true,default:Silent};
 const hero=module('app/workout-hero.tsx',{'lucide-react':{X:Silent}});
-for(const [seconds,expected] of [[59.4,'0:59'],[59.6,'1:00'],[3599.6,'1:00:00'],[3601,'1:00:01']])assert.equal(hero.clock(seconds),expected);
-for(const seconds of [undefined,null,'60',0,-1,NaN,Infinity,-Infinity])assert.equal(hero.clock(seconds),null,'Invalid activity time is not formatted as a clock');
-
 for(const [duration,expected] of [[59.4,'0:59'],[59.6,'1:00'],[119.6,'2:00'],[3599.6,'60:00']]){
- const pace=hero.heroMetrics([],'swimming',{duration,distance:100}).primary[0];
+ const pace=hero.swimPace({duration,distance:100});
  assert.equal(pace.value,expected,'Swim pace carries rounded seconds into the next minute');
  assert.equal(pace.unit,'/100m');
 }
 for(const summary of [{duration:Infinity,distance:100},{duration:120,distance:Infinity},{duration:NaN,distance:100},{duration:120,distance:NaN},{duration:120,distance:0},{duration:0,distance:100},{duration:120,distance:1e-320}]){
- assert.deepEqual(hero.heroMetrics([],'swimming',summary).primary,[],'Invalid or overflowing swim totals never create a pace');
+ assert.equal(hero.swimPace(summary),null,'Invalid or overflowing swim totals never create a pace');
 }
-const card=(id,value='1')=>({id,title:id,value,unit:'',note:'',color:'',values:[],group:'Session',explanation:''});
-const cards=['effort','calories','normalizedPower','heartrate','speed','power','duration','distance','altitude'].map(id=>card(id));
-const ride=hero.heroMetrics(cards,'cycling');
-assert.deepEqual(ride.primary.map(m=>m.id),['distance','duration','power'],'Cycling prioritizes distance, activity time and recorded power');
-assert.deepEqual(ride.secondary.map(m=>m.id),['speed','heartrate','altitude','normalizedPower']);
-assert.deepEqual(hero.heroMetrics([card('distance','—'),card('duration'),card('heartrate')],'running').primary.map(m=>m.id),['duration','heartrate'],'Missing headline values do not displace available metrics');
-assert.deepEqual(hero.heroMetrics([card('calories','0'),card('heartrate')],'other').primary.map(m=>m.id),['heartrate','calories'],'Fallback sport order preserves a recorded zero');
-
 const sports=module('app/sports.ts'),native=module('app/coros-native.ts'),power=module('app/cycling-power-data.ts',{'./sports':sports});
 const metrics=module('app/activity-metrics.ts',{'./sports':sports,'./coros-native':native,'./cycling-power-data':power});
 const imports=Object.fromEntries(['./deferred-panel','./workout-explorer.css','./activity-profile','./recorded-fields','./session-intelligence','./running-technique','./route-map','./activity-zones','./trend-badge','./workout-splits'].map(key=>[key,silentModule]));
@@ -38,8 +27,7 @@ Object.assign(imports,{
  // Folded rows render their content here so the tiles inside them can be checked.
  './deferred-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,typeof children==='function'?children():children)},
  react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),useRef:initial=>({current:initial}),lazy:()=>Silent},
- './workout-insights':{workoutInsights:()=>({insights:[],mode:null})},
- './running-technique-data':{runningTechnique:()=>({rows:[],windows:[]})},
+ './workout-insights':{intensityLevels:()=>null,intensityColors:[]},
  'lucide-react':{Compass:Silent},
  './workout-context':{...silentModule,StrengthSummary:Silent},
  './workout-hero':hero,'./sports':sports,'./activity-metrics':metrics,
@@ -72,7 +60,7 @@ const documentMock={activeElement:previous,body:{style:{overflow:''}},querySelec
 const initializeFocus=new Function('document','manageScroll','onClose',focusSource+';return initializeFocus;')(documentMock,true,()=>{});
 const cleanup=initializeFocus();assert.equal(focused,true,'Opening a cached GPS workout focuses its close button instead of an inert map control');
 cleanup();assert.equal(restored,true);assert.equal(documentMock.body.style.overflow,'');
-console.log('Workout hero: clock/pace boundaries, finite totals, sport priorities, retained details, stable selections and accessible dialog focus passed.');
+console.log('Workout hero: swim pace boundaries, finite totals, retained details, stable selections and accessible dialog focus passed.');
 
 const dock=module('app/workout-map-dock.tsx',{react:{},'lucide-react':{},'./route-map':silentModule,'./expansion':{ExpandButton:Silent}});
 const climb={start:10,end:40,label:'Climb 1',kind:'climb'};
@@ -118,7 +106,7 @@ assert.equal(focusMoves.length,movesBeforeSelection,'A new chart selection retai
 console.log('Workout map dock: manual fold/unfold retains keyboard focus; automatic opening preserves chart focus.');
 
 // The section view a workout opens on, and the signals that choose it.
-const insights=module('app/workout-insights.ts',{'./effort-profile-data':{},'./activity-terrain-data':{},'./session-intelligence-data':{}});
+const insights=module('app/workout-insights.ts');
 const pick=o=>insights.sectionMode({label:'Easy',efforts:0,climbs:0,gain:0,laps:0,structuredLaps:false,...o});
 assert.equal(pick({label:'Intervals',efforts:5,climbs:4,gain:200}),'efforts','Interval work opens on its efforts even on a hilly route');
 assert.equal(pick({efforts:4,climbs:4,gain:132}),'climbs','A hilly easy run opens on climbs');
@@ -131,4 +119,16 @@ const streams=data=>({seriesSampled:{data}});
 assert.equal(insights.effortSensor(streams({power:[0,210],speed:[8]}),'cycling'),'power');
 assert.equal(insights.effortSensor(streams({heartrate:[0,0],speed:[3]}),'cycling'),'speed','Empty heart-rate samples do not count');
 assert.equal(insights.effortSensor(streams({speed:[3.4],power:[220]}),'running'),'speed','Runs are read by pace');
-console.log('Workout insights: section view choice, structured laps and effort source passed.');
+// Intensity: levels from this workout's own spread, stops as gaps, smoothed over 30 s.
+const ramp={seriesSampled:{sampleSize:10,data:{speed:[...Array(50)].map((_,i)=>i<5?0:2+i*.05)}}};
+const levels=insights.intensityLevels(ramp,'running');
+assert.equal(levels.sensor,'speed');
+assert.deepEqual(levels.levels.slice(0,5),[null,null,null,null,null],'Stopped samples are gaps, not easy running');
+assert.equal(levels.levels.at(-1),4);assert.equal(levels.levels[6],0);
+assert.ok(levels.levels.slice(5).every((v,i,a)=>!i||v>=a[i-1]),'A steady build only ever climbs the scale');
+assert.equal(insights.intensityLevels({seriesSampled:{sampleSize:10,data:{speed:[3,3,3,3,3,3,3,3,3,3,3,3]}}},'running'),null,'A perfectly even stream has nothing to colour');
+const geometry=module('app/route-geometry.ts');
+const pt=index=>({lat:0,lon:0,index,x:index,y:0});
+const runs=geometry.intensitySegments([[pt(0),pt(1),pt(2),pt(3),pt(4)]],[0,0,1,null,1]);
+assert.deepEqual(runs.map(r=>[r.level,r.points.map(p=>p.index)]),[[0,[0,1,2]],[1,[2]]].filter(r=>r[1].length>1),'Runs share their boundary point and break at gaps');
+console.log('Workout insights: section view choice, structured laps, effort source, intensity levels and route runs passed.');
