@@ -28,7 +28,7 @@ function scenario(handler){
  const cache=new Function('fetch','Date',cacheSource+';return {cachedWorkout,loadWorkout,subscribeWorkoutPreviews,rememberWorkoutPreview,clearWorkoutCache};')(fetch,Clock);
  const h=hooks();
  const hook=new Function('useState','useRef','useEffect','cachedWorkout','loadWorkout','subscribeWorkoutPreviews',hookSource+';return useCalendarDetails;')(h.useState,h.useRef,h.useEffect,cache.cachedWorkout,cache.loadWorkout,cache.subscribeWorkoutPreviews);
- const render=(ids='run',token='athlete-a',sync='sync-1')=>h.render(()=>hook(ids,token,false,sync));
+ const render=(ids='run',token='athlete-a',sync='sync-1',fallbacks='')=>h.render(()=>hook(ids,token,false,sync,fallbacks));
  return {cache,h,render,calls,advance:ms=>clock+=ms};
 }
 
@@ -138,3 +138,21 @@ console.log('Live preview regressions passed: subscribed renders, sync retry/TTL
  assert.equal(s.h.output.run.seriesSampled,undefined);s.h.unmount();
 }
 console.log('Compact power metadata persists through subscribed Home enrichment.');
+
+// A Tredict session that fails to preview shows the laps of its COROS twin,
+// keyed under the Tredict id; without a twin it is marked failed and retried.
+{
+ const s=scenario(({id})=>{if(id==='tredict-ride')throw Error('Tredict returned incomplete workout data.');return profile(id,'coros')});
+ s.render('tredict-ride','athlete-a','sync-1','tredict-ride=coros_ride');await settle();
+ assert.deepEqual(s.calls.map(c=>c.id),['tredict-ride','coros_ride']);
+ assert.equal(s.h.output['tredict-ride'].elevationPreview.tag,'coros','COROS twin laps stand in for the failed Tredict preview');
+ assert.equal(s.h.output['tredict-ride'].failed,undefined);s.h.unmount();
+}
+{
+ const timers=[],realSet=globalThis.setTimeout,realClear=globalThis.clearTimeout;globalThis.setTimeout=(fn,ms)=>{timers.push({fn,ms});return timers.length};globalThis.clearTimeout=()=>{};
+ let ready=false;const s=scenario(({id})=>{if(!ready)throw Error('Tredict request failed');return profile(id,'later')});
+ s.render('slow');await settle();assert.equal(s.h.output.slow.failed,true);assert.equal(timers.length,1,'A failed preview schedules one retry');
+ ready=true;timers[0].fn();await settle();assert.equal(s.h.output.slow.elevationPreview.tag,'later','The retry replaces the failure');
+ s.h.unmount();globalThis.setTimeout=realSet;globalThis.clearTimeout=realClear;
+}
+console.log('Failed previews fall back to the COROS twin and retry later.');

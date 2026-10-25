@@ -201,3 +201,79 @@
  .sieste-v3 .weather-recon .weather-rain-cell b{min-width:30px}
  .sieste-v3 .weather-recon .weather-rain-bar{width:26px}
 }
+
+/* Wind & route map: wind arrows over a colour layer, stops, and where to start */
+.sieste-v3 .weather-recon .weather-map-card{border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow);padding:12px 0 14px}
+.sieste-v3 .weather-recon .weather-map-card>[data-slot=card-content]{display:flex;flex-direction:column;gap:10px;padding:0 14px}
+.sieste-v3 .weather-recon .weather-map{position:relative;margin:0 -14px;overflow:hidden;background:#eef0f3;border-block:1px solid var(--n-line)}
+.sieste-v3 .weather-recon .weather-map>svg{display:block;width:100%;height:auto;aspect-ratio:800/420}
+.sieste-v3 .weather-recon .weather-map-arrow text{font:700 11px/1 inherit;fill:#0b1220;paint-order:stroke;stroke:#fff;stroke-width:3px}
+.sieste-v3 .weather-recon .weather-map-heading text{font:700 13px/1 inherit;fill:#3730a3;paint-order:stroke;stroke:#fff;stroke-width:4px}
+.sieste-v3 .weather-recon .weather-map-poi{cursor:pointer;outline:none}
+.sieste-v3 .weather-recon .weather-map-poi text{font:700 9px/1 inherit;fill:#fff}
+.sieste-v3 .weather-recon .weather-map-poi:focus-visible circle{stroke:#0b1220}
+.sieste-v3 .weather-recon .weather-map-attribution{position:absolute;left:8px;bottom:6px;font-size:10px;color:var(--n-muted);text-decoration:none;background:rgba(255,255,255,.8);padding:1px 5px;border-radius:6px}
+.sieste-v3 .weather-recon .weather-map-picked{position:absolute;left:8px;top:8px;display:flex;align-items:center;gap:6px;margin:0;padding:5px 6px 5px 10px;border-radius:999px;background:#fff;box-shadow:0 0 0 1px var(--n-line),0 6px 16px -10px rgba(11,18,32,.4);font-size:12.5px;font-weight:650;color:var(--n-ink)}
+.sieste-v3 .weather-recon .weather-map-picked>i{width:8px;height:8px;border-radius:50%}
+.sieste-v3 .weather-recon .weather-map-picked>span{font-weight:500;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-map-picked>button{width:22px;height:22px;border:0;border-radius:999px;background:rgba(11,18,32,.06);color:var(--n-ink);line-height:1;cursor:pointer}
+.sieste-v3 .weather-recon .weather-map-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sieste-v3 .weather-recon .weather-map-layers{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:rgba(11,18,32,.055)}
+.sieste-v3 .weather-recon .weather-map-layers>button{height:28px;padding:0 11px;border:0;border-radius:999px;background:transparent;color:var(--n-muted);font:600 13px/1 inherit;cursor:pointer}
+.sieste-v3 .weather-recon .weather-map-layers>button[aria-pressed=true]{background:var(--n-card);color:var(--n-ink);box-shadow:0 0 0 1px var(--n-line)}
+.sieste-v3 .weather-recon .weather-map-stops{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--n-ink)}
+.sieste-v3 .weather-recon .weather-map-hour{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:650;color:var(--n-ink);font-variant-numeric:tabular-nums}
+.sieste-v3 .weather-recon .weather-map-hour>input{flex:1;accent-color:#4f46e5}
+.sieste-v3 .weather-recon .weather-map-scale{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-map-scale>i{flex:1;height:6px;border-radius:999px}
+.sieste-v3 .weather-recon .weather-map-legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-map-legend>span{display:inline-flex;align-items:center;gap:5px}
+.sieste-v3 .weather-recon .weather-map-legend i{display:grid;place-items:center;width:16px;height:16px;border-radius:50%;color:#fff;font:700 9px/1 inherit;font-style:normal}
+.sieste-v3 .weather-recon .weather-map-advice{padding:10px 12px;border-radius:12px;background:#f5f5ff;color:var(--n-ink)}
+.sieste-v3 .weather-recon .weather-map-advice strong{display:block;font-size:13px;font-weight:700;color:#3730a3}
+.sieste-v3 .weather-recon .weather-map-advice ul{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.45}
+.sieste-v3 .weather-recon .weather-map-note{margin:0;font-size:12px;color:var(--n-muted)}
+
+/* Next two hours: a 15-minute rain strip under the town */
+.sieste-v3 .weather-recon .weather-nowcast{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 .weather-recon .weather-nowcast>p{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;color:var(--n-ink)}
+.sieste-v3 .weather-recon .weather-nowcast>p svg{width:17px;height:17px;flex:none;color:#e48a0b}
+.sieste-v3 .weather-recon .weather-nowcast:not(.is-dry)>p svg{color:#1a8fd0}
+.sieste-v3 .weather-recon .weather-nowcast-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:3px}
+.sieste-v3 .weather-recon .weather-nowcast-strip>i{height:14px;border-radius:4px;background:color-mix(in srgb,#1a8fd0 calc(var(--chance,0)*35%),#eef0f4)}
+.sieste-v3 .weather-recon .weather-nowcast-strip>i.is-wet{background:color-mix(in srgb,#0f5f9c calc(40% + var(--rain,0)*60%),#9cc9ee)}
+.sieste-v3 .weather-recon .weather-nowcast-times{display:flex;justify-content:space-between;font-size:11px;color:var(--n-muted);font-variant-numeric:tabular-nums}
+.sieste-v3 .weather-recon .weather-map>svg{width:100%;height:auto;aspect-ratio:auto;touch-action:none;cursor:grab}
+.sieste-v3 .weather-recon .weather-map>svg:active{cursor:grabbing}
+.sieste-v3 .weather-recon .weather-map-tools{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}
+.sieste-v3 .weather-recon .weather-map-tools>button{display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:var(--n-ink);box-shadow:0 0 0 1px var(--n-line);cursor:pointer}
+.sieste-v3 .weather-recon .weather-map-tools>button:disabled{opacity:.4;cursor:default}
+.sieste-v3 .weather-recon .weather-map-tools svg{width:16px;height:16px}
+.sieste-v3 .weather-recon .weather-map-hint{font-style:italic}
+/* Full screen: the map fills the screen, controls stay below it */
+.sieste-v3 .weather-recon .weather-map-card.is-expanded{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;margin:0;border-radius:0;padding:calc(env(safe-area-inset-top) + 10px) 0 calc(env(safe-area-inset-bottom) + 10px);overflow:auto}
+.sieste-v3 .weather-recon .weather-map-card.is-expanded>[data-slot=card-content]{flex:1;min-height:0}
+.sieste-v3 .weather-recon .weather-map-card.is-expanded .weather-map{flex:1;min-height:60vh}
+.sieste-v3 .weather-recon .weather-map-card.is-expanded .weather-map>svg{position:absolute;inset:0;height:100%}
+.sieste-v3 .weather-recon .weather-map{-webkit-user-select:none;user-select:none}
+.sieste-v3 .weather-recon .weather-map-arrow text{font-size:10px}
+/* Your routes: every stored line, faint, so the roads you use most build up */
+.sieste-v3 .weather-recon .weather-map-heat-routes path{fill:none;stroke:#e11d48;stroke-opacity:.16;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.sieste-v3 .weather-recon .weather-map-loops>g{cursor:pointer}
+.sieste-v3 .weather-recon .weather-map-loop-casing{fill:none;stroke:#fff;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.sieste-v3 .weather-recon .weather-map-loop{fill:none;stroke:#4f46e5;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.sieste-v3 .weather-recon .weather-map-loops>g.is-dim{opacity:.3}
+.sieste-v3 .weather-recon .weather-map-loops>g.is-picked .weather-map-loop{stroke-width:5}
+.sieste-v3 .weather-recon .weather-map-loops circle{fill:#4f46e5;stroke:#fff;stroke-width:2}
+.sieste-v3 .weather-recon .weather-map-loops text{font:700 11px/1 inherit;fill:#fff}
+.sieste-v3 .weather-recon .weather-map-routes{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;font-weight:600;color:var(--n-ink)}
+.sieste-v3 .weather-recon .weather-map-loop-list>strong{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--n-ink)}
+.sieste-v3 .weather-recon .weather-map-loop-list ol{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.sieste-v3 .weather-recon .weather-map-loop-list button{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:0;border-radius:12px;background:rgba(11,18,32,.04);font:inherit;text-align:left;color:var(--n-ink);cursor:pointer}
+.sieste-v3 .weather-recon .weather-map-loop-list button[aria-pressed=true]{background:#eef0ff;box-shadow:inset 0 0 0 1.5px #4f46e5}
+.sieste-v3 .weather-recon .weather-map-loop-list b{display:grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%;background:#4f46e5;color:#fff;font-size:11px}
+.sieste-v3 .weather-recon .weather-map-loop-list span{display:flex;flex-direction:column;gap:1px;min-width:0}
+.sieste-v3 .weather-recon .weather-map-loop-list strong{font-size:13.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sieste-v3 .weather-recon .weather-map-loop-list small{font-size:12px;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-rain-help{margin:8px 2px 0;font-size:12px;line-height:1.45;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-rain-help b{color:var(--n-ink,inherit);font-weight:600}

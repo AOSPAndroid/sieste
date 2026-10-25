@@ -58,6 +58,23 @@ export const techniqueMetrics = [
     min: 1,
     max: 99,
   },
+  // Economy: what each kilometre costs. Lower is more economical.
+  {
+    key: "heartbeatsPerKm",
+    label: "Heartbeats per km",
+    unit: "beats/km",
+    digits: 0,
+    min: 200,
+    max: 2500,
+  },
+  {
+    key: "powerPerSpeed",
+    label: "Power per km/h",
+    unit: "W per km/h",
+    digits: 1,
+    min: 3,
+    max: 80,
+  },
 ] as const;
 export type TechniqueKey = (typeof techniqueMetrics)[number]["key"];
 export type TechniqueActivity = {
@@ -75,13 +92,15 @@ export type TechniqueActivity = {
       | "durationTotal"
       | "speed"
       | "distance"
-      | "pace",
+      | "pace"
+      | "heartrate"
+      | "power",
       unknown
     >
   >;
   seriesSampled?: {
     sampleSize?: unknown;
-    data?: Partial<Record<TechniqueKey, unknown[]>>;
+    data?: Partial<Record<string, unknown[]>>;
   };
 };
 type Run = TechniqueActivity;
@@ -109,12 +128,9 @@ function speed(a: Run) {
         ? 1000 / s.pace
         : null;
 }
-function reading(a: Run, key: TechniqueKey) {
-  const spec = techniqueMetrics.find((m) => m.key === key)!;
-  const valid = (v: unknown): v is number =>
-    finite(v) && v >= spec.min && v <= spec.max;
+// Duration-weighted mean of a sampled stream; needs 80% of the workout covered.
+function streamMean(a: Run, key: string, min: number, max: number) {
   const s = a.summary ?? {};
-  if (valid(s[key])) return s[key];
   const values = a.seriesSampled?.data?.[key],
     step = a.seriesSampled?.sampleSize;
   if (!Array.isArray(values) || !finite(step) || step <= 0 || step > 30)
@@ -127,12 +143,45 @@ function reading(a: Run, key: TechniqueKey) {
     seconds = 0;
   values.forEach((v: unknown, i: number) => {
     const dt = Math.max(0, Math.min(step, cap - i * step));
-    if (dt && valid(v)) {
+    if (dt && finite(v) && v >= min && v <= max) {
       total += v * dt;
       seconds += dt;
     }
   });
   return seconds > 0 && seconds / cap >= 0.8 ? total / seconds : null;
+}
+// Heartbeats or watts spent per unit of distance or speed over the whole run.
+function economy(a: Run, key: "heartbeatsPerKm" | "powerPerSpeed") {
+  const s = a.summary ?? {},
+    distance = s.distance,
+    duration = s.duration;
+  if (!finite(distance) || distance <= 0 || !finite(duration) || duration <= 0)
+    return null;
+  const [source, min, max] =
+    key === "heartbeatsPerKm"
+      ? (["heartrate", 60, 220] as const)
+      : (["power", 50, 800] as const);
+  const summary = s[source],
+    mean =
+      finite(summary) && summary >= min && summary <= max
+        ? summary
+        : streamMean(a, source, min, max);
+  if (mean === null) return null;
+  return key === "heartbeatsPerKm"
+    ? (mean * duration) / 60 / (distance / 1000)
+    : mean / ((distance / duration) * 3.6);
+}
+function reading(a: Run, key: TechniqueKey) {
+  const spec = techniqueMetrics.find((m) => m.key === key)!;
+  const valid = (v: unknown): v is number =>
+    finite(v) && v >= spec.min && v <= spec.max;
+  if (key === "heartbeatsPerKm" || key === "powerPerSpeed") {
+    const v = economy(a, key);
+    return valid(v) ? v : null;
+  }
+  const s = a.summary ?? {};
+  if (valid(s[key])) return s[key];
+  return streamMean(a, key, spec.min, spec.max);
 }
 function record(a: Run) {
   const s = a.summary ?? {};
