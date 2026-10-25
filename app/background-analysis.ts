@@ -2,7 +2,7 @@ import {startTransition,useEffect,useRef,useState} from 'react';
 import type {AthleteData} from './analytics';
 import {rememberWorkoutPreview} from './workout-detail-cache';
 import {sportFamily} from './sports';
-import {ROUTE_VERSION} from './route-version';
+import {ROUTE_VERSION,ECONOMY_VERSION} from './route-version';
 import {COROS_NATIVE_VERSION} from './coros-native';
 // Keep progressive enrichment independent of the heavy, on-demand analysis UI.
 export function useBackgroundAnalysis({data,setData,token,isDemo,enabled,fullHistory=false,onError}:{data:AthleteData;setData:React.Dispatch<React.SetStateAction<AthleteData>>;token:string;isDemo:boolean;enabled:boolean;fullHistory?:boolean;onError?:(message:string)=>void}){
@@ -13,7 +13,7 @@ export function useBackgroundAnalysis({data,setData,token,isDemo,enabled,fullHis
   if(fullHistory)completed.current=autoKey; // Pausing a full pass must not start another automatic batch.
   const controller=new AbortController();let cancelled=false;
   const timer=window.setTimeout(async()=>{
-   const pending=latest.current.activities.filter(a=>!a.mergedIds&&!(a as {provisional?:string}).provisional&&(data.provider==='coros'?(a.provider==='coros'&&(a.analysisSource!=='COROS FIT'||a.nativeVersion!==COROS_NATIVE_VERSION)):(!a.analyzed||a.hrHistogram===undefined||a.evidence?.insightVersion!==2||(['running','cycling','walking','hiking'].includes(sportFamily(a))&&a.evidence?.routeVersion!==ROUTE_VERSION)))).slice(0,fullHistory?10000:4);
+   const pending=latest.current.activities.filter(a=>!a.mergedIds&&!(a as {provisional?:string}).provisional&&(data.provider==='coros'?(a.provider==='coros'&&(a.analysisSource!=='COROS FIT'||a.nativeVersion!==COROS_NATIVE_VERSION||(sportFamily(a)==='running'&&a.evidence?.economyVersion!==ECONOMY_VERSION))):(!a.analyzed||a.hrHistogram===undefined||a.evidence?.insightVersion!==2||(['running','cycling','walking','hiking'].includes(sportFamily(a))&&a.evidence?.routeVersion!==ROUTE_VERSION)||(sportFamily(a)==='running'&&a.evidence?.economyVersion!==ECONOMY_VERSION)))).slice(0,fullHistory?10000:4);
    if(!pending.length){completed.current=key;return}setBusy(true);onError?.('');
    try{for(let i=0;i<pending.length;i+=4){
     if(cancelled)return;

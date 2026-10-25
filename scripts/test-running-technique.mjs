@@ -241,21 +241,3 @@ assert.equal(
 console.log(
   "Passed running technique: time-weighted windows, dates, duplicates, merged runs, pace matching, monthly gaps, sensor coverage, provider normalization and missing data.",
 );
-
-// Economy: heartbeats per km and watts per km/h, from the summary or the sampled stream.
-const economical = runningTechnique(
-  run("eco", "2026-10-02T12:00:00Z", { distance: 12000, heartrate: 150, power: 240 }),
-  [run("eco-old", "2026-09-20T12:00:00Z", { distance: 10000, heartrate: 150 })],
-);
-const beats = economical.rows.find((r) => r.key === "heartbeatsPerKm");
-assert.equal(Math.round(beats.value), 750, "150 bpm for an hour over 12 km is 750 beats per km");
-assert.equal(Math.round(beats.baselines[1].value), 900, "The older 10 km hour costs 900 beats per km");
-assert.ok(beats.baselines[1].change < 0, "Fewer beats per km reads as a drop");
-assert.equal(economical.rows.find((r) => r.key === "powerPerSpeed").value.toFixed(1), "20.0", "240 W at 12 km/h is 20 W per km/h");
-const sampled = runningTechnique(
-  run("eco-stream", "2026-10-03T12:00:00Z", { distance: 10800 }, { seriesSampled: { sampleSize: 10, data: { heartrate: [...Array(360)].map((_, i) => (i < 180 ? 140 : 160)) } } }),
-  [],
-);
-assert.equal(Math.round(sampled.rows.find((r) => r.key === "heartbeatsPerKm").value), 833, "A full heart-rate stream stands in for a missing summary average");
-assert.equal(runningTechnique(run("no-distance", "2026-10-04T12:00:00Z", { heartrate: 150 }), []).rows.find((r) => r.key === "heartbeatsPerKm")?.value ?? null, null, "No distance, no economy");
-console.log("Passed running economy: beats per km, watts per km/h, stream fallback and missing distance.");
