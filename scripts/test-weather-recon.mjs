@@ -104,3 +104,30 @@ assert.deepEqual(modelAgreement(blended.hours),{kind:'split',total:3,rainy:2,sta
 assert.equal(modelAgreement(parseWeather({hourly:{time:[t0],temperature_2m:[10]}}).hours),null,'A single model has nothing to agree with');
 assert.throws(()=>parseWeatherSources({hourly:{time:times}}),'No model readings fails clearly');
 console.log('Weather sources: per-model split, median/mean blend, circular wind direction, rain agreement passed.');
+
+// Wind map: projection, grid, interpolation, colours, advice and stops.
+const mapSource=ts.transpileModule(readFileSync(new URL('../app/weather-map-data.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace("from './weather-recon-data'",`from 'data:text/javascript;base64,${Buffer.from(source).toString('base64')}'`);
+const map=await import('data:text/javascript;base64,'+Buffer.from(mapSource).toString('base64'));
+const back=map.unproject(...Object.values(map.project(48.8566,2.3522)));
+assert.ok(Math.abs(back.latitude-48.8566)<1e-9&&Math.abs(back.longitude-2.3522)<1e-9,'Projection round-trips');
+const frame=map.mapFrame(48.8566,2.3522);
+assert.ok(frame.south<48.8566&&48.8566<frame.north&&frame.west<2.3522&&2.3522<frame.east,'The town sits inside the frame');
+const pts=map.gridPoints(frame,5,4);assert.equal(pts.length,20);
+assert.ok(pts.every(p=>p.latitude>=frame.south-1e-3&&p.latitude<=frame.north+1e-3),'Grid points stay on the map');
+assert.throws(()=>map.parseGrid([{hourly:{time:[1]}}],2),'A short multi-location answer is rejected');
+const grid=map.parseGrid([{hourly:{time:[100],wind_speed_10m:[10],wind_direction_10m:[270],precipitation_probability:[null]}},{hourly:{time:[100],wind_speed_10m:[30],wind_direction_10m:[270]}}],2);
+assert.deepEqual(map.gridValues(grid,100,'wind'),[10,30]);assert.deepEqual(map.gridValues(grid,100,'rain'),[null,null]);
+assert.equal(map.interpolate([10,30],2,1,400,210),20,'Halfway between two points is their mean');
+assert.equal(map.interpolate([10,null],2,1,500,210),10,'Missing neighbours are skipped, not treated as zero');
+assert.equal(map.heatColor('wind',0),'#e0f2fe');assert.equal(map.heatColor('wind',99),'#dc2626');assert.match(map.heatColor('rain',35),/^#[0-9a-f]{6}$/);
+const hour=(time,wind,direction,gust=20)=>({time,temperature:12,rainChance:5,rain:0,wind,direction,gust,code:2,daylight:1});
+const westerly=map.windAdvice([hour(1,12,260),hour(2,14,280),hour(3,18,270)],35);
+assert.ok(Math.abs(westerly.heading-270)<5,'Ride out into a westerly');
+assert.match(westerly.tips[0],/Start west/);assert.match(westerly.tips[1],/builds from 12 to 18/);
+assert.match(map.windAdvice([hour(1,4,90),hour(2,5,90)],35).tips[0],/Light wind/);
+assert.match(map.windAdvice([hour(1,20,180,48)],35).tips.at(-1),/Gusts up to 48/);
+assert.equal(map.windAdvice([],35),null);
+assert.match(map.poiQuery(frame),/node\["amenity"="drinking_water"\]\(48\.\d{4},2\.\d{4},48\.\d{4},2\.\d{4}\)/,'Stops are asked for inside the map frame');
+const stops=map.parsePois({elements:[{id:1,lat:48.86,lon:2.35,tags:{amenity:'cafe',name:'Le Vélo'}},{id:2,lat:48.85,lon:2.34,tags:{amenity:'bench'}},{id:3,tags:{amenity:'toilets'}}]},frame);
+assert.deepEqual(stops.map(s=>[s.kind,s.name]),[['cafe','Le Vélo']],'Unknown kinds and stops without a position are dropped');
+console.log('Wind map: projection, grid, interpolation, colour scales, ride direction advice and stops passed.');
