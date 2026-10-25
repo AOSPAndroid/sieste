@@ -4,6 +4,7 @@ const {lapElevation}=await import('data:text/javascript;base64,'+Buffer.from(ts.
 const native=new Function(source('app/coros-native.ts')+';return {COROS_NATIVE_VERSION,corosNativeActivity,corosNativeSnapshot}')();
 const activity={id:'coros_100_abc',provider:'coros',date:'2026-09-19',coros:{labelId:'abc',sportType:100},summary:{duration:60,vo2max:53.2,steps:11127}};
 const files=new Map([['snapshot',JSON.stringify({provider:'coros',activities:[activity],extra:{coros:{importVersion:2}}})],['owner/rev/fit/coros_100_abc.fit',new Uint8Array([1,2,3])]]);
+files.set('owner/rev/native-detail-v3/'+activity.id+'.json',JSON.stringify({...activity,nativeVersion:3,summary:{duration:60,cadence:999}}));
 let downloads=0,quota=0,calls=0,saved=0;
 const bucket={get:async key=>files.has(key)?{json:async()=>JSON.parse(files.get(key)),arrayBuffer:async()=>files.get(key).buffer}:null,put:async(k,v)=>files.set(k,v)};
 const {sportFamily}=new Function(source('app/sports.ts')+';return {sportFamily}')();
@@ -13,8 +14,8 @@ const {corosAction}=new Function(...Object.keys(dependencies),source('app/api/co
 const row={owner:'a',revision:'rev',snapshot_key:'snapshot'};
 const preview=await corosAction(row,{action:'preview',id:activity.id});assert.ok(preview.details[0].elevationPreview);assert.equal(preview.details[0].seriesSampled,undefined);assert.equal(saved,0);assert.equal(quota,0);assert.equal(downloads,0);
 const previewAgain=await corosAction(row,{action:'preview',id:activity.id});assert.ok(previewAgain.details[0].elevationPreview);
-const result=await corosAction(row,{action:'detail',id:activity.id});assert.equal(result.details[0].summary.vo2max,undefined);assert.equal(result.details[0].summary.steps,undefined);assert.equal(result.details[0].summary.cadence,180);assert.equal(result.details[0].nativeVersion,3);assert.ok(result.details[0].elevationPreview);assert.equal(saved,1);assert.equal(quota,0);assert.equal(downloads,0);assert.equal(calls,2);
+const result=await corosAction(row,{action:'detail',id:activity.id});assert.equal(result.details[0].summary.vo2max,undefined);assert.equal(result.details[0].summary.steps,undefined);assert.equal(result.details[0].summary.cadence,180);assert.equal(result.details[0].nativeVersion,native.COROS_NATIVE_VERSION);assert.ok(result.details[0].elevationPreview);assert.equal(saved,1);assert.equal(quota,0);assert.equal(downloads,0);assert.equal(calls,2);
 await corosAction(row,{action:'detail',id:activity.id});assert.equal(calls,2);assert.equal(quota,0);assert.equal(downloads,0);
 const enriched=await corosAction(row,{action:'enrich',ids:[activity.id]});assert.equal(enriched.details[0].seriesSampled,undefined);assert.ok(enriched.details[0].laps);assert.ok(enriched.details[0].evidence);
 await assert.rejects(()=>corosAction(row,{action:'detail',id:'coros_100_someoneelse'}),/not found/);
-console.log('COROS detail migration: saved FIT reused, no download quota consumed, clean v3 cache, subsequent cache hit and account activity guard passed.');
+console.log('COROS detail migration: old decoded cache refreshed from saved FIT, no download quota consumed, subsequent cache hit and account activity guard passed.');

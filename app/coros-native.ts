@@ -1,11 +1,13 @@
-// Only explicitly mapped COROS fields cross the provider boundary. Version 3
-// invalidates details/analyses which previously spread an archived summary.
-export const COROS_NATIVE_VERSION=3;
+// Only explicitly mapped COROS fields cross the provider boundary. Version 4
+// refreshes decoded FIT data for the additional recorded dynamics. Version 3
+// already enforced provenance and remains readable while those files refresh.
+export const COROS_NATIVE_VERSION=4;
+export const isCorosNativeVersion=(version:unknown)=>version===3||version===COROS_NATIVE_VERSION;
 const recordKeys=['duration','durationTotal','distance','heartrate','calories','sets','pace','speed','trainingLoad','aerobicTrainingEffect','anaerobicTrainingEffect'];
-const nativeKeys=[...recordKeys,'cadence','stepLength','power','normalizedPower','heartrateMax','powerMax','speedMax','temperature','groundContactTime','verticalRatio','verticalOscillation','altitude','hrBands','zonesDistribution'];
+const nativeKeys=[...recordKeys,'cadence','stepLength','power','normalizedPower','heartrateMax','powerMax','speedMax','temperature','groundContactTime','verticalRatio','verticalOscillation','altitude','hrBands','zonesDistribution','groundContactTimeBalance','respirationRate','leftRightBalance','torqueEffectiveness','pedalSmoothness'];
 export function corosNativeSummary(summary:any,verified=false){return Object.fromEntries((verified?nativeKeys:recordKeys).filter(k=>summary?.[k]!==undefined).map(k=>[k,summary[k]]))}
 export function corosNativeActivity(a:any){
- const verified=a.nativeVersion===COROS_NATIVE_VERSION;
+ const verified=isCorosNativeVersion(a.nativeVersion);
  const result:any={id:a.id,provider:'coros',coros:a.coros,date:a.date,localDay:a.localDay,sportType:a.sportType,subSportType:a.subSportType,title:a.title,sessionLabel:a.sessionLabel,summary:corosNativeSummary(a.summary,verified)};
  if(a.fallbackId)result.fallbackId=a.fallbackId; // Removal alias only; never a data source.
  if(verified)for(const key of ['nativeVersion','analysisSource','recordedSource','analyzed','evidence','hrHistogram','laps','seriesSampled'])if(a[key]!==undefined)result[key]=a[key];

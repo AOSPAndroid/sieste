@@ -1,6 +1,6 @@
 import type {AthleteData,Workout} from './analytics';
 import {sportFamily} from './sports';
-import {corosNativeSummary,COROS_NATIVE_VERSION} from './coros-native';
+import {corosNativeSummary,isCorosNativeVersion} from './coros-native';
 
 type RecordedWorkout=Workout&{localDay?:string};
 type Summary=Record<string,any>;
@@ -11,7 +11,7 @@ const mean=(values:number[])=>values.reduce((sum,v)=>sum+v,0)/values.length;
 const day=(date:Date)=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 const shift=(date:string,amount:number)=>{const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+amount);return day(d)};
 export function workoutDay(activity:RecordedWorkout){return /^\d{4}-\d\d-\d\d$/.test(activity.localDay??'')?activity.localDay!:day(new Date(activity.date))}
-export function recordedWorkoutSummary(activity:RecordedWorkout):Summary{return activity.provider==='coros'?corosNativeSummary(activity.summary,activity.nativeVersion===COROS_NATIVE_VERSION):activity.summary??{}}
+export function recordedWorkoutSummary(activity:RecordedWorkout):Summary{return activity.provider==='coros'?corosNativeSummary(activity.summary,isCorosNativeVersion(activity.nativeVersion)):activity.summary??{}}
 function workouts(detail:RecordedWorkout,history:Workout[],now:Date){const byId=new Map<string,RecordedWorkout>();for(const a of history)if(Number.isFinite(Date.parse(a.date))&&new Date(a.date)<=now)byId.set(a.id,a);byId.set(detail.id,detail);return [...byId.values()].sort((a,b)=>Date.parse(a.date)-Date.parse(b.date)||a.id.localeCompare(b.id))}
 function finish(activity:RecordedWorkout){const summary=recordedWorkoutSummary(activity),seconds=positive(summary.durationTotal)?summary.durationTotal:positive(summary.duration)?summary.duration:null;return seconds===null?null:Date.parse(activity.date)+seconds*1000}
 function gap(first:RecordedWorkout,second:RecordedWorkout){const end=finish(first);if(end===null)return {hours:null,overlap:false};const milliseconds=Date.parse(second.date)-end;return {hours:milliseconds>=0?milliseconds/3600000:null,overlap:milliseconds<0}}

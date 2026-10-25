@@ -19,7 +19,6 @@ assert.equal(h.sameRoute(path(west),path(west.slice(0,40))),false,'A much shorte
 const loop=Array.from({length:81},(_,i)=>[48.85+.02*Math.sin(i*Math.PI/40),2.35+.03*(1-Math.cos(i*Math.PI/40))]);
 assert.equal(h.sameRoute(path(loop),path([...loop].reverse())),false,'Opposite directions around a closed loop are different timed routes');
 assert.equal(h.sameRoute(path(loop),path(loop.map(([lat,lon])=>[lat+.0001,lon+.0001]))),true,'A loop still matches with small GPS differences');
-const bearing=h.outboundBearing(sig.decode(path(west).line));assert.ok(Math.abs(bearing-270)<3,'Out-and-back west heads out at 270°');
 
 const ride=(id,date,points,duration,extra={})=>({id,date,sportType:'cycling',title:id,summary:{duration,distance:path(points).distance,...extra.summary},evidence:{route:path(points),climbs:extra.climbs??[],best:extra.best}});
 const history=[ride('a','2026-09-01T08:00:00Z',west,3600),ride('b','2026-09-08T08:00:00Z',westAgain,3500),ride('c','2026-09-10T08:00:00Z',north,3000),ride('later','2026-10-30T08:00:00Z',west,3000)];
@@ -41,9 +40,4 @@ assert.deepEqual(records.map(r=>r.id),['power-60','distance','climb'],'1 min pow
 assert.equal(records[0].previous,403);
 assert.deepEqual(h.workoutRecords(today,analysed.slice(0,2)),[],'Fewer than three analysed sessions: no records claimed');
 
-// Loops from near home: into the wind first, close to the wanted length, duplicates once.
-const loops=h.suggestLoops([...history,ride('dup','2026-09-20T08:00:00Z',west,3400)],[48.85,2.35],{from:270,mean:15},path(west).distance);
-assert.equal(loops[0].workout.id,'later','The most recent copy of the westward route leads into a westerly');
-assert.ok(loops.every((l,i)=>!loops.slice(i+1).some(m=>h.sameRoute(l.route,m.route))),'Each route appears once');
-assert.equal(h.suggestLoops(history,[40,0],{from:270,mean:15},null).length,0,'Nothing starts near a far-away place');
-console.log('Route history: route matching, earlier attempts, climb attempts, records, outbound bearing and loop suggestions passed.');
+console.log('Route history: route matching, earlier attempts, climb attempts and records passed.');

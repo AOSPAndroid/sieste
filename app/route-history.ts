@@ -2,8 +2,7 @@ import {decode,metres,toSegment,type LatLon,type RouteSignature,type ClimbSignat
 import {sportFamily} from './sports';
 
 // Uses the compact routes and climbs stored with past workouts: the same
-// route or climb ridden before, records set in this workout, and where you
-// usually ride.
+// route or climb ridden before, and records set in this workout.
 type Best={seconds:number;value:number};
 export type HistoryWorkout={id:string;date:string;sportType?:string;subSportType?:string;title?:string;summary?:{duration?:unknown;distance?:unknown;heartrate?:unknown;power?:unknown};evidence?:{best?:Record<string,(Best|null)[]>;route?:RouteSignature|null;climbs?:ClimbSignature[]}};
 const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
@@ -69,25 +68,4 @@ export function workoutRecords(current:HistoryWorkout,history:HistoryWorkout[]){
  const gain=Math.max(...(current.evidence?.climbs??[]).map(c=>c.gain)),biggest=Math.max(...prior.flatMap(w=>(w.evidence?.climbs??[]).map(c=>c.gain)));
  if(Number.isFinite(gain)&&Number.isFinite(biggest)&&gain>biggest)records.push({id:'climb',label:'Biggest climb',value:gain,previous:biggest,kind:'climb'});
  return records;
-}
-
-/** Outbound bearing in degrees: from the start towards the point farthest from it. */
-export function outboundBearing(line:LatLon[]){
- const start=line[0];let far=start,d=0;for(const p of line){const m=metres(start,p);if(m>d){d=m;far=p}}
- const k=Math.PI/180,y=Math.sin((far[1]-start[1])*k)*Math.cos(far[0]*k),x=Math.cos(start[0]*k)*Math.sin(far[0]*k)-Math.sin(start[0]*k)*Math.cos(far[0]*k)*Math.cos((far[1]-start[1])*k);
- return (Math.atan2(y,x)/k+360)%360;
-}
-/**
- * Rides you have done from near this place, ranked for the forecast: heading
- * out into the wind (so it is behind you on the way home) and a length that
- * fits the ride window. Near-identical routes count once, most recent kept.
- */
-export function suggestLoops(history:HistoryWorkout[],place:LatLon,wind:{from:number;mean:number}|null,targetMetres:number|null,limit=3){
- const rides=history.filter(w=>sportFamily(w)==='cycling'&&w.evidence?.route&&metres(w.evidence.route.start,place)<=3000).sort((a,b)=>Date.parse(b.date)-Date.parse(a.date));
- const unique:HistoryWorkout[]=[];for(const r of rides)if(!unique.some(u=>sameRoute(u.evidence!.route!,r.evidence!.route!)))unique.push(r);
- return unique.map(w=>{
-  const route=w.evidence!.route!,line=routePoints(route),heading=outboundBearing(line);
-  const into=wind&&wind.mean>=8?Math.cos((heading-wind.from)*Math.PI/180):0,fit=targetMetres?1-Math.min(1,Math.abs(route.distance-targetMetres)/targetMetres):.5;
-  return {workout:w,route,line,heading,into,fit,score:(wind&&wind.mean>=8?.6*into:0)+.4*fit};
- }).sort((a,b)=>b.score-a.score).slice(0,limit);
 }

@@ -315,6 +315,11 @@ export default function RunningTechnique({
           Pace, terrain, shoes and device changes can affect technique readings.
         </p>
         <p>
+          Running effectiveness (Tredict) is speed for each watt per kilogram,
+          about 1.0 for most runners; speed and power per heartbeat are
+          Tredict&apos;s aerobic factors. For all three, higher is more
+          economical, while beats per km and watts per km/h are lower when
+          more economical.{" "}
           Step length is the distance from one footfall to the next; a full
           stride spans two steps. Values come from recorded workout averages, or
           sensor samples covering at least 80% of the recorded timeline. Step
