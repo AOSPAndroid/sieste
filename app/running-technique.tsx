@@ -16,6 +16,7 @@ import {
   type TechniqueActivity,
 } from "./running-technique-data";
 import { paceLabel } from "./activity-metrics";
+import RunningEconomy from "./running-economy";
 import "./running-technique.css";
 
 const number = (v: number | null, digits = 1) =>
@@ -29,10 +30,12 @@ export default function RunningTechnique({
   detail,
   history,
   loading,
+  athlete,
 }: {
   detail: TechniqueActivity;
   history: TechniqueActivity[];
   loading: boolean;
+  athlete?: Parameters<typeof RunningEconomy>[0]["athlete"];
 }) {
   const [similar, setSimilar] = useState(false),
     [chosen, setChosen] = useState<TechniqueKey>("stepLength");
@@ -63,8 +66,12 @@ export default function RunningTechnique({
       <header>
         <div>
           <h3>Running economy</h3>
-          <p>Technique and the cost of each kilometre against your weekly, monthly and yearly averages</p>
+          <p>What a kilometre costs you, and the technique behind it, against your own runs</p>
         </div>
+      </header>
+      <RunningEconomy detail={detail as Parameters<typeof RunningEconomy>[0]["detail"]} history={history as Parameters<typeof RunningEconomy>[0]["history"]} athlete={athlete ?? null} />
+      <div className="technique-subhead">
+        <h4>Technique against your averages</h4>
         <div
           className="technique-scope"
           role="group"
@@ -86,7 +93,7 @@ export default function RunningTechnique({
             Similar pace
           </button>
         </div>
-      </header>
+      </div>
       <div
         className="technique-table-scroll"
         role="region"
@@ -318,8 +325,7 @@ export default function RunningTechnique({
           Running effectiveness (Tredict) is speed for each watt per kilogram,
           about 1.0 for most runners; speed and power per heartbeat are
           Tredict&apos;s aerobic factors. For all three, higher is more
-          economical, while beats per km and watts per km/h are lower when
-          more economical.{" "}
+          economical.{" "}
           Step length is the distance from one footfall to the next; a full
           stride spans two steps. Values come from recorded workout averages, or
           sensor samples covering at least 80% of the recorded timeline. Step

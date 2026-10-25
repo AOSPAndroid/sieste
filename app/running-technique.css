@@ -231,3 +231,28 @@
     align-items: flex-start;
   }
 }
+
+/* Economy: estimated cost, against your usual at this pace */
+.running-economy { display: grid; gap: 10px; margin: 4px 0 18px; padding-bottom: 16px; border-bottom: 1px solid rgba(11, 18, 32, 0.08); }
+.running-economy > header { display: grid; gap: 2px; }
+.running-economy > header small, .running-economy .economy-chart small, .economy-empty { font-size: 12px; color: #5b6678; }
+.running-economy .economy-headline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.running-economy .economy-headline b { font-size: 34px; line-height: 1; font-weight: 700; letter-spacing: -0.02em; color: #0b1220; font-variant-numeric: tabular-nums; }
+.running-economy .economy-headline span { font-size: 13px; font-weight: 600; color: #0b1220; }
+.running-economy .economy-headline small { flex-basis: 100%; font-size: 12px; color: #5b6678; }
+.running-economy .economy-verdict { margin: 0; font-size: 14px; font-weight: 600; color: #0b1220; }
+.running-economy .economy-verdict.is-better { color: #15803d; }
+.running-economy .economy-verdict.is-worse { color: #c2410c; }
+.running-economy .economy-windows { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.running-economy .economy-windows li { display: grid; gap: 2px; padding: 8px 10px; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(11, 18, 32, 0.08); }
+.running-economy .economy-windows span { font-size: 11px; color: #5b6678; }
+.running-economy .economy-windows b { font-size: 15px; font-weight: 650; color: #0b1220; font-variant-numeric: tabular-nums; }
+.running-economy .economy-chart { display: grid; gap: 4px; }
+.running-economy .economy-links h5 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: #0b1220; }
+.running-economy .economy-links ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.running-economy .economy-links li { display: grid; gap: 2px; font-size: 13px; }
+.running-economy .economy-links li b { font-weight: 600; color: #0b1220; }
+.running-economy .economy-links li span { font-size: 12px; color: #5b6678; }
+.running-economy .economy-method summary { font-size: 12px; color: #5b6678; cursor: pointer; }
+.technique-subhead { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.running-economy .economy-windows-note { margin-top: -4px; font-size: 11px; color: #5b6678; }
