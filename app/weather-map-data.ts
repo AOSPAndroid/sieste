@@ -19,17 +19,21 @@ export function unproject(x:number,y:number,zoom=mapView.zoom){
  const scale=256*2**zoom,n=Math.PI-2*Math.PI*y/scale;
  return {latitude:180/Math.PI*Math.atan(Math.sinh(n)),longitude:x/scale*360-180};
 }
-/** The map's top-left pixel and its edges in degrees, centred on the town. */
-export function mapFrame(latitude:number,longitude:number,zoom=mapView.zoom){
- const c=project(latitude,longitude,zoom),left=c.x-mapView.width/2,top=c.y-mapView.height/2;
- const nw=unproject(left,top,zoom),se=unproject(left+mapView.width,top+mapView.height,zoom);
- return {left,top,zoom,south:se.latitude,west:nw.longitude,north:nw.latitude,east:se.longitude};
+/** The map's top-left pixel, size and edges in degrees, centred on a point. */
+export function mapFrame(latitude:number,longitude:number,zoom=mapView.zoom,width=mapView.width,height=mapView.height){
+ const c=project(latitude,longitude,zoom),left=c.x-width/2,top=c.y-height/2;
+ const nw=unproject(left,top,zoom),se=unproject(left+width,top+height,zoom);
+ return {left,top,zoom,width,height,south:se.latitude,west:nw.longitude,north:nw.latitude,east:se.longitude};
+}
+/** Move the centre by a drag of (dx,dy) pixels. */
+export function panBy(latitude:number,longitude:number,zoom:number,dx:number,dy:number){
+ const c=project(latitude,longitude,zoom);return unproject(c.x-dx,c.y-dy,zoom);
 }
 /** Evenly spaced forecast points across the frame, in map pixels. */
 export function gridPoints(frame:ReturnType<typeof mapFrame>,columns=5,rows=4):GridPoint[]{
  const points:GridPoint[]=[];
  for(let r=0;r<rows;r++)for(let c=0;c<columns;c++){
-  const x=(c+.5)/columns*mapView.width,y=(r+.5)/rows*mapView.height,{latitude,longitude}=unproject(frame.left+x,frame.top+y,frame.zoom);
+  const x=(c+.5)/columns*frame.width,y=(r+.5)/rows*frame.height,{latitude,longitude}=unproject(frame.left+x,frame.top+y,frame.zoom);
   points.push({latitude:Math.round(latitude*1000)/1000,longitude:Math.round(longitude*1000)/1000,x,y});
  }
  return points;
@@ -47,8 +51,8 @@ const field:Record<HeatLayer,keyof GridHour>={wind:'wind',rain:'rainChance',temp
 /** Values at one hour across the grid, null where a point has no reading. */
 export function gridValues(grid:GridHour[][],time:number,layer:HeatLayer){return grid.map(hours=>num(hours.find(h=>h.time===time)?.[field[layer]]))}
 /** Bilinear interpolation of a columns×rows grid at map pixel (x,y). */
-export function interpolate(values:(number|null)[],columns:number,rows:number,x:number,y:number){
- const gx=Math.min(columns-1,Math.max(0,x/mapView.width*columns-.5)),gy=Math.min(rows-1,Math.max(0,y/mapView.height*rows-.5));
+export function interpolate(values:(number|null)[],columns:number,rows:number,x:number,y:number,width=mapView.width,height=mapView.height){
+ const gx=Math.min(columns-1,Math.max(0,x/width*columns-.5)),gy=Math.min(rows-1,Math.max(0,y/height*rows-.5));
  const c0=Math.floor(gx),r0=Math.floor(gy),c1=Math.min(columns-1,c0+1),r1=Math.min(rows-1,r0+1),fx=gx-c0,fy=gy-r0;
  const corners:[number,number][]=[[r0*columns+c0,(1-fx)*(1-fy)],[r0*columns+c1,fx*(1-fy)],[r1*columns+c0,(1-fx)*fy],[r1*columns+c1,fx*fy]];
  let sum=0,weight=0;for(const [i,w] of corners){const v=values[i];if(v!==null&&w>0){sum+=v*w;weight+=w}}
