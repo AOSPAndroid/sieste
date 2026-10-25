@@ -34,6 +34,7 @@ Object.assign(imports,{
  './workout-hero':hero,'./sports':sports,'./activity-metrics':metrics,
  './activity-profile':{__esModule:true,default:({onSelection})=>{routeCallbacks.push(onSelection);return null}},
  './trend':{sessionTrend:()=>null,vo2Trend:()=>null},
+ './athlete-thresholds':{zoneVersionAt:()=>null},'./activity-zones':{...silentModule,ZoneStrip:Silent},'./pedalling':{__esModule:true,default:Silent},'./conditions-data':{heatEffect:()=>null,heatNote:()=>''},
  './expansion':{ExpandButton:Silent},
  './widget-spark':{__esModule:true,default:({values})=>React.createElement('span',{'data-chart-values':JSON.stringify(values)})},
  recharts:Object.fromEntries(['ResponsiveContainer','ComposedChart','Line','Area','CartesianGrid','XAxis','YAxis','Tooltip'].map(key=>[key,Silent])),

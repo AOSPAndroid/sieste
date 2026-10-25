@@ -1,4 +1,4 @@
-import {corosNativeActivity,COROS_NATIVE_VERSION} from '../app/coros-native';
+import {corosNativeActivity,isCorosNativeVersion} from '../app/coros-native';
 import {storage} from './storage';
 export async function analysisIdentity(token:string){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token));return Array.from(new Uint8Array(bytes),n=>n.toString(16).padStart(2,'0')).join('')}
 export function analysisSignature(a:any){return JSON.stringify([a.date,a.sportType,a.subSportType??null,a.summary??null])}
@@ -11,7 +11,7 @@ export async function restoreAnalyses(owner:string,identity:string,data:any){
  ]) as [D1Result<{activity_id:string;signature:string;data:string}>,D1Result<{activity_id:string;label:string}>];
  const labelMap=new Map(labels.results.map(r=>[r.activity_id,r.label]));
  const map=new Map(result.results.map(r=>[r.activity_id,r]));
- return {...data,activities:data.activities.map((original:any)=>{const a={...original,sessionLabel:labelMap.get(original.id)??original.sessionLabel??null};const row=map.get(a.id);if(!row||row.signature!==analysisSignature(a))return a;try{const d=analysisData(row.data);return d.evidence?.version===1&&!(a.provider==='coros'&&(d.analysisSource!=='COROS FIT'||d.nativeVersion!==COROS_NATIVE_VERSION))?{...a,nativeVersion:d.nativeVersion,summary:a.provider==='coros'?corosNativeActivity({...d,nativeVersion:d.nativeVersion}).summary:{...a.summary,...d.summary},hrHistogram:d.hrHistogram,evidence:d.evidence,analysisSource:d.analysisSource,analyzed:true}:a}catch{return a}})};
+ return {...data,activities:data.activities.map((original:any)=>{const a={...original,sessionLabel:labelMap.get(original.id)??original.sessionLabel??null};const row=map.get(a.id);if(!row||row.signature!==analysisSignature(a))return a;try{const d=analysisData(row.data);return d.evidence?.version===1&&!(a.provider==='coros'&&(d.analysisSource!=='COROS FIT'||!isCorosNativeVersion(d.nativeVersion)))?{...a,nativeVersion:d.nativeVersion,summary:a.provider==='coros'?corosNativeActivity({...d,nativeVersion:d.nativeVersion}).summary:{...a.summary,...d.summary},hrHistogram:d.hrHistogram,evidence:d.evidence,analysisSource:d.analysisSource,analyzed:true}:a}catch{return a}})};
 }
 export async function saveAnalysis(owner:string,identity:string,activity:any,detail:any,revision:string,provider:'tredict'|'coros'='tredict'){
  if(detail.evidence?.version!==1)return;

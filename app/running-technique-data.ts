@@ -75,6 +75,31 @@ export const techniqueMetrics = [
     min: 3,
     max: 80,
   },
+  // Tredict's efficiency scores: speed per watt and output per heartbeat. Higher is more economical.
+  {
+    key: "runningEffectiveness",
+    label: "Running effectiveness",
+    unit: "",
+    digits: 2,
+    min: 0.3,
+    max: 3,
+  },
+  {
+    key: "speedAerobicFactor",
+    label: "Speed per heartbeat",
+    unit: "",
+    digits: 1,
+    min: 1,
+    max: 500,
+  },
+  {
+    key: "powerAerobicFactor",
+    label: "Power per heartbeat",
+    unit: "",
+    digits: 2,
+    min: 0.1,
+    max: 50,
+  },
 ] as const;
 export type TechniqueKey = (typeof techniqueMetrics)[number]["key"];
 export type TechniqueActivity = {

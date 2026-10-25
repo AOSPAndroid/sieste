@@ -7,6 +7,7 @@ export const numberLabel=(v:unknown,d=1)=>finite(v)?v.toLocaleString('en-GB',{ma
 export function paceLabel(v:unknown){if(!finite(v)||v<=0)return '—';const seconds=Math.round(v);return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`}
 export function durationLabel(v:unknown){if(!finite(v)||v<0)return '—';const s=Math.round(v);return s>=3600?`${Math.floor(s/3600)}h ${Math.floor(s%3600/60)}m ${s%60}s`:`${Math.floor(s/60)}m ${s%60}s`}
 export type ActivityMetric={id:string;title:string;value:string;unit:string;note:string;color:string;values:(number|null)[];pace?:boolean;group:'Session'|'Technique'|'Conditions';explanation:string};
+export const effectWord=(v:unknown)=>typeof v!=='number'||!Number.isFinite(v)?'not recorded':v<1?'none':v<2?'minor':v<3?'maintaining':v<4?'improving':v<5?'highly improving':'overreaching';
 export function activityMetrics(detail:Data){
  if(detail.provider==='coros')detail=corosNativeActivity(detail);
  const s=detail.summary??{},streams=detail.seriesSampled?.data??{},family=sportFamily(detail),run=family==='running';
@@ -38,6 +39,9 @@ export function activityMetrics(detail:Data){
  const effort=s.effort?.heartrate??s.effort?.power;
  if(detail.provider==='coros')add({id:'trainingLoad',title:'Training load',value:numberLabel(s.trainingLoad,0),unit:'',note:'COROS load',color:'#8b5bd1',values:[],group:'Session',explanation:'COROS recorded activity training load; separate from other providers’ scores.'});
  else add({id:'effort',title:'Training effort',value:numberLabel(effort,0),unit:'',note:'Tredict effort',color:'#8b5bd1',values:[],group:'Session',explanation:'Tredict’s recorded workout effort, not a readiness score or an injury prediction.'});
+ // Training effect on the usual 0–5 scale, in words: what the session did for fitness.
+ const ae=s.aerobicTrainingEffect,an=s.anaerobicTrainingEffect;
+ if(finite(ae)||finite(an))add({id:'trainingEffect',title:'Training effect',value:`${finite(ae)?ae.toFixed(1):'—'} · ${finite(an)?an.toFixed(1):'—'}`,unit:'',note:`Aerobic ${effectWord(ae)} · anaerobic ${effectWord(an)}`,color:'#8b5bd1',values:[],group:'Session',explanation:'Aerobic then anaerobic training effect, 0 to 5: under 1 no effect, 1 minor, 2 maintaining, 3 improving, 4 highly improving, 5 overreaching.'});
  for(const [key,title,unit,color] of [['stepLength','Step length','cm','#218e86'],['groundContactTime','Ground contact','ms','#b88646'],['flightTime','Flight time','ms','#7b88b9'],['verticalOscillation','Vertical oscillation','cm','#9980bc'],['verticalRatio','Vertical ratio','%','#7a80b6'],['groundContactTimeBalance','Contact balance','%','#8b7aaa'],['leftRightBalance','Power balance','%','#8b7aaa'],['formPower','Form power','W','#8b5bd1'],['airPower','Air power','W','#769aaa']])sensor(key,title,unit,color,'Technique');
  for(const [key,title,unit] of [['torqueEffectiveness','Torque effectiveness','%'],['pedalSmoothness','Pedal smoothness','%'],['temperature','Temperature','°C'],['grade','Gradient','%'],['respirationRate','Breathing rate','breaths/min']])sensor(key,title,unit,'#6f8c9e','Conditions');
  // Recognized adjusted speed is transformed into athlete-facing pace or km/h.
