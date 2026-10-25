@@ -225,3 +225,13 @@
 .sieste-v3 .weather-recon .weather-map-advice strong{display:block;font-size:13px;font-weight:700;color:#3730a3}
 .sieste-v3 .weather-recon .weather-map-advice ul{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.45}
 .sieste-v3 .weather-recon .weather-map-note{margin:0;font-size:12px;color:var(--n-muted)}
+
+/* Next two hours: a 15-minute rain strip under the town */
+.sieste-v3 .weather-recon .weather-nowcast{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 .weather-recon .weather-nowcast>p{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;color:var(--n-ink)}
+.sieste-v3 .weather-recon .weather-nowcast>p svg{width:17px;height:17px;flex:none;color:#e48a0b}
+.sieste-v3 .weather-recon .weather-nowcast:not(.is-dry)>p svg{color:#1a8fd0}
+.sieste-v3 .weather-recon .weather-nowcast-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:3px}
+.sieste-v3 .weather-recon .weather-nowcast-strip>i{height:14px;border-radius:4px;background:color-mix(in srgb,#1a8fd0 calc(var(--chance,0)*35%),#eef0f4)}
+.sieste-v3 .weather-recon .weather-nowcast-strip>i.is-wet{background:color-mix(in srgb,#0f5f9c calc(40% + var(--rain,0)*60%),#9cc9ee)}
+.sieste-v3 .weather-recon .weather-nowcast-times{display:flex;justify-content:space-between;font-size:11px;color:var(--n-muted);font-variant-numeric:tabular-nums}

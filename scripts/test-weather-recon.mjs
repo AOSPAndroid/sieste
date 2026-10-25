@@ -131,3 +131,14 @@ assert.match(map.poiQuery(frame),/node\["amenity"="drinking_water"\]\(48\.\d{4},
 const stops=map.parsePois({elements:[{id:1,lat:48.86,lon:2.35,tags:{amenity:'cafe',name:'Le Vélo'}},{id:2,lat:48.85,lon:2.34,tags:{amenity:'bench'}},{id:3,tags:{amenity:'toilets'}}]},frame);
 assert.deepEqual(stops.map(s=>[s.kind,s.name]),[['cafe','Le Vélo']],'Unknown kinds and stops without a position are dropped');
 console.log('Wind map: projection, grid, interpolation, colour scales, ride direction advice and stops passed.');
+
+// Next two hours: 15-minute slots summed up in one sentence.
+const {parseNowcast,nowcastSummary}=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../app/weather-recon-data.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText).toString('base64'));
+const q0=Date.parse('2026-10-25T12:00:00Z')/1000,slots=(rain,chance=rain.map(()=>0))=>parseNowcast({minutely_15:{time:rain.map((_,i)=>q0+i*900),precipitation:rain,precipitation_probability:chance}});
+assert.equal(nowcastSummary(slots([0,0,0,0,0,0,0,0]),'Europe/Paris').text,'Dry for the next 2 hours');
+assert.equal(nowcastSummary(slots([0,0,0.4,0.6,0,0,0,0]),'Europe/Paris').text,'Dry until 13:30, then rain for about 30 min');
+assert.equal(nowcastSummary(slots([0.5,0.3,0,0,0,0,0,0]),'Europe/Paris').text,'Raining now · drying from 13:30');
+assert.equal(nowcastSummary(slots([0,0,0,0,0,0,0.2,0.3]),'Europe/Paris').text,'Dry until 14:30, then rain for the rest of the 2 hours');
+assert.equal(nowcastSummary(slots([0,0,0,0,0,0,0,0],[0,0,60,60,0,0,0,0]),'Europe/Paris').kind,'later','A likely shower counts even before any millimetres');
+assert.equal(nowcastSummary(parseNowcast({}),'UTC'),null,'No 15-minute data, no strip');
+console.log('Nowcast: dry, shower later, raining now, rain to the end, likely showers and no data passed.');
