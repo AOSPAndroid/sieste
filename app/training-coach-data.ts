@@ -1,4 +1,6 @@
 import {sensorEvidence} from './tredict-opportunities-data';
+import {routeSignature,climbSignatures} from './route-signature';
+import {ROUTE_VERSION} from './route-version';
 import {runningSignals,classifySession} from './session-intelligence-data';
 import type {AthleteData,Workout} from './analytics';
 import {sportFamily} from './sports';
@@ -33,7 +35,8 @@ export function workoutEvidence(detail:any){
   const cap=finite(summary.durationTotal)?summary.durationTotal:values.length*step;
   result[key]=[5,15,30,60,300,1200,3600].map(s=>sampledBest(values,step,s,cap)).filter(v=>v!==null&&v.value>0);
  }
- return {version:1,best:result,sampleSeconds:finite(step)?step:null,insightVersion:2,sensors:sensorEvidence(detail),insights:runningSignals(detail),classification:classifySession(detail)};
+ // Route and climbs are kept compact so later sessions can be matched and mapped without refetching.
+ return {version:1,best:result,sampleSeconds:finite(step)?step:null,insightVersion:2,sensors:sensorEvidence(detail),insights:runningSignals(detail),classification:classifySession(detail),route:routeSignature(detail),climbs:climbSignatures(detail),routeVersion:ROUTE_VERSION};
 }
 
 export function sleepTrainingPattern(data:AthleteData,now:Date){

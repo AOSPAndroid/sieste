@@ -14,6 +14,10 @@ import ActivityProfileView from './activity-profile';
 // Hovering the chart only moves the map dot; the chart itself need not re-render.
 const ActivityProfile=memo(ActivityProfileView);
 import {intensityLevels,intensityColors} from './workout-insights';
+import {workoutEvidence} from './training-coach-data';
+import {ROUTE_VERSION} from './route-signature';
+import {routeAttempts,climbAttempts,workoutRecords,type HistoryWorkout} from './route-history';
+import {paceFromSpeed} from './activity-terrain-data';
 import RouteMap from './route-map';
 import RecordedFields from './recorded-fields';
 import WidgetSpark from './widget-spark';
@@ -36,16 +40,27 @@ function MetricCard({metric,step,comparison}:{metric:ActivityMetric;step:unknown
  const hasChart=metric.values.some(finite),rows=metric.values.map((value,i)=>({x:finite(step)?i*step/60:i,value}));
  return <section className={`activity-glance-card${hasChart?' has-microchart':''}`}><header><h3><i style={{background:metric.color}}/>{metric.title}</h3><ExpandButton title={metric.title}><div className="activity-expanded-sensor"><div className="activity-expanded-value"><strong style={{color:metric.color}}>{metric.value}</strong> {metric.unit}<small>{metric.note}</small></div><p>{metric.explanation}</p>{comparison?.metric===metric.id&&<><TrendBadge trend={comparison.trend} caption={comparison.comparison}/><p>{comparison.explanation}</p></>}{hasChart&&<SensorChart rows={rows} title={metric.title} unit={metric.unit} color={metric.color} step={step} pace={metric.pace} area={metric.id==='altitude'} expanded/>}</div></ExpandButton></header><div className="activity-glance-value"><strong style={{color:metric.color}}>{metric.value}</strong><span>{metric.unit}</span></div><p>{metric.note}</p>{comparison?.metric===metric.id&&<TrendBadge trend={comparison.trend} caption={comparison.metric==='vo2max'?(comparison.comparison.startsWith('median')?'vs 28-day median':'vs prior session'):'vs similar session'}/>}{hasChart&&<MicroChart metric={metric}/>}</section>;
 }
+const ordinal=(n:number)=>`${n}${n%100>=11&&n%100<=13?'th':['th','st','nd','rd'][n%10]??'th'}`;
+const clockOf=(seconds:number)=>{const s=Math.round(seconds),h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60,p=(n:number)=>String(n).padStart(2,'0');return h?`${h}:${p(m)}:${p(r)}`:`${m}:${p(r)}`};
+type Records=ReturnType<typeof workoutRecords>;
+function recordText(r:Records[number],family:string){
+ const foot=family!=='cycling'&&family!=='swimming';
+ if(r.kind==='power')return [`${Math.round(r.value)} W`,`+${Math.round(r.value-r.previous)} W on your best`];
+ if(r.kind==='speed')return foot?[`${paceFromSpeed(r.value)} /km`,`${Math.round(1000/r.previous-1000/r.value)} s/km faster than your best`]:[`${(r.value*3.6).toFixed(1)} km/h`,`+${((r.value-r.previous)*3.6).toFixed(1)} km/h on your best`];
+ if(r.kind==='distance')return [`${(r.value/1000).toFixed(1)} km`,`+${((r.value-r.previous)/1000).toFixed(1)} km on your longest`];
+ return [`+${Math.round(r.value)} m`,`+${Math.round(r.value-r.previous)} m on your biggest`];
+}
 // The route and its efforts, climbs and laps share a cursor: moving along the
 // chart moves a dot on the map, and tapping the route marks that moment on the chart.
-function RouteSections({detail,hasRoute,intensity,pushedBy,routeSelection,onRouteSelection,mapRef}:{detail:Workout&{seriesSampled?:{data?:Record<string,unknown>}};hasRoute:boolean;intensity:ReturnType<typeof intensityLevels>;pushedBy:string;routeSelection:RouteSelection|null;onRouteSelection?:(selection:RouteSelection|null)=>void;mapRef?:Ref<HTMLDivElement>}){
+function RouteSections({detail,hasRoute,intensity,pushedBy,routeSelection,onRouteSelection,mapRef,attempts,segmentNote,onSelect,family}:{attempts:ReturnType<typeof routeAttempts>;segmentNote?:(mode:string,start:number,end:number)=>string|null;onSelect?:(activity:Workout)=>void;family:string;detail:Workout&{seriesSampled?:{data?:Record<string,unknown>}};hasRoute:boolean;intensity:ReturnType<typeof intensityLevels>;pushedBy:string;routeSelection:RouteSelection|null;onRouteSelection?:(selection:RouteSelection|null)=>void;mapRef?:Ref<HTMLDivElement>}){
  const [hover,setHover]=useState<number|null>(null),[picked,setPicked]=useState<number|null>(null),frame=useRef(0);
  const onCursor=useCallback((index:number|null)=>{cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(()=>setHover(index))},[]);
  useEffect(()=>()=>cancelAnimationFrame(frame.current),[]);
  const cursor=hover??picked;
  return <section className="workout-route-analysis" aria-label="Route and sections">
   {hasRoute&&<div ref={mapRef} className="workout-route-map"><RouteMap detail={detail} selection={routeSelection} intensity={intensity?.levels} cursorIndex={cursor??undefined} onPick={setPicked} compact/><ExpandButton title="Recorded route"><RouteMap detail={detail} selection={routeSelection} intensity={intensity?.levels}/></ExpandButton><a className="workout-route-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap</a>{intensity&&<p className="workout-route-legend" aria-label={`Route coloured by ${pushedBy}, easy to hardest`}><span>Easy</span>{intensityColors.map(c=><i key={c} style={{background:c}}/>)}<span>Hard · {pushedBy}</span></p>}</div>}
-  {detail.seriesSampled?.data&&<ActivityProfile key={`profile-${detail.id}`} detail={detail} compact onSelection={onRouteSelection} onCursor={hasRoute?onCursor:undefined} pickedIndex={picked}/>}
+  {attempts&&<details className="route-attempts"><summary><span>Same route as {attempts.count-1} earlier {({cycling:'ride',running:'run',walking:'walk',hiking:'hike'} as Record<string,string>)[family]??'session'}{attempts.count>2?'s':''}<small>{attempts.rank===1?`Your fastest of ${attempts.count}`:`${ordinal(attempts.rank)} fastest of ${attempts.count} · ${clockOf(attempts.behind)} off your best`}</small></span></summary><ol>{attempts.attempts.filter((a,i)=>i<10||a.id===detail.id).map(a=><li key={a.id}>{a.id===detail.id?<div className="is-current" data-rank={attempts.attempts.indexOf(a)+1}><span>This one</span><b>{clockOf(a.summary!.duration as number)}</b></div>:<button type="button" data-rank={attempts.attempts.indexOf(a)+1} onClick={()=>onSelect?.(a as Workout)}><span>{new Date(a.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span><b>{clockOf(a.summary!.duration as number)}</b></button>}</li>)}</ol>{attempts.count>10&&<p className="route-attempts-more">Showing your 10 fastest of {attempts.count}</p>}</details>}
+  {detail.seriesSampled?.data&&<ActivityProfile key={`profile-${detail.id}`} detail={detail} compact onSelection={onRouteSelection} onCursor={hasRoute?onCursor:undefined} pickedIndex={picked} segmentNote={segmentNote}/>}
  </section>;
 }
 export default function ActivitySummary({detail,loading,history=[],onClassify,healthData,token='',storageScope='',isDemo=false,onSelect,onRouteSelection,routeSelection=null,mapRef}:{onRouteSelection?:(selection:RouteSelection|null)=>void;routeSelection?:RouteSelection|null;mapRef?:Ref<HTMLDivElement>;onClassify?:(label:string|null)=>void;detail:Workout&Record<string,any>;loading:boolean;history?:Workout[];healthData?:AthleteData;token?:string;storageScope?:string;isDemo?:boolean;onSelect?:(activity:Workout)=>void}){
@@ -53,11 +68,18 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  // Every recorded measure as a square, swim pace per 100 m; extra unlabelled sensors stay under Raw data.
  const squares=useMemo(()=>{const swim=family==='swimming'?swimPace(detail.summary):null;return (['Session','Technique','Conditions'] as const).flatMap(group=>cards.filter(m=>m.group===group&&m.value!=='—').map(m=>m.id==='speed'&&swim?swim:m))},[cards,family,detail.summary]);
  const lat=detail.seriesSampled?.data?.positionLat,hasRoute=Array.isArray(lat)&&lat.some(finite);
+ // This workout's route, climbs and bests in the stored format, recomputed when older.
+ const {attempts,records,climbRanks}=useMemo(()=>{
+  const evidence=detail.evidence?.routeVersion===ROUTE_VERSION?detail.evidence:workoutEvidence(detail),me={...detail,evidence} as HistoryWorkout,past=history as HistoryWorkout[];
+  return {attempts:evidence.route?routeAttempts(me as Parameters<typeof routeAttempts>[0],past):null,records:workoutRecords(me,past),climbRanks:(evidence.climbs??[]).map(c=>({at:c.at,rank:climbAttempts(c,me,past)}))};
+ },[detail,history]);
+ const segmentNote=useCallback((mode:string,start:number)=>{if(mode!=='climbs')return null;const r=climbRanks.find(c=>Math.abs(c.at-start*60)<=45)?.rank;return r?`${ordinal(r.rank)} of ${r.count}${r.behind>0?` · ${clockOf(r.behind)} off best`:' · your best'}`:null},[climbRanks]);
  const intensity=useMemo(()=>hasRoute?intensityLevels(detail,family):null,[detail,family,hasRoute]),pushedBy=intensity?.sensor==='power'?'power':intensity?.sensor==='heartrate'?'heart rate':['running','walking','hiking','swimming'].includes(family)?'pace':'speed';
  // Summary: where and when you pushed (map, efforts, climbs, laps), every number as a square, running economy; the rest folds away.
  return <div className="activity-scroll-summary compact-activity activity-glance">
  {family==='strength_training'&&<StrengthSummary detail={detail} history={history}/>}
- {family!=='strength_training'&&(hasRoute||detail.seriesSampled?.data)&&<RouteSections detail={detail} hasRoute={hasRoute} intensity={intensity} pushedBy={pushedBy} routeSelection={routeSelection} onRouteSelection={onRouteSelection} mapRef={mapRef}/>}
+ {family!=='strength_training'&&(hasRoute||detail.seriesSampled?.data)&&<RouteSections attempts={attempts} segmentNote={segmentNote} onSelect={onSelect} family={family} detail={detail} hasRoute={hasRoute} intensity={intensity} pushedBy={pushedBy} routeSelection={routeSelection} onRouteSelection={onRouteSelection} mapRef={mapRef}/>}
+ {records.length>0&&<section className="workout-records" aria-labelledby="workout-records-title"><h3 id="workout-records-title">New records</h3><ul>{records.map(r=>{const [value,delta]=recordText(r,family);return <li key={r.id}><strong>{r.label} · {value}</strong><small>{delta}</small></li>})}</ul></section>}
  {squares.length>0&&<section className="workout-squares" aria-labelledby="workout-squares-title"><h3 id="workout-squares-title">Workout data</h3><div className="workout-square-grid">{squares.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>}
  {family==='running'&&<RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading}/>}
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}

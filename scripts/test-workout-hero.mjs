@@ -28,6 +28,7 @@ Object.assign(imports,{
  './deferred-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,typeof children==='function'?children():children)},
  react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),useRef:initial=>({current:initial}),useCallback:fn=>fn,useEffect:()=>{},memo:component=>component,lazy:()=>Silent},
  './workout-insights':{intensityLevels:()=>null,intensityColors:[]},
+ './training-coach-data':{workoutEvidence:()=>({route:null,climbs:[]})},'./route-signature':{ROUTE_VERSION:1},'./route-history':{routeAttempts:()=>null,climbAttempts:()=>null,workoutRecords:()=>[]},'./activity-terrain-data':{paceFromSpeed:()=>'—'},
  'lucide-react':{Compass:Silent},
  './workout-context':{...silentModule,StrengthSummary:Silent},
  './workout-hero':hero,'./sports':sports,'./activity-metrics':metrics,
