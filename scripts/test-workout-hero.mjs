@@ -26,7 +26,7 @@ const routeCallbacks=[];
 Object.assign(imports,{
  // Folded rows render their content here so the tiles inside them can be checked.
  './deferred-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,typeof children==='function'?children():children)},
- react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),useRef:initial=>({current:initial}),lazy:()=>Silent},
+ react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),useRef:initial=>({current:initial}),useCallback:fn=>fn,useEffect:()=>{},memo:component=>component,lazy:()=>Silent},
  './workout-insights':{intensityLevels:()=>null,intensityColors:[]},
  'lucide-react':{Compass:Silent},
  './workout-context':{...silentModule,StrengthSummary:Silent},
