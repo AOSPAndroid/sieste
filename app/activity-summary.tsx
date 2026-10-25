@@ -90,7 +90,7 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  {squares.length>0&&<section className="workout-squares" aria-labelledby="workout-squares-title"><h3 id="workout-squares-title">Workout data</h3><div className="workout-square-grid">{squares.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>}
  {family==='cycling'&&<Pedalling detail={detail}/>}
  {family!=='strength_training'&&<ZoneStrip summary={detail.summary??{}} histogram={detail.hrHistogram} zones={ownZones?.bands}/>}
- {family==='running'&&<RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading}/>}
+ {family==='running'&&<RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading} athlete={detail.cyclingContext}/>}
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}
  <details className="workout-more-fold"><summary><span>More analysis<small>Splits, zones, replay, deep analysis, session type</small></span></summary><section className="workout-more" aria-label="More analysis">
  {family!=='strength_training'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Splits<small>{family==='cycling'?'Every 5 km':family==='swimming'?'Every 100 m':'Every kilometre'}</small></span>}><WorkoutSplits detail={detail} family={family}/></DeferredPanel>}

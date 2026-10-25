@@ -1,6 +1,7 @@
 import {sensorEvidence} from './tredict-opportunities-data';
 import {routeSignature,climbSignatures} from './route-signature';
-import {ROUTE_VERSION} from './route-version';
+import {ROUTE_VERSION,ECONOMY_VERSION} from './route-version';
+import {steadyBlock} from './running-economy-data';
 import {runningSignals,classifySession} from './session-intelligence-data';
 import type {AthleteData,Workout} from './analytics';
 import {sportFamily} from './sports';
@@ -36,7 +37,9 @@ export function workoutEvidence(detail:any){
   result[key]=[5,15,30,60,300,1200,3600].map(s=>sampledBest(values,step,s,cap)).filter(v=>v!==null&&v.value>0);
  }
  // Route and climbs are kept compact so later sessions can be matched and mapped without refetching.
- return {version:1,best:result,sampleSeconds:finite(step)?step:null,insightVersion:2,sensors:sensorEvidence(detail),insights:runningSignals(detail),classification:classifySession(detail),route:routeSignature(detail),climbs:climbSignatures(detail),routeVersion:ROUTE_VERSION};
+ return {version:1,best:result,sampleSeconds:finite(step)?step:null,insightVersion:2,sensors:sensorEvidence(detail),insights:runningSignals(detail),classification:classifySession(detail),route:routeSignature(detail),climbs:climbSignatures(detail),routeVersion:ROUTE_VERSION,
+  // A run's steady running, averaged, so economy can be compared across runs without refetching them.
+  steady:sportFamily(detail)==='running'?steadyBlock(detail):null,economyVersion:ECONOMY_VERSION};
 }
 
 export function sleepTrainingPattern(data:AthleteData,now:Date){

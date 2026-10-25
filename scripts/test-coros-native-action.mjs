@@ -2,7 +2,7 @@ import fs from 'node:fs';import ts from 'typescript';import assert from 'node:as
 const source=p=>ts.transpileModule(fs.readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
 const {lapElevation}=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(fs.readFileSync('app/lap-elevation.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText).toString('base64'));
 const native=new Function(source('app/coros-native.ts')+';return {COROS_NATIVE_VERSION,corosNativeActivity,corosNativeSnapshot}')();
-const activity={id:'coros_100_abc',provider:'coros',date:'2026-09-19',coros:{labelId:'abc',sportType:100},summary:{duration:60,vo2max:53.2,steps:11127}};
+const activity={id:'coros_100_abc',provider:'coros',sportType:'running',date:'2026-09-19',coros:{labelId:'abc',sportType:100},summary:{duration:60,vo2max:53.2,steps:11127}};
 const files=new Map([['snapshot',JSON.stringify({provider:'coros',activities:[activity],extra:{coros:{importVersion:2}}})],['owner/rev/fit/coros_100_abc.fit',new Uint8Array([1,2,3])]]);
 files.set('owner/rev/native-detail-v3/'+activity.id+'.json',JSON.stringify({...activity,nativeVersion:3,summary:{duration:60,cadence:999}}));
 let downloads=0,quota=0,calls=0,saved=0;
@@ -10,12 +10,19 @@ const bucket={get:async key=>files.has(key)?{json:async()=>JSON.parse(files.get(
 const {sportFamily}=new Function(source('app/sports.ts')+';return {sportFamily}')();
 const {cyclingPowerStats}=new Function('sportFamily',source('app/cycling-power-data.ts')+';return {cyclingPowerStats}')(sportFamily);
 const dependencies={...native,lapElevation,cyclingPowerStats,storage:()=>({bucket,db:{prepare:sql=>({bind:()=>({all:async()=>({results:[]}),first:async()=>{if(sql.includes('coros_fit_usage')){quota++;throw Error('Must reuse saved FIT')}return null}})})}}),corosPrefix:async()=> 'owner/',activityRecords:async(owner,key,ids)=>ids.map(id=>id===activity.id?activity:null),workoutExclusions:async()=>[],corosConnection:async()=>({revision:'rev'}),createCorosClient:async()=>({call:async()=>{calls++;return {}},callRaw:async()=>{downloads++;throw Error('Should not download')}}),corosSummary:()=>({trainingLoad:100}),corosLaps:()=>[],fitDetail:(blob,a)=>{assert.deepEqual(Array.from(blob),[1,2,3]);assert.equal(a.summary.vo2max,undefined);return {...a,summary:{...a.summary,cadence:180},laps:[{duration:20}],seriesSampled:{sampleSize:5,data:{altitude:[10,20,10,0]}},evidence:{version:1}}},saveAnalysis:async()=>{saved++},CorosError:Error};
+let economyRefreshes=0;
+Object.assign(dependencies,{ECONOMY_VERSION:1,sportFamily,steadyBlock:detail=>{assert.ok(detail.seriesSampled);economyRefreshes++;return {seconds:1200,hr:150,gap:3.3}}});
 const {corosAction}=new Function(...Object.keys(dependencies),source('app/api/coros/sync.ts')+';return {corosAction}')(...Object.values(dependencies));
 const row={owner:'a',revision:'rev',snapshot_key:'snapshot'};
 const preview=await corosAction(row,{action:'preview',id:activity.id});assert.ok(preview.details[0].elevationPreview);assert.equal(preview.details[0].seriesSampled,undefined);assert.equal(saved,0);assert.equal(quota,0);assert.equal(downloads,0);
 const previewAgain=await corosAction(row,{action:'preview',id:activity.id});assert.ok(previewAgain.details[0].elevationPreview);
 const result=await corosAction(row,{action:'detail',id:activity.id});assert.equal(result.details[0].summary.vo2max,undefined);assert.equal(result.details[0].summary.steps,undefined);assert.equal(result.details[0].summary.cadence,180);assert.equal(result.details[0].nativeVersion,native.COROS_NATIVE_VERSION);assert.ok(result.details[0].elevationPreview);assert.equal(saved,1);assert.equal(quota,0);assert.equal(downloads,0);assert.equal(calls,2);
 await corosAction(row,{action:'detail',id:activity.id});assert.equal(calls,2);assert.equal(quota,0);assert.equal(downloads,0);
+const fullKey='owner/rev/native-detail-v'+native.COROS_NATIVE_VERSION+'/'+activity.id+'.json',legacy=JSON.parse(files.get(fullKey));legacy.evidence={version:1};files.set(fullKey,JSON.stringify(legacy));
+const beforeRefresh=economyRefreshes;await corosAction(row,{action:'preview',id:activity.id});assert.equal(economyRefreshes,beforeRefresh,'Compact previews do not run the economy migration');
 const enriched=await corosAction(row,{action:'enrich',ids:[activity.id]});assert.equal(enriched.details[0].seriesSampled,undefined);assert.ok(enriched.details[0].laps);assert.ok(enriched.details[0].evidence);
+assert.equal(enriched.details[0].evidence.economyVersion,1,'Cached COROS runs receive the new economy analysis');assert.equal(economyRefreshes,beforeRefresh+1);assert.equal(quota,0);assert.equal(downloads,0);
+assert.equal(JSON.parse(files.get(fullKey)).evidence.economyVersion,1,'Save the refreshed analysis in the existing decoded cache');
+await corosAction(row,{action:'enrich',ids:[activity.id]});assert.equal(economyRefreshes,beforeRefresh+1,'The refreshed cache is reused');
 await assert.rejects(()=>corosAction(row,{action:'detail',id:'coros_100_someoneelse'}),/not found/);
 console.log('COROS detail migration: old decoded cache refreshed from saved FIT, no download quota consumed, subsequent cache hit and account activity guard passed.');
