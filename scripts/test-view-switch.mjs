@@ -1,0 +1,15 @@
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+const source=ts.transpileModule(readFileSync(new URL('../app/view-switch.tsx',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React}}).outputText;
+const exports={};new Function('require','exports','React',source)(k=>k==='react'?React:null,exports,React);
+const ViewSwitch=exports.default;
+let rendered=[];const views=['a','b','c'].map(id=>({id,label:id.toUpperCase(),hint:id==='b'?'Second':undefined,render:()=>{rendered.push(id);return React.createElement('p',null,'view '+id)}}));
+let html=renderToStaticMarkup(React.createElement(ViewSwitch,{views,label:'Test',initial:'b'}));
+assert.deepEqual(rendered,['b'],'Only the chosen view renders');assert.match(html,/view b/);assert.match(html,/Second/);assert.equal((html.match(/role="tab"/g)||[]).length,3);
+assert.match(html,/aria-selected="true"[^>]*>B</);
+rendered=[];html=renderToStaticMarkup(React.createElement(ViewSwitch,{views,label:'Test',initial:'missing'}));assert.deepEqual(rendered,['a'],'An unknown initial view falls back to the first');
+assert.equal(renderToStaticMarkup(React.createElement(ViewSwitch,{views:[],label:'Empty'})),'','No views, nothing rendered');
+console.log('View switch: one view rendered, labels, hint and fallback passed.');

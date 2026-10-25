@@ -22,7 +22,7 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 .sieste-v3 .n-hero{--n-kicker:var(--n-muted);position:relative;overflow:hidden;border:0;border-radius:var(--n-hero-radius);background:var(--n-card);color:var(--n-ink);box-shadow:var(--n-shadow)}
 
 /* Cards */
-.sieste-v3 main :where([data-slot=card],.weekly-volume,.fatigue-recovery,.home-data-fold,.home-method,.connect-banner,.workspace-tools-panel){border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow);--tw-ring-shadow:0 0 #0000}
+.sieste-v3 main :where([data-slot=card],.weekly-volume,.fatigue-recovery,.home-method,.connect-banner,.workspace-tools-panel){border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow);--tw-ring-shadow:0 0 #0000}
 .sieste-v3 main [data-slot=card]{--tw-ring-color:transparent}
 .sieste-v3 main :where([data-slot=card-title],.volume-heading h2,.fatigue-recovery>header h2){font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--n-ink)}
 
@@ -111,3 +111,13 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
  .sieste-v3 .mini-dock>button,.sieste-v3 .mini-dock>button[aria-current=page]{width:44px;min-width:44px;height:44px;padding:0;justify-content:center}
  .sieste-v3 .mini-dock>button[aria-current=page] small{display:none}
 }
+
+/* View switch: one panel, a row of switches, one view at a time */
+.sieste-v3 .view-switch,.metric-expansion .view-switch{display:grid;gap:8px;min-width:0}
+.sieste-v3 .view-switch-tabs,.metric-expansion .view-switch-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent)}
+.sieste-v3 .view-switch-tabs::-webkit-scrollbar{display:none}
+.sieste-v3 .view-switch-tabs>button,.metric-expansion .view-switch-tabs>button{flex:none;height:32px;padding:0 13px;border:0;border-radius:999px;background:rgba(11,18,32,.055);color:var(--n-muted,#5b6678);font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}
+.sieste-v3 .view-switch-tabs>button:hover{color:var(--n-ink,#0b1220)}
+.sieste-v3 .view-switch-tabs>button[aria-selected=true],.metric-expansion .view-switch-tabs>button[aria-selected=true]{background:var(--n-ink,#0b1220);color:#fff}
+.sieste-v3 .view-switch-hint,.metric-expansion .view-switch-hint{font-size:12px;color:var(--n-muted,#5b6678)}
+.sieste-v3 .view-switch-panel,.metric-expansion .view-switch-panel{min-width:0}

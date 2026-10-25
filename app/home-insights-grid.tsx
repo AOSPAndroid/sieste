@@ -8,6 +8,7 @@ import {weekOverview} from './week-overview';
 import {sportFamily} from './sports';
 import {useExpand} from './expansion';
 import WidgetSpark from './widget-spark';
+import ViewSwitch from './view-switch';
 import {FeatureBoundary,LoadingState} from './loading-state';
 const Analytics=lazy(()=>import('./analytics').then(m=>({default:m.Analytics})));
 const TrainingComparison=lazy(()=>import('./training-comparison-view'));
@@ -35,10 +36,14 @@ function HomeInsightsGrid({data,isDemo,token,syncing,onSelect,setData,onAccount,
   {title:'Body & sensors',note:'Available recorded history',metrics:[{label:'Sleep nights',value:Object.keys(data.sleep).length},{label:'HRV days',value:Object.keys(data.hrv).length},{label:'Body readings',value:body.length},{label:'Daily records',value:c?Object.keys(c.daily??{}).length:null}],open:()=>show('Connected data',c?connected:<p>No COROS sensor records are available yet. Your Tredict readings remain in Body & zones and Sleep & recovery.</p>)},
   {title:'Data & account',note:'Coverage · connections & sources',metrics:[{label:'Sources',value:sources.length},{label:'Synced',value:sources.filter(s=>s.status==='synced').length},{label:'Sleep coverage',value:week.current.sleepDays,unit:'/7'},{label:'HRV coverage',value:week.current.hrvDays,unit:'/7'}],open:()=>show('Data & account',<><Button variant="outline" size="sm" onClick={()=>{expand.close();onAccount()}}>Manage connections</Button>{analysis('Data coverage')}</>)}
  ];
- return <section className="home-insights-board" aria-label="Health and training insights"><header><h2>Your data</h2><span>Tap a card to explore</span></header><div className="home-insights-grid">{cards.map((card,index)=>{const Icon=insightIcons[index];return <Card key={card.title} size="sm" className="home-insight-card" role="button" tabIndex={0} onClick={card.open} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();card.open()}}} aria-label={'Explore '+card.title}>
-  <CardHeader className="home-insight-ribbon"><CardTitle className="flex min-w-0 items-center gap-1.5"><Icon aria-hidden="true"/>{card.title}</CardTitle><CardAction><ArrowUpRight aria-hidden="true"/></CardAction></CardHeader>
-  <CardContent className="home-insight-cells">{card.metrics.map(metric=><span className="home-insight-cell" key={metric.label}><small>{metric.label}</small><strong>{format(metric.value)}<em>{metric.unit}</em></strong>{metric.trend&&<WidgetSpark values={metric.trend} label={metric.label+' · last 7 days'} color="var(--primary)"/>}</span>)}</CardContent>
-  <CardFooter className="home-insight-note"><small>{card.note}</small></CardFooter>
- </Card>})}</div></section>;
+ // One card with a switch per area instead of eight cards behind a fold; each opens its full analysis.
+ const short:Record<string,string>={'Volume & trends':'Volume','Sleep & recovery':'Recovery','Performance':'Performance','Training balance':'Balance','Body & zones':'Body','Training insights':'Insights','Body & sensors':'Sensors','Data & account':'Data'};
+ return <section className="home-insights-board" aria-label="Health and training insights"><header><h2>Your data</h2></header>
+  <ViewSwitch label="Your data" remember="home-your-data" views={cards.map((card,index)=>{const Icon=insightIcons[index];return {id:card.title,label:short[card.title]??card.title,render:()=><Card size="sm" className="home-insight-card">
+   <CardHeader className="home-insight-ribbon"><CardTitle className="flex min-w-0 items-center gap-1.5"><Icon aria-hidden="true"/>{card.title}</CardTitle><CardAction><Button variant="ghost" size="sm" onClick={card.open} aria-label={'Explore '+card.title}>Explore <ArrowUpRight data-icon="inline-end"/></Button></CardAction></CardHeader>
+   <CardContent className="home-insight-cells">{card.metrics.map(metric=><span className="home-insight-cell" key={metric.label}><small>{metric.label}</small><strong>{format(metric.value)}<em>{metric.unit}</em></strong>{metric.trend&&<WidgetSpark values={metric.trend} label={metric.label+' · last 7 days'} color="var(--primary)"/>}</span>)}</CardContent>
+   <CardFooter className="home-insight-note"><small>{card.note}</small></CardFooter>
+  </Card>}})}/>
+ </section>;
 }
 export default memo(HomeInsightsGrid);

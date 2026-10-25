@@ -1,7 +1,6 @@
 "use client";
 import {lazy,memo,useCallback,useEffect,useMemo,useRef,useState,type Ref} from 'react';
 import type {RouteSelection} from './route-geometry';
-import DeferredPanel from './deferred-panel';
 import type {AthleteData,Workout} from './analytics';
 import WorkoutContext,{StrengthSummary} from './workout-context';
 import {swimPace} from './workout-hero';
@@ -13,7 +12,7 @@ const RunningAnalysis=lazy(()=>import('./running-analysis'));
 import ActivityProfileView from './activity-profile';
 // Hovering the chart only moves the map dot; the chart itself need not re-render.
 const ActivityProfile=memo(ActivityProfileView);
-import {intensityLevels,intensityColors} from './workout-insights';
+import {intensityLevels,intensityColors,lapsVary} from './workout-insights';
 import {workoutEvidence} from './training-coach-data';
 import {ROUTE_VERSION} from './route-signature';
 import {routeAttempts,climbAttempts,workoutRecords,type HistoryWorkout} from './route-history';
@@ -29,6 +28,7 @@ const ActivityLaps=lazy(()=>import('./activity-laps'));
 import ActivityZones,{ZoneStrip} from './activity-zones';
 import {zoneVersionAt} from './athlete-thresholds';
 import Pedalling from './pedalling';
+import ViewSwitch from './view-switch';
 import {heatEffect,heatNote} from './conditions-data';
 const IntervalConsistency=lazy(()=>import('./interval-consistency'));
 import TrendBadge from './trend-badge';
@@ -72,6 +72,8 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  // The temperature square says what the weather cost, against your similar sessions in other temperatures.
  const heat=useMemo(()=>heatEffect(detail,history),[detail,history]);
  const squares=useMemo(()=>{const swim=family==='swimming'?swimPace(detail.summary):null;return (['Session','Technique','Conditions'] as const).flatMap(group=>cards.filter(m=>m.group===group&&m.value!=='—').map(m=>m.id==='speed'&&swim?swim:m.id==='temperature'&&heat?{...m,note:heatNote(heat)}:m))},[cards,family,detail.summary,heat]);
+ // Interval and tempo sessions (or hand-pressed laps) open More analysis on execution.
+ const structured=['Intervals','Tempo'].includes(detail.sessionLabel??'')||lapsVary(detail.laps);
  // The athlete's own Tredict heart-rate zones as they were on the workout's day.
  const ownZones=zoneVersionAt(detail.cyclingContext?.tredictZones,family,detail.date);
  const lat=detail.seriesSampled?.data?.positionLat,hasRoute=Array.isArray(lat)&&lat.some(finite);
@@ -92,17 +94,16 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  {family!=='strength_training'&&<ZoneStrip summary={detail.summary??{}} histogram={detail.hrHistogram} zones={ownZones?.bands}/>}
  {family==='running'&&<RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading} athlete={detail.cyclingContext}/>}
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}
- <details className="workout-more-fold"><summary><span>More analysis<small>Splits, zones, replay, deep analysis, session type</small></span></summary><section className="workout-more" aria-label="More analysis">
- {family!=='strength_training'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Splits<small>{family==='cycling'?'Every 5 km':family==='swimming'?'Every 100 m':'Every kilometre'}</small></span>}><WorkoutSplits detail={detail} family={family}/></DeferredPanel>}
- <DeferredPanel className="activity-extra-sensors" summary={<span>Time in zones<small>Heart rate & power</small></span>}><ActivityZones summary={detail.summary??{}} loading={loading} zones={ownZones?.bands} histogram={detail.hrHistogram} zonesSince={ownZones?.since}/></DeferredPanel>
- <DeferredPanel className="activity-extra-sensors workout-explorer-fold" summary={<span>Explore workout<small>{family==='cycling'?'Replay · terrain · coasting · compare':family==='running'?'Replay · fingerprint · terrain · compare':'Laps · recovery'}</small></span>}><WorkoutExplorer detail={detail} history={history} healthData={healthData} token={token} storageScope={storageScope} isDemo={isDemo}/></DeferredPanel>
- {family==='cycling'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Deep analysis<small>Efficiency, power & durability</small></span>}><CyclingAnalysis detail={detail} history={history}/></DeferredPanel>}
- {family==='running'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Deep analysis<small>Running pace & repeats</small></span>}><RunningAnalysis detail={detail}/></DeferredPanel>}
- <DeferredPanel className="activity-extra-sensors" summary={<span>Execution<small>Repeat consistency & fading</small></span>}><IntervalConsistency key={detail.id} detail={detail}/><ActivityLaps detail={detail}/></DeferredPanel>
- {!loading&&!detail.mergedIds&&<DeferredPanel className="activity-extra-sensors" summary={<span>Session type<small>Label & coaching notes</small></span>}><SessionIntelligence key={`intelligence-${detail.id}`} detail={detail} onClassify={onClassify}/></DeferredPanel>}
- <DeferredPanel className="activity-extra-sensors" summary={<span>Previous & next sessions<small>Gaps and context around this one</small></span>}><WorkoutContext detail={detail} history={history} healthData={healthData} onSelect={onSelect}/></DeferredPanel>
- {other.length>0&&<details className="activity-extra-sensors"><summary><span>{other.length} more recorded sensors<small>Shown under Telemetry and Raw data</small></span></summary><div className="workout-other-sensors">{other.map(key=><span key={key}>{key.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase())}</span>)}</div></details>}
- <RecordedFields detail={detail}/>
- {detail.recordedSource==='COROS FIT'&&<a className="docs-link" href={'/api/coros/file?id='+encodeURIComponent(detail.id)}>Download original COROS FIT ↗</a>}
- </section></details></div>;
+ <section className="workout-more" aria-labelledby="workout-more-title"><h3 id="workout-more-title">More analysis</h3>
+ <ViewSwitch label="More analysis" remember={`workout-more-${family}`} initial={structured?'execution':family==='strength_training'?'zones':'splits'} views={[
+  ...(family!=='strength_training'?[{id:'splits',label:'Splits',hint:family==='cycling'?'Every 5 km':family==='swimming'?'Every 100 m':'Every kilometre',render:()=><WorkoutSplits detail={detail} family={family}/>}]:[]),
+  {id:'zones',label:'Zones',hint:'Time in heart-rate and power zones',render:()=><ActivityZones summary={detail.summary??{}} loading={loading} zones={ownZones?.bands} histogram={detail.hrHistogram} zonesSince={ownZones?.since}/>},
+  {id:'explore',label:'Explore',hint:family==='cycling'?'Replay · terrain · coasting · compare':family==='running'?'Replay · fingerprint · terrain · compare':'Laps · recovery',render:()=><WorkoutExplorer detail={detail} history={history} healthData={healthData} token={token} storageScope={storageScope} isDemo={isDemo}/>},
+  ...(family==='cycling'?[{id:'deep',label:'Deep analysis',hint:'Efficiency, power & durability',render:()=><CyclingAnalysis detail={detail} history={history}/>}]:family==='running'?[{id:'deep',label:'Deep analysis',hint:'Running pace & repeats',render:()=><RunningAnalysis detail={detail}/>}]:[]),
+  {id:'execution',label:'Execution',hint:'Repeat consistency & fading',render:()=><><IntervalConsistency key={detail.id} detail={detail}/><ActivityLaps detail={detail}/></>},
+  ...(!loading&&!detail.mergedIds?[{id:'session',label:'Session type',hint:'Label & coaching notes',render:()=><SessionIntelligence key={`intelligence-${detail.id}`} detail={detail} onClassify={onClassify}/>}]:[]),
+  {id:'context',label:'Before & after',hint:'Gaps and context around this session',render:()=><WorkoutContext detail={detail} history={history} healthData={healthData} onSelect={onSelect}/>},
+  {id:'recorded',label:'Recorded data',hint:other.length?`${other.length} more sensors, also under Telemetry and Raw data`:'Every field this recording carries',render:()=><>{other.length>0&&<div className="workout-other-sensors">{other.map(key=><span key={key}>{key.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase())}</span>)}</div>}<RecordedFields detail={detail}/>{detail.recordedSource==='COROS FIT'&&<a className="docs-link" href={'/api/coros/file?id='+encodeURIComponent(detail.id)}>Download original COROS FIT ↗</a>}</>},
+ ]}/>
+ </section></div>;
 }
