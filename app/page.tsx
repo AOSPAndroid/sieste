@@ -126,8 +126,8 @@ const openAccount=useCallback(()=>setModal(true),[]),toggleHistoryAnalysis=useCa
 const analyzing=useBackgroundAnalysis({data,setData,token,isDemo,fullHistory:historyAnalysis,onError:setAnalysisError,enabled:!accountLoading&&!busy&&!modal&&!selected&&tab==='Overview'});
 const coach=useMemo(()=><TrainingCoach analysisError={analysisError} data={data} now={isDemo?new Date('2026-09-17T23:59:59'):new Date()} onSelect={setSelected} isDemo={isDemo} analyzing={analyzing} historyAnalysis={historyAnalysis} onAnalyze={toggleHistoryAnalysis}/>,[analysisError,data,isDemo,analyzing,historyAnalysis,toggleHistoryAnalysis]);
 const connected=useMemo(()=><CorosHub data={data}/>,[data]);
-// COROS fitness and profile, plus Tredict's dated thresholds and zones, for judging one workout.
-const athleteContext=useMemo(()=>({...data.extra?.coros,tredictCapacity:data.extra?.capacity?.capacity,tredictZones:data.extra?.zones?.zones}),[data.extra?.coros,data.extra?.capacity,data.extra?.zones]);
+// COROS fitness and profile, Tredict's dated thresholds and zones, and logged body weight, for judging one workout.
+const athleteContext=useMemo(()=>({...data.extra?.coros,tredictCapacity:data.extra?.capacity?.capacity,tredictZones:data.extra?.zones?.zones,bodyvalues:data.extra?.bodyvalues?.bodyvalues}),[data.extra?.coros,data.extra?.capacity,data.extra?.zones,data.extra?.bodyvalues]);
 if(accountLoading)return <><DashboardLoading/><AthenaChat screen="Loading dashboard" canChat={false}/></>;
 const isWeather=tab==='Weather recon';
 // Arrival highlights only fire when a sync changes the dashboard, not on navigation.

@@ -29,6 +29,7 @@ const ActivityLaps=lazy(()=>import('./activity-laps'));
 import ActivityZones,{ZoneStrip} from './activity-zones';
 import {zoneVersionAt} from './athlete-thresholds';
 import Pedalling from './pedalling';
+import {heatEffect,heatNote} from './conditions-data';
 const IntervalConsistency=lazy(()=>import('./interval-consistency'));
 import TrendBadge from './trend-badge';
 import {sessionTrend,vo2Trend} from './trend';
@@ -68,7 +69,9 @@ function RouteSections({detail,hasRoute,intensity,pushedBy,routeSelection,onRout
 export default function ActivitySummary({detail,loading,history=[],onClassify,healthData,token='',storageScope='',isDemo=false,onSelect,onRouteSelection,routeSelection=null,mapRef}:{onRouteSelection?:(selection:RouteSelection|null)=>void;routeSelection?:RouteSelection|null;mapRef?:Ref<HTMLDivElement>;onClassify?:(label:string|null)=>void;detail:Workout&Record<string,any>;loading:boolean;history?:Workout[];healthData?:AthleteData;token?:string;storageScope?:string;isDemo?:boolean;onSelect?:(activity:Workout)=>void}){
  const {cards,other,family}=useMemo(()=>activityMetrics(detail),[detail]),step=detail.seriesSampled?.sampleSize,comparison=useMemo(()=>sessionTrend(detail,history),[detail,history]),vo2=useMemo(()=>vo2Trend(detail,history),[detail,history]);
  // Every recorded measure as a square, swim pace per 100 m; extra unlabelled sensors stay under Raw data.
- const squares=useMemo(()=>{const swim=family==='swimming'?swimPace(detail.summary):null;return (['Session','Technique','Conditions'] as const).flatMap(group=>cards.filter(m=>m.group===group&&m.value!=='—').map(m=>m.id==='speed'&&swim?swim:m))},[cards,family,detail.summary]);
+ // The temperature square says what the weather cost, against your similar sessions in other temperatures.
+ const heat=useMemo(()=>heatEffect(detail,history),[detail,history]);
+ const squares=useMemo(()=>{const swim=family==='swimming'?swimPace(detail.summary):null;return (['Session','Technique','Conditions'] as const).flatMap(group=>cards.filter(m=>m.group===group&&m.value!=='—').map(m=>m.id==='speed'&&swim?swim:m.id==='temperature'&&heat?{...m,note:heatNote(heat)}:m))},[cards,family,detail.summary,heat]);
  // The athlete's own Tredict heart-rate zones as they were on the workout's day.
  const ownZones=zoneVersionAt(detail.cyclingContext?.tredictZones,family,detail.date);
  const lat=detail.seriesSampled?.data?.positionLat,hasRoute=Array.isArray(lat)&&lat.some(finite);

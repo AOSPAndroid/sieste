@@ -4,3 +4,13 @@ const fn=new Function(src('app/sleep-timing-data.ts')+src('app/sleep-tools-data.
 const data={sleep:{},hrv:{},extra:{coros:{sleepWindows:{}},bodyvalues:{bodyvalues:[]}}};for(let i=14;i<=20;i++){const key='202609'+i;data.sleep[key]=[i<17?6*3600:9*3600];data.hrv[key]=[i<17?70:90];data.extra.coros.sleepWindows[key]={bedtime:`2026-09-${i} 00:00`,wakeTime:`2026-09-${i} 08:00`,awakeMinutes:20}}
 let d=fn(data,'2026-09-20',7,8);assert.equal(d.shortfall,6);assert.equal(d.met,4);assert.equal(d.shortNights,3);assert.equal(d.hrv[0].value,70);assert.equal(d.hrv[1].value,90);assert.equal(d.rhr[0].value,null);assert.equal(d.groups[1].nights,2);
 delete data.sleep['20260914'];d=fn(data,'2026-09-20',7,8);assert.equal(d.shortfall,null);assert.equal(d.coverage,6);assert.equal(d.hrv[0].value,null);console.log('Sleep tools: missing nights, non-offset shortfall, paired sample thresholds and weekend grouping passed.');
+// Sleep score and deep sleep: better nights against worse ones, split at the athlete's own median.
+{
+ const data={sleep:{},hrv:{},extra:{coros:{sleepWindows:{}},bodyvalues:{bodyvalues:[]}}};
+ for(let i=10;i<=17;i++){const key='202609'+i,good=i%2===0;data.sleep[key]=[8*3600];data.hrv[key]=[good?88:72];data.extra.coros.sleepWindows[key]={bedtime:`2026-09-${i} 00:00`,wakeTime:`2026-09-${i} 08:00`,score:good?85:62,deepPercent:good?22:14}}
+ const d=fn(data,'2026-09-17',8,8);
+ assert.equal(d.byScore.cut,85);assert.equal(d.byScore.high.hrv.value,88);assert.equal(d.byScore.low.hrv.value,72);assert.equal(d.byScore.high.hrv.count,4);
+ assert.equal(d.byDeep.high.hrv.value,88);assert.equal(d.byScore.high.rhr.value,null,'No resting HR logged');
+ const few=fn(data,'2026-09-12',3,8);assert.equal(few.byScore,null,'Six scored nights are needed to split');
+ console.log('Sleep tools: score and deep-sleep groups against next-morning HRV passed.');
+}

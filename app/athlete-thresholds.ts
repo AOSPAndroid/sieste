@@ -34,3 +34,10 @@ export function histogramInZones(secondsByBpm:Record<string,number>|undefined,ba
 
 /** "146–168 bpm", "≤145 bpm", "169+ bpm"; no unit gives "146–168". */
 export function bandRange(b:ZoneBand,unit='bpm'){const tail=unit?` ${unit}`:'';return b.from<0?`≤${b.to}${tail}`:b.to<0?`${b.from}+${tail}`:`${b.from}–${b.to}${tail}`}
+
+/** The latest body weight logged on or within 60 days before the date. */
+export function weightAt(bodyvalues:unknown,date:string|number|Date){
+ const at=new Date(date).getTime();if(!Array.isArray(bodyvalues)||!Number.isFinite(at))return null;
+ const row=bodyvalues.filter((r:{timestamp?:string;weightInKilograms?:unknown})=>finite(r?.weightInKilograms)&&r.weightInKilograms>20&&r.weightInKilograms<250&&time(r.timestamp)<=at&&at-time(r.timestamp)<=60*86400000).sort((a,b)=>time(b.timestamp)-time(a.timestamp))[0];
+ return row?{weight:row.weightInKilograms as number,on:String(row.timestamp).slice(0,10)}:null;
+}

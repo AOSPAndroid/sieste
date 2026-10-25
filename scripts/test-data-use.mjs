@@ -32,4 +32,16 @@ assert.equal(corosLoadSummary(null),null);assert.equal(corosLoadSummary([{date:'
 const metrics=readFileSync(new URL('../app/activity-metrics.ts',import.meta.url),'utf8');
 const effectWord=new Function(ts.transpileModule(metrics.match(/export const effectWord=[^\n]+/)[0].replace('export ',''),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+';return effectWord')();
 assert.deepEqual([.5,1.5,2.5,3.4,4.2,5].map(effectWord),['none','minor','maintaining','improving','highly improving','overreaching']);assert.equal(effectWord(undefined),'not recorded');
-console.log('Data use: pedalling by power, COROS load assessment and training effect words passed.');
+// Heat: heart rate against similar sessions in clearly different temperatures.
+const conditions=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../app/conditions-data.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace("import { sportFamily } from './sports';","const sportFamily=a=>a.sportType;")).toString('base64'));
+const run=(id,date,temperature,heartrate,speed=3.3,duration=3000)=>({id,date,sportType:'running',summary:{temperature,heartrate,speed,duration}});
+const hot=run('hot','2026-07-20T08:00:00Z',28,158);
+const past=[run('a','2026-04-01T08:00:00Z',12,150),run('b','2026-04-08T08:00:00Z',10,151),run('c','2026-04-15T08:00:00Z',14,149),run('fast','2026-04-20T08:00:00Z',12,165,4),run('d','2026-07-10T08:00:00Z',26,157)];
+const h=conditions.heatEffect(hot,past);
+assert.equal(h.kind,'warmer');assert.equal(h.count,3,'Only similar-pace runs 6°C or more cooler');assert.equal(h.difference,8);assert.equal(h.otherTemperature,12);
+assert.equal(conditions.heatNote(h),'heart rate +8 bpm vs 3 similar-pace sessions at ~12°C');
+assert.equal(conditions.heatEffect(run('x','2026-07-20T08:00:00Z',28,158),past.slice(0,2)),null,'Needs three to compare');
+assert.equal(conditions.heatEffect({...hot,sportType:'strength'},past),null);
+const cool=conditions.heatEffect(run('cool','2026-01-10T08:00:00Z',4,147),[run('e','2025-08-01T08:00:00Z',24,155),run('f','2025-08-08T08:00:00Z',25,156),run('g','2025-08-15T08:00:00Z',22,154)]);
+assert.equal(cool.kind,'cooler');assert.equal(cool.difference,-8);
+console.log('Data use: pedalling by power, COROS load assessment, training effect words and heat passed.');

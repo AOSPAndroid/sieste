@@ -4,8 +4,8 @@ const training=readFileSync('app/training-coach-data.ts','utf8'),sample=training
 const sampledBest=new Function('const finite=v=>typeof v==="number"&&Number.isFinite(v);'+transpile(sample)+';return sampledBest')();
 const activityClimbs=new Function(transpile(readFileSync('app/activity-terrain-data.ts','utf8'))+';return activityClimbs')();
 const cyclingPowerStats=new Function('sportFamily',transpile(readFileSync('app/cycling-power-data.ts','utf8'))+';return cyclingPowerStats')(a=>a.sportType);
-const thresholds=new Function(transpile(readFileSync('app/athlete-thresholds.ts','utf8'))+';return {capacityAt,zonesAt,zoneVersionAt,histogramInZones,bandRange}')();
-const funcs=new Function('sampledBest','sportFamily','activityClimbs','cyclingPowerStats','capacityAt',transpile(readFileSync('app/cycling-advanced-data.ts','utf8'))+';return {cyclingAdvanced,cyclingReference,effortBadges}')(sampledBest,a=>a.sportType,activityClimbs,cyclingPowerStats,thresholds.capacityAt);
+const thresholds=new Function(transpile(readFileSync('app/athlete-thresholds.ts','utf8'))+';return {capacityAt,zonesAt,zoneVersionAt,histogramInZones,bandRange,weightAt}')();
+const funcs=new Function('sampledBest','sportFamily','activityClimbs','cyclingPowerStats','capacityAt','weightAt',transpile(readFileSync('app/cycling-advanced-data.ts','utf8'))+';return {cyclingAdvanced,cyclingReference,effortBadges}')(sampledBest,a=>a.sportType,activityClimbs,cyclingPowerStats,thresholds.capacityAt,thresholds.weightAt);
 const {cyclingAdvanced:analyse,cyclingReference:ref,effortBadges:badges}=funcs;
 const detail={id:'now',date:'2026-09-20T12:00:00Z',sportType:'cycling',summary:{durationTotal:3600},cyclingContext:{fitness:{ftp:300},fitnessHistory:{20260901:{ftp:250},20260921:{ftp:400}},profile:{weight:70}},seriesSampled:{sampleSize:5,data:{power:Array(720).fill(200),heartrate:Array(720).fill(140),cadence:Array(720).fill(85),altitude:Array.from({length:721},(_,i)=>i*5),distance:Array.from({length:721},(_,i)=>i*100)}}};
 assert.equal(ref(detail).ftp,250);assert.ok(ref(detail).label.includes('2026-09-01'));assert.equal(ref({...detail,cyclingContext:{fitness:{ftp:300}}}).ftp,300);assert.equal(ref({}).ftp,null);assert.equal(ref({...detail,summary:{ftp:270}}).ftp,270);
@@ -67,5 +67,10 @@ console.log('Canonical climb bounds, optional sensor metadata, power-independent
  assert.deepEqual(thresholds.histogramInZones({130:600,150:300,170:60,0:5},bands).seconds,[600,300,60]);
  assert.deepEqual(bands.map(b=>thresholds.bandRange(b)),['≤140 bpm','141–165 bpm','166+ bpm']);
  assert.equal(thresholds.zonesAt(zones,'running','2025-06-01'),null);
- console.log('Tredict thresholds and zones: dated versions, FTP fallback and histogram zones passed.');
+ const body=[{timestamp:'2026-05-01T07:00:00Z',weightInKilograms:72},{timestamp:'2026-06-25T07:00:00Z',weightInKilograms:70.5},{timestamp:'2026-08-01T07:00:00Z',weightInKilograms:69}];
+ assert.deepEqual(thresholds.weightAt(body,'2026-07-01T08:00:00Z'),{weight:70.5,on:'2026-06-25'},'The latest weight before the ride, never a later one');
+ assert.equal(thresholds.weightAt(body,'2026-12-01'),null,'Older than 60 days is too stale');
+ const w=ref({date:'2026-07-01T08:00:00Z',summary:{},cyclingContext:{bodyvalues:body,profile:{weight:80}}});assert.equal(w.weight,70.5);assert.equal(w.weightLabel,'weight logged 2026-06-25');
+ assert.equal(ref({date:'2026-07-01T08:00:00Z',summary:{},cyclingContext:{bodyvalues:body,manualReference:{weight:68},profile:{weight:80}}}).weight,68,'A weight you entered yourself still wins');
+ console.log('Tredict thresholds and zones: dated versions, FTP fallback, logged weight and histogram zones passed.');
 }
