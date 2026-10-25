@@ -28,7 +28,10 @@ export async function POST(request:Request){
  if(payload.action==='detail'||payload.action==='preview'||payload.action==='enrich'){
   const ids=payload.action!=='enrich'?[payload.id]:payload.ids;
   if(!Array.isArray(ids)||!ids.length||ids.length>4||ids.some(id=>typeof id!=='string'||!/^[a-zA-Z0-9_-]{1,120}$/.test(id)))return reply({error:'Invalid activity selection.'},400);
-  const pool=requestPool(4);const details=await Promise.all(ids.map(id=>pool(async()=>{const detail=await get(`${API}activity/${encodeURIComponent(id!)}?extraValues=1&withLaps=1&allSeries=1`) as unknown as Record<string,unknown>;const hrHistogram=heartRateHistogram(detail),evidence=workoutEvidence(detail),powerStats=cyclingPowerStats(detail);return payload.action==='preview'?{id,summary:detail.summary,powerStats,laps:detail.laps,elevationPreview:lapElevation(detail),previewVersion:1}:payload.action==='detail'?{...detail,id,powerStats,hrHistogram,evidence,elevationPreview:lapElevation(detail)}:{id,summary:detail.summary,powerStats,hrHistogram,evidence,laps:detail.laps,elevationPreview:lapElevation(detail),previewVersion:1};})));
+  const pool=requestPool(4);const details=await Promise.all(ids.map(id=>pool(async()=>{const detail=await get(`${API}activity/${encodeURIComponent(id!)}?extraValues=1&withLaps=1&allSeries=1`) as unknown as Record<string,unknown>;const powerStats=cyclingPowerStats(detail);
+   // A home-page preview only shows laps and elevation; skipping the full analysis keeps it fast.
+   if(payload.action==='preview')return {id,summary:detail.summary,powerStats,laps:detail.laps,elevationPreview:lapElevation(detail),previewVersion:1};
+   const hrHistogram=heartRateHistogram(detail),evidence=workoutEvidence(detail);return payload.action==='detail'?{...detail,id,powerStats,hrHistogram,evidence,elevationPreview:lapElevation(detail)}:{id,summary:detail.summary,powerStats,hrHistogram,evidence,laps:detail.laps,elevationPreview:lapElevation(detail),previewVersion:1};})));
   return reply({details});
  }
  const results=await Promise.allSettled([get(`${API}activityList?${query}&pageSize=500&extendedSummary=1`),payload.skipSleep?Promise.resolve({sleep:{}}):get(`${API}sleep?${query}`),payload.skipHrv?Promise.resolve({hrv:{}}):get(`${API}hrv?${query}`)]);
