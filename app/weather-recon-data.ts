@@ -129,3 +129,14 @@ export function nowcastSummary(slots:NowcastSlot[],timezone:string){
  const after=known.slice(firstWet),stop=after.findIndex(s=>!wetSlot(s)),minutes=(stop<0?end-after[0].time:after[stop].time-after[0].time)/60;
  return {kind:'later' as const,text:`Dry until ${weatherTime(known[firstWet].time,timezone)}, then rain${stop<0?' for the rest of the 2 hours':` for about ${minutes} min`}`};
 }
+
+/**
+ * What a rain percentage means, in words: the chance that at least 0.1 mm
+ * falls at this spot during that hour (not how much of the hour is wet).
+ */
+export function rainPhrase(chance:number|null,mm:number|null){
+ if(chance===null)return 'Rain chance unavailable';
+ const tenths=Math.round(chance/10),odds=chance<5?'Almost no chance':tenths>=10?'Rain is all but certain':`About ${Math.max(1,tenths)} in 10 chance`;
+ const amount=mm!==null&&mm>=.1?` · ${mm.toFixed(1)} mm expected`:'';
+ return `${odds} of rain this hour${amount}`;
+}

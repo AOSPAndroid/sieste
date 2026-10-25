@@ -273,3 +273,28 @@
  .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-square-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 @media (prefers-reduced-motion:reduce){.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-hero-loading,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-card,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-map-dock-pill{animation:none}}
+/* Section analysis: first vs last sections, heart-rate drift and the hills. */
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-analysis{display:grid;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid var(--ws-line)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-analysis h4{margin:0 0 4px;font-size:13px;font-weight:600;color:var(--ws-ink)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-analysis-lead{margin:0 0 8px;font-size:13px;line-height:1.45;color:var(--ws-muted)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-trend{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin:0;padding:0;list-style:none}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-trend li{display:grid;gap:2px;padding:9px 10px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ws-line)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-trend span{font-size:11px;color:var(--ws-muted)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-trend b{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ws-ink)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-trend small{font-size:11.5px;font-weight:600;color:var(--ws-muted)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) :is(.section-trend li,.section-drift)[data-tone=fade] :is(small,b:first-child){color:#c2410c}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-trend li[data-tone=build] small{color:#15803d}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-drift{margin:0;font-size:12.5px;line-height:1.45;color:var(--ws-muted)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-drift b{color:var(--ws-ink);font-weight:600}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-hills{display:grid;font-size:12px;font-variant-numeric:tabular-nums;overflow-x:auto}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-hills>div{display:grid;grid-template-columns:minmax(74px,1.2fr) repeat(5,minmax(52px,1fr));gap:6px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--ws-line)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-hills>div:first-child{font-size:10.5px;color:var(--ws-muted);padding-top:0}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-hills>div:last-child{border-bottom:0}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-hills small{display:block;font-size:10.5px;color:var(--ws-muted)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .versus-avg{font-size:10.5px;color:var(--ws-muted)}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .versus-avg[data-dir=better]{color:#15803d}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .versus-avg[data-dir=worse]{color:#c2410c}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) :is(.section-analysis,.section-analysis>*){min-width:0;max-width:100%}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-trend{grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr))}
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-hills>div{grid-template-columns:minmax(64px,1.3fr) repeat(5,minmax(36px,1fr))}
+.metric-expansion .section-analysis,.metric-expansion .versus-avg{--ws-ink:#0b1220;--ws-muted:#5b6678;--ws-line:rgba(11,18,32,.08)}
