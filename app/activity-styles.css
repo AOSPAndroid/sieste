@@ -213,3 +213,4 @@
   .sieste-v3 .workout-modal .activity-glance-value strong { font-size: 22px; }
   .sieste-v3 .workout-modal>.detail-tabs button:not([data-slot]) { min-height: 32px; }
 }
+.sieste-v3 .activity-zone-micro th small{margin-left:6px;font-weight:400;font-size:11px;color:var(--muted-foreground);text-transform:none;letter-spacing:0}

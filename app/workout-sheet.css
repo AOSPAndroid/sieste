@@ -298,3 +298,28 @@
 :is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-trend{grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr))}
 :is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-hills>div{grid-template-columns:minmax(64px,1.3fr) repeat(5,minmax(36px,1fr))}
 .metric-expansion .section-analysis,.metric-expansion .versus-avg{--ws-ink:#0b1220;--ws-muted:#5b6678;--ws-line:rgba(11,18,32,.08)}
+/* Heart-rate zones: one bar, then the time in each zone */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip{margin:10px 0 0;padding:14px 16px;border-radius:var(--ws-radius);background:var(--ws-card);box-shadow:var(--ws-shadow)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip h3{margin:0;font-size:15px;font-weight:650;color:var(--ws-ink)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip header small{font-size:12px;color:var(--ws-muted)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip-bar{display:flex;height:10px;overflow:hidden;border-radius:999px;background:var(--ws-bg)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip ul{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0;padding:0;list-style:none;font-size:12px;color:var(--ws-ink)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip li{display:inline-flex;align-items:baseline;gap:5px}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip li>i{width:8px;height:8px;border-radius:2px;align-self:center}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip li small{color:var(--ws-faint);font-size:11px}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip li b{font-weight:600;font-variant-numeric:tabular-nums}
+/* Pedalling: balance, torque effectiveness and smoothness, then by power */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-card{margin:10px 0 0;padding:14px 16px;border-radius:var(--ws-radius);background:var(--ws-card);box-shadow:var(--ws-shadow)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-card header{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-card h3{margin:0;font-size:15px;font-weight:650;color:var(--ws-ink)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-card header small,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-note{font-size:12px;line-height:1.45;color:var(--ws-muted)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-stats span{display:grid;gap:2px}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-stats b{font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--ws-ink)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-stats small{font-size:11px;color:var(--ws-muted)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-bands{display:grid;margin-top:12px;font-size:12px;font-variant-numeric:tabular-nums}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-bands>div{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:6px;padding:6px 0;border-bottom:1px solid var(--ws-line)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-bands>div:first-child{font-size:10.5px;color:var(--ws-muted);padding-top:0}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-bands>div:last-child{border-bottom:0}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-note{margin:10px 0 0}

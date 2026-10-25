@@ -1,13 +1,13 @@
 import type {AthleteData} from './analytics';
 import {sportFamily} from './sports';
+import {zonesAt} from './athlete-thresholds';
 const valid=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
 type Band={name?:string;from:number;to:number};
 export function zoneWeek(now:Date,offset:number){const start=new Date(now);start.setHours(0,0,0,0);start.setDate(start.getDate()-(start.getDay()+6)%7+offset*7);const end=new Date(start);end.setDate(end.getDate()+7);return {start,end};}
 export function weeklyZones(data:AthleteData,now:Date,offset:number,family:string){
  const {start,end}=zoneWeek(now,offset),cutoff=new Date(Math.min(now.getTime(),end.getTime()-1));
  const sessions=data.activities.filter(a=>sportFamily(a)===family&&new Date(a.date)>=start&&new Date(a.date)<end&&new Date(a.date)<=now);
- const versions=data.extra?.zones?.zones?.[family]?.heartrate??{};
- const definition=(date:Date):Band[]|null=>{const key=Object.keys(versions).filter(k=>new Date(k)<=date).sort((a,b)=>+new Date(a)-+new Date(b)).at(-1),z=key?versions[key]:null;return Array.isArray(z)&&z.length&&z.every(b=>Number.isFinite(b.from)&&Number.isFinite(b.to)&&(b.from<0||b.to<0||b.from<=b.to))?z:null;};
+ const definition=(date:Date):Band[]|null=>zonesAt(data.extra?.zones?.zones,family,date);
  const bands=definition(cutoff),groups=new Map<string,{id:string;label:string;bands:Band[]|null;seconds:number[];covered:number;unclassified:number}>();
  for(const a of sessions){
   const raw=a.summary?.zonesDistribution?.heartrate,h=a.hrHistogram,recorded=Array.isArray(raw)&&raw.length>0&&raw.every(valid)&&raw.some(v=>v>0),own=definition(new Date(a.date));

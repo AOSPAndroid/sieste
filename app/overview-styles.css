@@ -147,4 +147,9 @@
  .sieste-v3 .volume-history-foot { font-size: 8px; }
  .sieste-v3 .volume-comparison-note>span:last-child { margin-left: 11px; }
 }
-@media(prefers-reduced-motion:reduce) { .sieste-v3 .weekly-volume-row { transition: none; } }
+@media(prefers-reduced-motion:reduce) { .sieste-v3 .weekly-volume-row { transition: none; } }.sieste-v3 .load-analysis .coros-load-verdict { display: flex; flex-direction: column; gap: 4px; margin: -4px 0 12px; padding: 10px 12px; border-radius: 12px; background: rgba(11,18,32,.04); }
+.sieste-v3 .load-analysis .coros-load-verdict b { font-size: 12px; font-weight: 600; color: var(--foreground); }
+.sieste-v3 .load-analysis .coros-load-verdict span { font-size: 11px; line-height: 1.45; color: var(--muted-foreground); }
+.sieste-v3 .load-analysis .coros-load-verdict.is-high b { color: #b45309; }
+.sieste-v3 .load-analysis .coros-load-verdict.is-risk b { color: #b91c1c; }
+.sieste-v3 .load-analysis .coros-load-verdict.is-good b { color: #15803d; }

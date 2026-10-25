@@ -26,7 +26,9 @@ import RunningTechnique from './running-technique';
 import {ResponsiveContainer,ComposedChart,Line,Area,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
 import {ExpandButton} from './expansion';
 const ActivityLaps=lazy(()=>import('./activity-laps'));
-import ActivityZones from './activity-zones';
+import ActivityZones,{ZoneStrip} from './activity-zones';
+import {zoneVersionAt} from './athlete-thresholds';
+import Pedalling from './pedalling';
 const IntervalConsistency=lazy(()=>import('./interval-consistency'));
 import TrendBadge from './trend-badge';
 import {sessionTrend,vo2Trend} from './trend';
@@ -67,6 +69,8 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  const {cards,other,family}=useMemo(()=>activityMetrics(detail),[detail]),step=detail.seriesSampled?.sampleSize,comparison=useMemo(()=>sessionTrend(detail,history),[detail,history]),vo2=useMemo(()=>vo2Trend(detail,history),[detail,history]);
  // Every recorded measure as a square, swim pace per 100 m; extra unlabelled sensors stay under Raw data.
  const squares=useMemo(()=>{const swim=family==='swimming'?swimPace(detail.summary):null;return (['Session','Technique','Conditions'] as const).flatMap(group=>cards.filter(m=>m.group===group&&m.value!=='—').map(m=>m.id==='speed'&&swim?swim:m))},[cards,family,detail.summary]);
+ // The athlete's own Tredict heart-rate zones as they were on the workout's day.
+ const ownZones=zoneVersionAt(detail.cyclingContext?.tredictZones,family,detail.date);
  const lat=detail.seriesSampled?.data?.positionLat,hasRoute=Array.isArray(lat)&&lat.some(finite);
  // This workout's route, climbs and bests in the stored format, recomputed when older.
  const {attempts,records,climbRanks}=useMemo(()=>{
@@ -81,11 +85,13 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  {family!=='strength_training'&&(hasRoute||detail.seriesSampled?.data)&&<RouteSections attempts={attempts} segmentNote={segmentNote} onSelect={onSelect} family={family} detail={detail} hasRoute={hasRoute} intensity={intensity} pushedBy={pushedBy} routeSelection={routeSelection} onRouteSelection={onRouteSelection} mapRef={mapRef}/>}
  {records.length>0&&<section className="workout-records" aria-labelledby="workout-records-title"><h3 id="workout-records-title">New records</h3><ul>{records.map(r=>{const [value,delta]=recordText(r,family);return <li key={r.id}><strong>{r.label} · {value}</strong><small>{delta}</small></li>})}</ul></section>}
  {squares.length>0&&<section className="workout-squares" aria-labelledby="workout-squares-title"><h3 id="workout-squares-title">Workout data</h3><div className="workout-square-grid">{squares.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>}
+ {family==='cycling'&&<Pedalling detail={detail}/>}
+ {family!=='strength_training'&&<ZoneStrip summary={detail.summary??{}} histogram={detail.hrHistogram} zones={ownZones?.bands}/>}
  {family==='running'&&<RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading}/>}
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}
  <details className="workout-more-fold"><summary><span>More analysis<small>Splits, zones, replay, deep analysis, session type</small></span></summary><section className="workout-more" aria-label="More analysis">
  {family!=='strength_training'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Splits<small>{family==='cycling'?'Every 5 km':family==='swimming'?'Every 100 m':'Every kilometre'}</small></span>}><WorkoutSplits detail={detail} family={family}/></DeferredPanel>}
- <DeferredPanel className="activity-extra-sensors" summary={<span>Time in zones<small>Heart rate & power</small></span>}><ActivityZones summary={detail.summary??{}} loading={loading}/></DeferredPanel>
+ <DeferredPanel className="activity-extra-sensors" summary={<span>Time in zones<small>Heart rate & power</small></span>}><ActivityZones summary={detail.summary??{}} loading={loading} zones={ownZones?.bands} histogram={detail.hrHistogram} zonesSince={ownZones?.since}/></DeferredPanel>
  <DeferredPanel className="activity-extra-sensors workout-explorer-fold" summary={<span>Explore workout<small>{family==='cycling'?'Replay · terrain · coasting · compare':family==='running'?'Replay · fingerprint · terrain · compare':'Laps · recovery'}</small></span>}><WorkoutExplorer detail={detail} history={history} healthData={healthData} token={token} storageScope={storageScope} isDemo={isDemo}/></DeferredPanel>
  {family==='cycling'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Deep analysis<small>Efficiency, power & durability</small></span>}><CyclingAnalysis detail={detail} history={history}/></DeferredPanel>}
  {family==='running'&&<DeferredPanel className="activity-extra-sensors" summary={<span>Deep analysis<small>Running pace & repeats</small></span>}><RunningAnalysis detail={detail}/></DeferredPanel>}
