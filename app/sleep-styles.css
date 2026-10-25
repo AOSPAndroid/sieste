@@ -5,35 +5,35 @@
 }@layer sieste-legacy {.sleep-page{margin:0 auto;padding:4px 0 70px;color:#243746}.sleep-page-heading,.sleep-page-heading h1{display:flex;align-items:center;gap:8px}.sleep-regularity-widget>header{display:flex;align-items:center}.sleep-clock-card>header{display:flex;align-items:center;gap:8px}.sleep-page-heading{justify-content:space-between;margin:3px 0 8px}.sleep-page-heading h1{margin:0}.sleep-page-heading>div{display:flex;gap:3px;padding:3px;background:#edf0f5;border-radius:9px}.sleep-page-heading button{border:0;border-radius:6px;background:transparent;color:#687787;font-size:12px;padding:5px 9px}.sleep-page-heading button[aria-pressed=true]{background:white;color:#243746;box-shadow:0 1px 4px #23364d12}.sleep-regularity-widget{background:white;border:1px solid #e1e6ee}.sleep-regularity-widget>header{justify-content:space-between}.sleep-regularity-widget h2{font-size:14px;margin:0}.sleep-regularity-widget>header>span{font-size:11px;color:#7b8795}.sleep-clock-card{padding:8px 6px}.sleep-clock-card+.sleep-clock-card{border-top:1px dotted #dde3eb;margin-top:5px;padding-top:12px}.sleep-clock-card h3{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;margin:0 0 2px;color:#687787}.sleep-clock-card strong{font-size:23px;font-variant-numeric:tabular-nums;color:#7160ab}.sleep-clock-card strong small{font-size:11px;font-weight:400;color:#7b8795;margin-left:6px}.sleep-clock-variation{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px}.sleep-clock-variation b{font-size:14px;font-weight:550}.sleep-clock-variation span,.sleep-clock-card footer{font-size:11px;color:#7b8795}.sleep-clock-card footer{display:flex;justify-content:space-between;gap:5px;padding-left:46px}.sleep-clock-chart{height:140px;margin-top:4px}.sleep-clock-chart.expanded{height:360px}.sleep-timing-empty{padding:28px 5px;color:#8a94a3;font-size:12px;text-align:center}.sleep-timing-caption,.sleep-page-note{font-size:11px;line-height:1.5;color:#7b8795;margin:9px 4px 0}.sleep-night-log{background:white;border:1px solid #e1e6ee;border-radius:10px;padding:9px 11px;margin-top:8px;font-size:12px}.sleep-night-log>div{overflow-x:auto}.sleep-night-log table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.sleep-night-log th,.sleep-night-log td{padding:7px 4px;border-bottom:1px dotted #e1e6ee;text-align:right;white-space:nowrap}.sleep-night-log th:first-child{text-align:left}.sleep-good{color:#16804a}.sleep-neutral{color:#718092}.sleep-amber{color:#c58a20}@media(max-width:650px){.sleep-page{padding-top:2px}.sleep-clock-chart{height:120px}.sleep-clock-card{padding:5px 0}.sleep-regularity-widget{padding:9px}.sleep-regularity-widget>header{gap:5px}.sleep-regularity-widget>header>span{font-size:10px}.sleep-clock-card footer{padding-left:0}}
 .dashboard-theme .sleep-clock-card footer{display:flex;flex-direction:row;justify-content:space-between;padding:3px 0 0 46px;margin:0;border:0;line-height:1.5}.dashboard-theme .sleep-clock-card footer>span{max-width:none}@media(max-width:650px){.dashboard-theme .sleep-clock-card footer{padding-left:0}}.sleep-yellow{color:#8a7629}
 
-.sleep-window-plot svg{display:block;width:100%;height:auto}.sleep-timing-lines{font-size:12px}.sleep-zones{background:white;border:1px solid #e1e6ee;margin-top:8px}.sleep-zones header{display:flex;justify-content:space-between;align-items:center;gap:5px}.sleep-zones h2{font-size:14px;margin:0}.sleep-zones small{font-size:11px;color:#7b8795}.sleep-stage-bars{margin:8px 0}.sleep-stage-bars>div{display:grid;align-items:center;font-size:12px;margin:5px 0}.sleep-stage-bars i{height:7px;background:#f0f2f6;border-radius:5px;overflow:hidden}.sleep-stage-bars b{display:block;height:100%;border-radius:5px}.sleep-stage-bars strong{text-align:right;font-size:12px}.sleep-awake{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.sleep-awake small,.sleep-awake strong,.sleep-awake span{display:block}.sleep-awake span{font-size:11px;margin-top:4px;color:#7b8795}
+.sleep-window-plot svg{display:block;width:100%;height:auto}.sleep-timing-lines{font-size:12px}
 
 .sleep-night-picker{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#718092;margin:0 0 6px}.sleep-night-picker select,.sleep-tools select,.sleep-tools input,.sleep-tools button{font-size:12px;border:1px solid #dde4ec;border-radius:6px;padding:4px 6px;background:white;color:#40566a}.sleep-tools{margin-top:8px;background:white;border:1px solid #e1e6ee;border-radius:12px;padding:10px}.sleep-tools>header,.sleep-tool-chart header{display:flex;align-items:center;justify-content:space-between;gap:6px}.sleep-tools h2{font-size:14px;margin:0}.sleep-tools header label{font-size:11px;color:#748293}.sleep-tools-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:8px}.sleep-tools-stats article{background:#f6f8fb;border-radius:7px;padding:7px;min-width:0}.sleep-tools small,.sleep-tools-stats span{display:block;font-size:10px;color:#7b8795;line-height:1.4}.sleep-tools-stats strong{display:block;font-size:17px;margin:3px 0}.sleep-tools details{border-top:1px dotted #dde4ec;padding-top:9px;margin-top:9px;font-size:12px}.sleep-tools details p{font-size:11px;color:#7b8795;line-height:1.5}.sleep-tools table{width:100%;border-collapse:collapse;font-size:12px}.sleep-tools td,.sleep-tools th{text-align:left;padding:6px 3px;border-bottom:1px dotted #e5e9ef;font-weight:400}.sleep-tool-chart{margin-top:10px}.sleep-tool-chart>div{height:150px}.sleep-window-planner{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:6px}@media(max-width:420px){.sleep-tools-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.sleep-tools-stats strong{font-size:16px}}
-.sleep-page{max-width:1050px}.sleep-consistency-strip button{min-width:0;text-align:left;border:1px solid #dfe5ee;border-radius:9px;background:#fff;padding:7px;color:#243746}.sleep-consistency-strip small{display:block;font-size:12px;color:#758292;line-height:1.4}.sleep-takeaway{display:block;width:100%;text-align:left;font-size:12px;line-height:1.5;border:0;background:transparent;color:#435b6b;padding:6px 2px}.sleep-takeaway span{color:#768393}.sleep-consistency-strip{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px}.sleep-consistency-strip strong{display:flex;align-items:center;gap:6px;font-size:18px;flex-wrap:wrap}.sleep-consistency-strip em{font-style:normal;font-weight:500;font-size:12px;margin-left:auto}.sleep-mini-spark{display:block;width:100%;height:24px;margin-top:3px}.sleep-spark-empty{font-size:11px;color:#83909c}.sleep-regularity-widget,.sleep-zones{padding:8px;border-radius:10px}.sleep-regularity-widget>header{gap:5px;margin-bottom:2px}.sleep-regularity-widget>header>span{margin-left:auto}.sleep-window-plot svg{max-height:230px}.sleep-window-plot .sleep-timing-caption{margin-top:2px}.sleep-timing-lines{margin-top:5px}.sleep-stage-bars>div{grid-template-columns:35px minmax(30px,1fr) 35px minmax(65px,auto);gap:5px}.sleep-stage-bars .recorded-indicator{font-size:11px}.sleep-awake strong{font-size:17px}.sleep-night-picker,.sleep-page-heading{margin-bottom:5px}.sleep-page-heading h1{font-size:18px}.sleep-night-log .sleep-tools{border:0;margin:0;padding:5px 0}.sleep-comparison-detail p{font-size:14px;line-height:1.6}.sleep-page-note{margin-top:6px}.sleep-consistency-strip button:hover{border-color:#a6b8cd}.sleep-consistency-strip button:focus-visible,.sleep-takeaway:focus-visible{outline:2px solid #547ac0;outline-offset:2px}
+.sleep-page{max-width:1050px}.sleep-regularity-widget{padding:8px;border-radius:10px}.sleep-regularity-widget>header{gap:5px;margin-bottom:2px}.sleep-regularity-widget>header>span{margin-left:auto}.sleep-window-plot svg{max-height:230px}.sleep-window-plot .sleep-timing-caption{margin-top:2px}.sleep-timing-lines{margin-top:5px}.sleep-night-picker,.sleep-page-heading{margin-bottom:5px}.sleep-page-heading h1{font-size:18px}.sleep-night-log .sleep-tools{border:0;margin:0;padding:5px 0}.sleep-page-note{margin-top:6px}
 
-.sleep-page .sleep-stage-bars .recorded-indicator{grid-column:4;grid-row:auto}.sleep-stage-bars .recorded-indicator{grid-column:2 / 4}
+
 .dashboard-theme .sleep-page-heading{display:flex;flex-wrap:wrap;justify-content:flex-start}
 .dashboard-theme .sleep-page-heading>div{margin-left:auto;padding:2px;gap:2px;border-radius:7px}
 .dashboard-theme .sleep-page-heading button{padding:4px 6px;font-size:11px;min-height:26px}
 .dashboard-theme .sleep-night-picker{margin:0;min-width:0}.dashboard-theme .sleep-night-picker select{font-size:11px;padding:4px;min-height:28px;max-width:115px}
-.dashboard-theme :is(.sleep-regularity-widget,.sleep-zones) .expand-widget{width:28px;height:28px;min-height:28px;padding:5px;border-radius:6px}.dashboard-theme .sleep-clock-chart:not(.expanded){height:105px}
+.dashboard-theme :is(.sleep-regularity-widget) .expand-widget{width:28px;height:28px;min-height:28px;padding:5px;border-radius:6px}.dashboard-theme .sleep-clock-chart:not(.expanded){height:105px}
 .dashboard-theme .sleep-timing-empty{padding:14px 5px}.dashboard-theme .sleep-timing-caption{line-height:1.35;margin-top:4px}
-.dashboard-theme .sleep-consistency-strip button{padding:6px;border-radius:var(--tab-radius)}
-.dashboard-theme .sleep-consistency-strip strong{font-size:17px}
-.dashboard-theme .sleep-mini-spark{height:20px;margin-top:2px}.dashboard-theme .sleep-consistency-strip{gap:5px;margin-bottom:5px}
+
+
+
 @media(max-width:360px){.dashboard-theme .sleep-page-heading{gap:4px}.dashboard-theme .sleep-night-picker select{max-width:105px}}
 .dashboard-theme .sleep-period-nav{display:flex;align-items:center;gap:4px;margin:0 0 4px;font-size:11px;color:#697b8c;font-variant-numeric:tabular-nums}
 .dashboard-theme .sleep-period-nav button{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:4px;border:1px solid #e0e6ee;background:white;color:#4c6276;border-radius:6px;touch-action:manipulation}
 .dashboard-theme .sleep-period-nav button:disabled{opacity:.3}.dashboard-theme .sleep-period-nav .sleep-back-current{margin-left:auto;font-size:11px;padding:4px 7px}
 .dashboard-theme .sleep-period-nav button:focus-visible{outline:2px solid #527dc1;outline-offset:1px}
-.dashboard-theme .sleep-takeaway{padding:2px 1px;font-size:11px;line-height:1.35}
-.dashboard-theme .sleep-page .sleep-regularity-widget{margin-top:0}.dashboard-theme .sleep-window-plot svg{max-height:160px}.dashboard-theme .sleep-regularity-widget>header{margin-bottom:0}.dashboard-theme .sleep-zones{margin-top:4px}.dashboard-theme .sleep-stage-bars{margin:4px 0}.dashboard-theme .sleep-stage-bars>div{margin:3px 0}.dashboard-theme .sleep-awake{gap:4px}.dashboard-theme .sleep-awake strong{font-size:15px}.dashboard-theme .sleep-night-log{margin-top:4px;padding:6px}.dashboard-theme .sleep-page-note{font-size:10px;line-height:1.3}
 
-.dashboard-theme .sleep-vitals{margin-bottom:4px}.sleep-vital-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.sleep-vital-cards>button{min-width:0;padding:6px;text-align:left;border:1px solid var(--status-border,#dfe5ee);border-radius:8px;background:var(--status-bg,#fff);color:var(--status-ink,#344b62)}.sleep-vital-cards small{display:block;font-size:11px;line-height:1.4}.sleep-vital-cards span{display:block;line-height:1.4}.sleep-vital-cards strong{display:block;font-size:20px;line-height:1.3;font-variant-numeric:tabular-nums}.sleep-vital-cards em{font-size:11px;font-style:normal;font-weight:400}.sleep-vital-cards span{font-size:10px}.sleep-vitals>header{display:flex;align-items:center;gap:5px;margin:4px 0 0}.sleep-vitals>header>div{display:flex;gap:2px}.sleep-vitals header button{font-size:11px;padding:4px 6px;border:1px solid #e0e6ee;background:#fff;color:#576c80;border-radius:5px}.sleep-vitals header button[aria-pressed=true]{background:#eaf4ef;color:#297354}.sleep-vitals header small{font-size:10px;color:#748496;margin-left:auto}.sleep-vitals .expand-widget{width:26px;height:26px;min-height:26px;padding:5px}.sleep-vitals .expand-widget svg{width:13px;height:13px}.sleep-vital-chart{height:95px;background:#fff;border-radius:7px;margin-top:3px}.sleep-vital-chart.large{height:270px}.dashboard-theme .sleep-zones>summary{font-size:12px;font-weight:550;cursor:pointer}.sleep-score-secondary{display:flex;justify-content:space-between;font-size:12px;margin:6px 0}.sleep-vital-cards>button:focus-visible{outline:2px solid #527dc1;outline-offset:2px}
+.dashboard-theme .sleep-page .sleep-regularity-widget{margin-top:0}.dashboard-theme .sleep-window-plot svg{max-height:160px}.dashboard-theme .sleep-regularity-widget>header{margin-bottom:0}.dashboard-theme .sleep-night-log{margin-top:4px;padding:6px}.dashboard-theme .sleep-page-note{font-size:10px;line-height:1.3}
 
-.sleep-training{background:#fff;border:1px solid #e0e6ee;border-radius:8px;padding:5px 6px;margin:4px 0}.sleep-training header{display:flex;align-items:center;justify-content:space-between;gap:5px}.sleep-training h2{font-size:12px;margin:0;font-weight:600}.sleep-training header small{font-size:10px;color:#7a8996}.sleep-training-scroll{overflow-x:auto}.sleep-training-matrix{display:grid;gap:3px;font-variant-numeric:tabular-nums;margin-top:4px}.sleep-training-matrix>button,.sleep-training-labels{display:grid;grid-template-rows:17px 27px 23px 23px 23px;gap:2px;padding:0;min-width:0}.sleep-training-matrix>button{background:transparent;border:0;color:#475b6d;cursor:pointer;font-size:11px;border-radius:5px}.sleep-training-matrix>button>span{display:flex;align-items:center;justify-content:center;border-radius:4px;white-space:nowrap}.sleep-training-matrix>button>span[class*=status-]{background:var(--status-bg,#f4f6f8);color:var(--status-ink,#6b7b88);font-weight:600}.sleep-training-labels{font-size:10px;color:#788795}.sleep-training-labels>span{display:flex;align-items:center;gap:2px}.sleep-training-labels small{font-size:8px}.sleep-pair-load{position:relative;isolation:isolate;align-items:flex-end!important;padding-bottom:2px}.sleep-pair-load i{position:absolute;bottom:1px;width:80%;max-width:26px;background:#e0d8ef;border-radius:2px;z-index:-1}.sleep-pair-load b{font-weight:500;font-size:10px}.sleep-training>p,.sleep-training details p{font-size:10px;line-height:1.4;color:#667c8e;margin:4px 0 0}.sleep-training>p span{color:#8896a2}.sleep-training details{margin-top:4px;font-size:11px}.sleep-association{display:grid;grid-template-columns:1fr 1fr;gap:4px;border-top:1px dotted #e0e6ee;padding:5px 0}.sleep-association>b{grid-column:1/-1;font-weight:500}.sleep-association small{color:#82909d}.sleep-pair-detail p{font-size:13px;line-height:1.5}.sleep-training-matrix>button:focus-visible{outline:2px solid #527dc1;outline-offset:1px}.sleep-training-matrix>button:hover{box-shadow:inset 0 0 0 1px #adc4d7}
-.sleep-night-matrix{border:1px solid #e0e6ee;border-radius:9px;padding:7px;background:#fff;margin:6px 0}.sleep-night-matrix header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}.sleep-night-matrix h2{font-size:12px;margin:0}.sleep-night-matrix header small,.sleep-night-matrix>p{font-size:10px;color:#758496;margin:3px 0}.sleep-night-matrix .sleep-training-labels{font-size:10px}.sleep-night-matrix .sleep-training-matrix button{padding:0;border:0;background:transparent;min-width:0}.sleep-night-matrix .sleep-training-matrix span{display:flex;align-items:center;justify-content:center;height:25px;font-size:10px}.sleep-night-matrix .night-watch{background:#fff4db;color:#a36b16;border-radius:4px}.sleep-night-matrix .night-ok{color:#397e61;background:#edf8f2;border-radius:4px}.sleep-night-matrix .night-neutral{color:#7e8a98}.sleep-night-matrix .sleep-training-labels span{justify-content:flex-start}
+.dashboard-theme .sleep-vitals{margin-bottom:4px}.sleep-vital-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.sleep-vital-cards>button{min-width:0;padding:6px;text-align:left;border:1px solid var(--status-border,#dfe5ee);border-radius:8px;background:var(--status-bg,#fff);color:var(--status-ink,#344b62)}.sleep-vital-cards small{display:block;font-size:11px;line-height:1.4}.sleep-vital-cards span{display:block;line-height:1.4}.sleep-vital-cards strong{display:block;font-size:20px;line-height:1.3;font-variant-numeric:tabular-nums}.sleep-vital-cards em{font-size:11px;font-style:normal;font-weight:400}.sleep-vital-cards span{font-size:10px}.sleep-vitals>header{display:flex;align-items:center;gap:5px;margin:4px 0 0}.sleep-vitals>header>div{display:flex;gap:2px}.sleep-vitals header button{font-size:11px;padding:4px 6px;border:1px solid #e0e6ee;background:#fff;color:#576c80;border-radius:5px}.sleep-vitals header button[aria-pressed=true]{background:#eaf4ef;color:#297354}.sleep-vitals header small{font-size:10px;color:#748496;margin-left:auto}.sleep-vitals .expand-widget{width:26px;height:26px;min-height:26px;padding:5px}.sleep-vitals .expand-widget svg{width:13px;height:13px}.sleep-vital-chart{height:95px;background:#fff;border-radius:7px;margin-top:3px}.sleep-vital-chart.large{height:270px}.sleep-vital-cards>button:focus-visible{outline:2px solid #527dc1;outline-offset:2px}
+
+
+
 .sieste-v2 .v2-explore{border:1px solid var(--v2-line);border-radius:9px;background:#fff;margin:7px 0;padding:0;overflow:hidden}.sieste-v2 .v2-explore>summary{padding:10px 11px;cursor:pointer;font-size:11px;font-weight:600;color:#405762;list-style-position:inside}.sieste-v2 .v2-explore[open]>summary{border-bottom:1px solid var(--v2-line);background:#f8faf9}.sieste-v2 .v2-explore>div{padding:7px}.sieste-v2 .v2-explore>div[hidden]{display:none}
-.sieste-v2 .sleep-page{max-width:none}.sieste-v2 .sleep-page-heading{padding:3px 0 6px;margin:0;border-bottom:1px solid var(--v2-line);gap:5px}.sieste-v2 .sleep-page-heading>div{margin-left:auto}.sieste-v2 .sleep-page-heading button,.sieste-v2 .sleep-page-heading select{font-size:10px;padding:4px 6px}.sieste-v2 .sleep-page-heading button[aria-pressed=true]{background:#216653;color:white;border-radius:5px}.sieste-v2 .sleep-period-nav{font-size:10px;padding:4px 0;gap:5px}.sieste-v2 .sleep-vital-cards{gap:5px;margin:3px 0 7px}.sieste-v2 .sleep-vital-cards>button{border-radius:8px;padding:7px;box-shadow:none}.sieste-v2 .sleep-vital-cards strong{font-size:21px}.sieste-v2 .sleep-vital-cards small{font-size:10px}.sieste-v2 .sleep-vital-cards span{font-size:9px}.sieste-v2 .sleep-vital-cards .widget-spark{height:13px;margin:3px 0}.sieste-v2 .sleep-training{padding:7px;margin:7px 0}.sieste-v2 .sleep-training h2,.sieste-v2 .sleep-regularity-widget h2{font-size:12px}.sieste-v2 .sleep-training>p{font-size:9px}.sieste-v2 .sleep-regularity-widget{padding:7px}.sieste-v2 .sleep-window-plot svg{height:180px;width:100%}.sieste-v2 .sleep-timing-caption{font-size:9px;margin:1px 0}.sieste-v2 .sleep-page-note{font-size:9px;line-height:1.5;color:#87969e}
+.sieste-v2 .sleep-page{max-width:none}.sieste-v2 .sleep-page-heading{padding:3px 0 6px;margin:0;border-bottom:1px solid var(--v2-line);gap:5px}.sieste-v2 .sleep-page-heading>div{margin-left:auto}.sieste-v2 .sleep-page-heading button,.sieste-v2 .sleep-page-heading select{font-size:10px;padding:4px 6px}.sieste-v2 .sleep-page-heading button[aria-pressed=true]{background:#216653;color:white;border-radius:5px}.sieste-v2 .sleep-period-nav{font-size:10px;padding:4px 0;gap:5px}.sieste-v2 .sleep-vital-cards{gap:5px;margin:3px 0 7px}.sieste-v2 .sleep-vital-cards>button{border-radius:8px;padding:7px;box-shadow:none}.sieste-v2 .sleep-vital-cards strong{font-size:21px}.sieste-v2 .sleep-vital-cards small{font-size:10px}.sieste-v2 .sleep-vital-cards span{font-size:9px}.sieste-v2 .sleep-vital-cards .widget-spark{height:13px;margin:3px 0}.sieste-v2 .sleep-regularity-widget h2{font-size:12px}.sieste-v2 .sleep-regularity-widget{padding:7px}.sieste-v2 .sleep-window-plot svg{height:180px;width:100%}.sieste-v2 .sleep-timing-caption{font-size:9px;margin:1px 0}.sieste-v2 .sleep-page-note{font-size:9px;line-height:1.5;color:#87969e}
 @media(min-width:900px){.sieste-v2 .sleep-page{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.sieste-v2 .sleep-page>:is(.sleep-page-heading,.sleep-period-nav,.sleep-vitals,.sleep-page-note){grid-column:1/-1}.sieste-v2 .sleep-page>.v2-explore{align-self:start}}
 @media(max-width:600px){.sieste-v2 .sleep-night-picker{max-width:110px}.sieste-v2 .sleep-vital-cards>button{padding:6px}.sieste-v2 .sleep-vital-cards strong{font-size:19px}.sieste-v2 .sleep-vital-cards span{font-size:8px}.sieste-v2 .sleep-window-plot svg{height:155px}}
 .sieste-v3 .v2-explore>div{padding:0 0 10px}
@@ -52,9 +52,9 @@
 .sieste-v3 .sleep-vital-cards strong{line-height:1.2;margin:7px 0 4px;color:var(--s-ink)}
 .sieste-v3 .sleep-vital-cards em{font-size:13px;font-weight:500;color:var(--s-muted);letter-spacing:0}
 .sieste-v3 .sleep-vital-cards .widget-spark{height:24px;margin:10px 0 5px}
-.sieste-v3 .sleep-training,.sieste-v3 .sleep-regularity-widget{padding:13px;margin:0}
-.sieste-v3 .sleep-training h2,.sieste-v3 .sleep-regularity-widget h2{font-size:14px;letter-spacing:-.3px;font-weight:700}
-.sieste-v3 .sleep-training>p{font-size:10px;line-height:1.5;color:var(--s-muted)}
+.sieste-v3 .sleep-regularity-widget{padding:13px;margin:0}
+.sieste-v3 .sleep-regularity-widget h2{font-size:14px;letter-spacing:-.3px;font-weight:700}
+
 .sieste-v3 .sleep-timing-caption{font-size:10px;line-height:1.5;color:var(--s-muted);margin-top:5px}
 .sieste-v3 .sleep-page-note{font-size:10px;line-height:1.5;color:var(--s-muted)}
 @media(min-width:1050px){
@@ -75,8 +75,8 @@
  .sieste-v3 .sleep-vital-cards em{font-size:10px}
  .sieste-v3 .sleep-vital-cards span{font-size:9px;line-height:1.3}
  .sieste-v3 .sleep-vital-cards .widget-spark{height:17px;margin:7px 0 4px}
- .sieste-v3 .sleep-training,.sieste-v3 .sleep-regularity-widget{padding:10px;border-radius:13px;margin:0 0 10px}
- .sieste-v3 .sleep-training h2,.sieste-v3 .sleep-regularity-widget h2{font-size:12px}
+ .sieste-v3 .sleep-regularity-widget{padding:10px;border-radius:13px;margin:0 0 10px}
+ .sieste-v3 .sleep-regularity-widget h2{font-size:12px}
  .sieste-v3 .sleep-window-plot svg{height:170px}
 }
 .sieste-v3 .sleep-window-plot{min-width:0}
@@ -95,7 +95,7 @@
 .sieste-v3 .sleep-vital-cards strong{font-size:30px;letter-spacing:-1px;font-weight:650}
 .sieste-v3 .sleep-vital-cards span{font-size:10px;line-height:1.4}
 .sieste-v3 .sleep-period-nav{min-height:40px}
-.sieste-v3 .sleep-training table{font-variant-numeric:tabular-nums}
+
 @media(max-width:650px){
  .sieste-v3 .sleep-vital-cards>button{padding:10px 7px}
  .sieste-v3 .sleep-vital-cards strong{font-size:27px}
@@ -105,30 +105,30 @@
  @media(hover:hover) and (pointer:fine){
   .sieste-v3 .sleep-vital-cards>button:hover svg{transform:translateY(-1px)}
  }
-}.recovery-ledger .sleep-training-matrix{gap:4px;margin-top:0}
-.recovery-ledger .sleep-training-matrix>button,.recovery-ledger .sleep-training-labels{grid-template-rows:34px 34px 27px 27px 27px;gap:3px}
-.recovery-ledger .sleep-training-matrix>button{border:1px solid transparent;border-radius:9px;padding:3px 2px;color:#343448;font-size:12px;transition:background .15s,border-color .15s}
-.recovery-ledger .sleep-training-matrix>button:hover{background:#f7f7fb;border-color:#e9e6f3;box-shadow:none}
-.recovery-ledger .sleep-training-matrix>button:focus-visible{outline:2px solid #7660c7;outline-offset:-1px}
-.recovery-ledger .sleep-training-labels{padding:4px 0;color:#737383;font-size:11px}
-.recovery-ledger .sleep-training-labels>span{align-items:center;gap:3px}
-.recovery-ledger .sleep-training-labels>span:nth-child(2){flex-direction:column;align-items:flex-start;justify-content:center;gap:1px}
-.recovery-ledger .sleep-training-labels small{font-size:9px;color:#9292a1}
-.recovery-ledger .sleep-pair-date{flex-direction:column;gap:1px}
-.recovery-ledger .sleep-pair-date small{font-size:10px;color:#9393a0;font-weight:400}
-.recovery-ledger .sleep-pair-date time{font-size:13px;font-weight:650}
-.recovery-ledger .is-today .sleep-pair-date{color:#6754bb;background:#f1edfc}
-.recovery-ledger .is-today .sleep-pair-date small{color:#8d7cc4}
-.recovery-ledger .sleep-pair-load{border-bottom:1px solid #eae7f2;border-radius:0!important;padding-bottom:5px}
-.recovery-ledger .sleep-pair-load i{bottom:5px;width:72%;max-width:42px;border-radius:4px 4px 1px 1px;background:#e4dff4}
-.recovery-ledger .sleep-pair-load b{font-size:11px;font-weight:550;color:#665f7b}
-.recovery-ledger .sleep-training-matrix>button>span[class*=status-]{border-radius:6px;font-weight:550}
-.sleep-training-summary{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:3px 10px;margin:7px 0 10px;font-size:11px;color:#777786}
-.sleep-training-summary b{color:#444455;font-weight:600}
-.sleep-training-summary small{font-size:10px;color:#9797a3}
-.recovery-ledger>details{margin-top:10px;padding-top:9px;border-top:1px solid #eeedf3;color:#797586;font-size:11px}
-.recovery-ledger>details summary{cursor:pointer}
-@media(max-width:600px){.recovery-ledger .sleep-training-matrix{gap:2px}.recovery-ledger .sleep-training-matrix>button{padding:3px 0}.recovery-ledger .sleep-training-labels{font-size:10px}.recovery-ledger .sleep-training-labels small{font-size:8px}}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media(max-width:600px){}
 .sieste-v3 .sleep-page{gap:10px}
 .sieste-v3 .sleep-page .sleep-page-heading{margin:0 0 5px;min-height:30px;gap:8px;flex-wrap:wrap}
 .sieste-v3 .sleep-page .sleep-page-heading h1{font-size:14px;letter-spacing:0;gap:5px}
@@ -149,16 +149,16 @@
 .sieste-v3 .sleep-page .sleep-vital-cards em{font-size:11px;font-weight:400;color:var(--snap-muted,#686875)}
 .sieste-v3 .sleep-page .sleep-vital-cards span{font-size:10px;line-height:1.35}
 .sieste-v3 .sleep-page .sleep-vital-cards .widget-spark{height:25px;margin:7px 0 5px}
-.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget){padding:11px 12px;margin:0 0 8px;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;box-shadow:none;min-width:0}
-.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget)>header{min-height:22px;margin:0 0 7px;gap:6px}
-.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget) h2{font-size:14px;letter-spacing:-.15px}
-.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget)>header :is(small,span){font-size:10px}
-.sieste-v3 .sleep-page .sleep-training-matrix{gap:2px;margin-top:4px}
-.sieste-v3 .sleep-page .sleep-training-matrix>button>span[class*=status-]{background:transparent;border-radius:0}
-.sieste-v3 .sleep-page .sleep-training-matrix>button>span+span{border-top:1px solid #f3f3f6}
-.sieste-v3 .sleep-page .sleep-training-matrix>button.is-today{background:var(--s-accent-soft,#f0efff);border-radius:5px}
-.sieste-v3 .sleep-page .sleep-pair-load i{background:#ded9f6}
-.sieste-v3 .sleep-page .sleep-training-summary{font-size:10px;color:var(--snap-muted,#686875);padding-top:5px}
+.sieste-v3 .sleep-page :is(.sleep-regularity-widget){padding:11px 12px;margin:0 0 8px;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;box-shadow:none;min-width:0}
+.sieste-v3 .sleep-page :is(.sleep-regularity-widget)>header{min-height:22px;margin:0 0 7px;gap:6px}
+.sieste-v3 .sleep-page :is(.sleep-regularity-widget) h2{font-size:14px;letter-spacing:-.15px}
+.sieste-v3 .sleep-page :is(.sleep-regularity-widget)>header :is(small,span){font-size:10px}
+
+
+
+
+
+
 .sieste-v3 .sleep-page .recovery-response{gap:0;margin:7px 0 3px;padding-top:7px;border-top:1px solid var(--snap-line,#e9e9f0)}
 .sieste-v3 .sleep-page .recovery-response>button{padding:3px 8px;background:transparent;border:0;border-radius:0;box-shadow:none}
 .sieste-v3 .sleep-page .recovery-response>button:first-child{padding-left:0}
@@ -167,15 +167,15 @@
 .sieste-v3 .sleep-page .sleep-window-plot svg{height:auto;width:100%;max-height:290px}
 .sieste-v3 .sleep-page .sleep-window-readout{font-size:11px;gap:5px 10px;padding:4px 0 2px;line-height:1.4;flex-wrap:wrap}
 .sieste-v3 .sleep-page .sleep-timing-caption{font-size:10px;margin:3px 0 0;color:var(--snap-muted,#686875)}
-.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log){margin:0 0 8px;padding:0;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;overflow:hidden;box-shadow:none;min-width:0}
-.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)>summary{padding:10px 12px;min-height:36px;font-size:12px;gap:7px;color:var(--snap-muted,#686875);background:transparent}
-.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)>summary::before{width:14px;height:14px;font-size:14px;border-radius:0;background:transparent;color:var(--s-accent)}
-.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)[open]>summary{border-bottom:1px solid var(--snap-line,#e9e9f0);background:transparent;color:var(--s-ink)}
-.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)>div{padding:8px 12px}
-.sieste-v3 .sleep-page :is(.sleep-night-matrix,.sleep-tools){border:0;border-radius:0;box-shadow:none;background:transparent;margin:0;padding:0}
-.sieste-v3 .sleep-page .sleep-consistency-strip{gap:0;margin-top:6px}
-.sieste-v3 .sleep-page .sleep-consistency-strip button{border:0;border-radius:0;padding:7px 10px;background:transparent;box-shadow:none}
-.sieste-v3 .sleep-page .sleep-consistency-strip button+button{border-left:1px solid var(--snap-line,#e9e9f0)}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-night-log){margin:0 0 8px;padding:0;border:1px solid var(--snap-line,#e9e9f0);border-radius:var(--snap-radius,14px);background:#fff;overflow:hidden;box-shadow:none;min-width:0}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-night-log)>summary{padding:10px 12px;min-height:36px;font-size:12px;gap:7px;color:var(--snap-muted,#686875);background:transparent}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-night-log)>summary::before{width:14px;height:14px;font-size:14px;border-radius:0;background:transparent;color:var(--s-accent)}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-night-log)[open]>summary{border-bottom:1px solid var(--snap-line,#e9e9f0);background:transparent;color:var(--s-ink)}
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-night-log)>div{padding:8px 12px}
+.sieste-v3 .sleep-page :is(.sleep-tools){border:0;border-radius:0;box-shadow:none;background:transparent;margin:0;padding:0}
+
+
+
 .sieste-v3 .sleep-page .sleep-clock-card{padding:7px 0;border-radius:0;box-shadow:none}
 .sieste-v3 .sleep-page .sleep-tools-stats article{background:transparent;border-radius:0;border-left:1px solid var(--snap-line,#e9e9f0)}
 .sieste-v3 .sleep-page .sleep-tools-stats article:first-child{border-left:0}
@@ -186,7 +186,7 @@
  .sieste-v3 .sleep-page .sleep-vital-cards strong{font-size:27px;letter-spacing:-.8px}
  .sieste-v3 .sleep-page .sleep-vital-cards span{font-size:9px}
  .sieste-v3 .sleep-page .sleep-vital-cards .widget-spark{height:22px;margin:6px 0 4px}
- .sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget){padding:10px}
+ .sieste-v3 .sleep-page :is(.sleep-regularity-widget){padding:10px}
  .sieste-v3 .sleep-page .sleep-window-plot svg{max-height:250px}
 }
 @media(max-width:375px){
@@ -200,19 +200,19 @@
 .sieste-v3 .sleep-page .sleep-page-heading [role=group] { background: var(--muted); border: 1px solid var(--border); border-radius: 10px; padding: 2px; }
 .sieste-v3 .sleep-page .sleep-page-heading button:not([data-slot]) { min-height: 30px; border-radius: 7px; color: var(--muted-foreground); }
 .sieste-v3 .sleep-page .sleep-page-heading button:not([data-slot])[aria-pressed=true] { color: var(--primary); background: var(--card); box-shadow: 0 1px 3px color-mix(in oklch, var(--foreground) 7%, transparent); }
-.sieste-v3 .sleep-page :is(.sleep-vital-cards,.sleep-training,.sleep-regularity-widget,.v2-explore,.sleep-zones,.sleep-night-log) { background: var(--card); border-color: var(--border); border-radius: 16px; box-shadow: var(--sieste-surface-shadow); }
+.sieste-v3 .sleep-page :is(.sleep-vital-cards,.sleep-regularity-widget,.v2-explore,.sleep-night-log) { background: var(--card); border-color: var(--border); border-radius: 16px; box-shadow: var(--sieste-surface-shadow); }
 .sieste-v3 .sleep-page .sleep-vital-cards>button { padding: 10px 9px; border-color: var(--border); }
 .sieste-v3 .sleep-page .sleep-vital-cards strong { font-weight: 650; font-size: 29px; letter-spacing: -.045em; }
 .sieste-v3 .sleep-page .sleep-vital-cards :is(small,em) { color: var(--muted-foreground); }
 .sieste-v3 .sleep-page :is(.sleep-night-picker select,.sleep-period-nav button,.sleep-tools select,.sleep-tools input,.sleep-tools button):not([data-slot]) { border-color: var(--border); color: var(--foreground); background: var(--card); border-radius: 8px; min-height: 32px; }
-.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget) { padding: 10px; }
-.sieste-v3 .sleep-page :is(.sleep-training,.sleep-regularity-widget)>header { margin-bottom: 6px; }
-.sieste-v3 .sleep-page :is(.sleep-page-note,.sleep-training-summary,.sleep-timing-caption,.sleep-clock-variation span,.sleep-clock-card footer,.sleep-tools small) { color: var(--muted-foreground); }
+.sieste-v3 .sleep-page :is(.sleep-regularity-widget) { padding: 10px; }
+.sieste-v3 .sleep-page :is(.sleep-regularity-widget)>header { margin-bottom: 6px; }
+.sieste-v3 .sleep-page :is(.sleep-page-note,.sleep-timing-caption,.sleep-clock-variation span,.sleep-clock-card footer,.sleep-tools small) { color: var(--muted-foreground); }
 .sieste-v3 .sleep-page .sleep-clock-card+.sleep-clock-card { border-color: var(--border); }
-.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)>summary { min-height: 38px; padding: 10px; color: var(--foreground); font-weight: 500; }
-.sieste-v3 .sleep-page :is(.v2-explore,.sleep-zones,.sleep-night-log)[open]>summary { border-color: var(--border); background: var(--muted); }
-.sieste-v3 .sleep-page .sleep-training-matrix>button.is-today { background: var(--accent); border-radius: 8px; }
-.sieste-v3 .sleep-page :is(.recovery-response>button+button,.sleep-consistency-strip button+button,.sleep-tools-stats article) { border-color: var(--border); }
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-night-log)>summary { min-height: 38px; padding: 10px; color: var(--foreground); font-weight: 500; }
+.sieste-v3 .sleep-page :is(.v2-explore,.sleep-night-log)[open]>summary { border-color: var(--border); background: var(--muted); }
+
+.sieste-v3 .sleep-page :is(.recovery-response>button+button,.sleep-tools-stats article) { border-color: var(--border); }
 @media (max-width:650px) {
   .sieste-v3 .sleep-page .sleep-vital-cards strong { font-size: 27px; }
   .sieste-v3 .sleep-page .sleep-vital-cards>button { padding: 9px 8px; }
@@ -280,7 +280,7 @@
 .sieste-v3 .sleep-focus .sleep-secondary>summary { min-height: 48px; padding: 12px 14px; }
 .sieste-v3 .sleep-focus .sleep-secondary>div { padding: 12px 14px; }
 .sieste-v3 .sleep-focus .sleep-secondary .sleep-vitals { margin: 0; }
-.sieste-v3 .sleep-focus .sleep-secondary .sleep-training { padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+
 @media (min-width: 900px) {
  .sieste-v3 .sleep-focus .sleep-window-hero { padding: 22px 26px; }
  .sieste-v3 .sleep-focus .sleep-window-plot { display: grid; grid-template-columns: minmax(170px,.65fr) minmax(0,2fr); column-gap: 28px; }
@@ -318,3 +318,45 @@
 .sieste-v3 .sleep-focus>details{align-self:stretch;border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
 .sieste-v3 .sleep-focus>details>summary{min-height:52px;font-size:14.5px;font-weight:600;color:var(--n-ink)}
 .sieste-v3 .sleep-focus .sleep-page-heading [data-slot=toggle-group-item]{min-height:28px}
+
+/* Overlays on the sleep chart: one reading per night on its own scale */
+.sieste-v3 .sleep-overlay-line{fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.sieste-v3 .sleep-overlay-dot{fill:currentColor;stroke:#fff;stroke-width:1.5}
+.sieste-v3 .sleep-overlay-dot.is-outside{fill:#dc2626}
+.sieste-v3 .sleep-overlay-range{fill:currentColor;opacity:.1}
+.sieste-v3 .sleep-overlay-bar{fill:currentColor;opacity:.55}
+.sieste-v3 .sleep-overlay-value{font-size:10px;font-weight:700;fill:currentColor;paint-order:stroke;stroke:#fff;stroke-width:3px}
+.sieste-v3 .sleep-overlay-axis{font-size:9px;font-weight:600;fill:currentColor;opacity:.8}
+.sieste-v3 .sleep-window-overlay-readout strong em{font-style:normal;font-size:12px;font-weight:500}
+.sieste-v3 .sleep-focus .sleep-overlay-picker{display:grid;gap:6px;margin-top:10px}
+.sieste-v3 .sleep-focus .sleep-overlay-picker>div{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.sieste-v3 .sleep-focus .sleep-overlay-picker button{display:inline-flex;align-items:center;gap:6px;flex:none;height:30px;padding:0 12px;border:0;border-radius:999px;background:rgba(11,18,32,.055);color:var(--n-muted);font-size:12.5px;font-weight:600}
+.sieste-v3 .sleep-focus .sleep-overlay-picker button[aria-pressed=true]{background:var(--n-ink);color:#fff}
+.sieste-v3 .sleep-focus .sleep-overlay-picker button i{width:8px;height:8px;border-radius:50%}
+.sieste-v3 .sleep-focus .sleep-overlay-picker small{font-size:12px;color:var(--n-muted)}
+/* The selected night: score, awake time, morning readings, stages and the day before */
+.sieste-v3 .sleep-focus .sleep-night-card{display:grid;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--n-line)}
+.sieste-v3 .sleep-focus .sleep-night-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sieste-v3 .sleep-focus .sleep-night-stats span{display:grid;gap:2px;min-width:0}
+.sieste-v3 .sleep-focus .sleep-night-stats small{font-size:11px;color:var(--n-muted)}
+.sieste-v3 .sleep-focus .sleep-night-stats b{font-size:17px;font-weight:650;letter-spacing:-.02em;color:var(--n-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sieste-v3 .sleep-focus .sleep-night-stats small[class^=status-]{font-size:10.5px;font-weight:600}
+.sieste-v3 .sleep-focus .sleep-night-stats .status-green,.sieste-v3 .sleep-focus .sleep-night-stats .status-lightgreen{color:#15803d}
+.sieste-v3 .sleep-focus .sleep-night-stats .status-yellow,.sieste-v3 .sleep-focus .sleep-night-stats .status-orange{color:#b45309}
+.sieste-v3 .sleep-focus .sleep-night-stats .status-red{color:#b91c1c}
+.sieste-v3 .sleep-focus .sleep-stage-stack{display:flex;height:10px;overflow:hidden;border-radius:999px;background:rgba(11,18,32,.06)}
+.sieste-v3 .sleep-focus .sleep-night-stages ul{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 0 0;padding:0;list-style:none;font-size:12px;color:var(--n-muted)}
+.sieste-v3 .sleep-focus .sleep-night-stages li{display:inline-flex;align-items:center;gap:5px}
+.sieste-v3 .sleep-focus .sleep-night-stages li i{width:8px;height:8px;border-radius:2px}
+.sieste-v3 .sleep-focus .sleep-night-stages li b{color:var(--n-ink);font-weight:600}
+.sieste-v3 .sleep-focus .sleep-night-day{margin:0;font-size:12.5px;line-height:1.45;color:var(--n-muted)}
+/* What stands out: the few findings worth reading */
+.sieste-v3 .sleep-focus .sleep-findings{align-self:stretch;padding:16px;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 .sleep-focus .sleep-findings h2{margin:0 0 10px;font-size:15px;font-weight:650;color:var(--n-ink)}
+.sieste-v3 .sleep-focus .sleep-findings ul{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.sieste-v3 .sleep-focus .sleep-findings li{position:relative;padding-left:16px;font-size:13.5px;line-height:1.45;color:var(--n-ink)}
+.sieste-v3 .sleep-focus .sleep-findings li::before{content:'';position:absolute;left:0;top:.45em;width:8px;height:8px;border-radius:50%;background:#94a3b8}
+.sieste-v3 .sleep-focus .sleep-findings li[data-tone=good]::before{background:#16a34a}
+.sieste-v3 .sleep-focus .sleep-findings li[data-tone=watch]::before{background:#f59e0b}
+@media (max-width:420px){.sieste-v3 .sleep-focus .sleep-night-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sieste-v3 .sleep-focus .sleep-overlay-picker small b{font-weight:650;color:var(--n-ink)}
