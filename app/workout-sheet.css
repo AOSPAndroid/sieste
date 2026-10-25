@@ -132,7 +132,7 @@
 
 /* Cards: one surface for every block */
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-glance{display:flex;flex-direction:column;gap:12px}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-profile,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-zone-micro,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-context,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .session-intelligence,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .running-technique,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.activity-extra-sensors,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .recorded-fields{background:var(--ws-card);border:0!important;border-radius:var(--ws-radius)!important;box-shadow:var(--ws-shadow);margin:0}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-profile,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-zone-micro,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-context,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .session-intelligence,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .running-technique,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .recorded-fields{background:var(--ws-card);border:0!important;border-radius:var(--ws-radius)!important;box-shadow:var(--ws-shadow);margin:0}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-profile,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-zone-micro,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .session-intelligence,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .running-technique{padding:16px}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-profile>header h3,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-profile>header h2,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-zone-micro h3,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .running-technique h3{font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--ws-ink)}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-profile .effort-segments,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-profile .unified-segments{overflow-x:auto;scrollbar-width:none}
@@ -143,14 +143,14 @@
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-selection,.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .effort-readout{border-radius:14px;background:#f6f7fa}
 
 /* Folded panels read as list rows */
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.activity-extra-sensors>summary{display:flex;align-items:center;gap:8px;min-height:54px;padding:0 16px;font-size:14px;font-weight:600;color:var(--ws-ink);cursor:pointer;list-style:none}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.activity-extra-sensors>summary::-webkit-details-marker{display:none}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.activity-extra-sensors>summary:after{content:'';margin-left:auto;width:8px;height:8px;flex:none;border-right:2px solid var(--ws-faint);border-bottom:2px solid var(--ws-faint);transform:rotate(-45deg);transition:transform .2s}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.activity-extra-sensors[open]>summary:after{transform:rotate(45deg)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.activity-extra-sensors>summary small{font-weight:500;color:var(--ws-muted)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.activity-extra-sensors[open]>:not(summary){padding:0 16px 16px}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.activity-extra-sensors>summary>span{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0;margin:0;background:none;border:0;font:inherit;color:inherit}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.activity-extra-sensors>summary>span small{flex-basis:100%;margin-left:21px;font-size:12px}
+
+
+
+
+
+
+
+
 
 /* More analysis: one card of folded rows */
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more{display:flex;flex-direction:column;margin:0;border-radius:var(--ws-radius);background:var(--ws-card);box-shadow:var(--ws-shadow);overflow:hidden}
@@ -160,9 +160,9 @@
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more>.recorded-fields{padding:0 16px}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more>.recorded-fields>.recorded-fields-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:56px;padding:6px 0;font-size:14.5px;font-weight:600;line-height:1.25;color:var(--ws-ink);text-align:left}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more .recorded-fields-title small{display:block;font-size:12.5px;font-weight:500;color:var(--ws-muted)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more details.activity-extra-sensors>summary{min-height:56px;padding:6px 16px;line-height:1.25}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more details.activity-extra-sensors>summary>span{gap:2px 8px}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more details.activity-extra-sensors>summary>span small{margin-left:0;font-size:12.5px;font-weight:500;color:var(--ws-muted)}
+
+
+
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more>.docs-link{display:flex;align-items:center;min-height:50px;padding:0 16px;font-size:13.5px;font-weight:600;color:var(--ws-ink);text-decoration:none}
 
 /* Previous / this / next */
@@ -238,14 +238,14 @@
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-square-grid>.activity-glance-card .trend-badge small{display:none}
 
 /* Everything else waits behind one row */
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.workout-more-fold{margin:6px 0 0;border-radius:var(--ws-radius);background:var(--ws-card);box-shadow:var(--ws-shadow);overflow:hidden}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.workout-more-fold>summary{display:flex;align-items:center;min-height:56px;padding:6px 16px;line-height:1.25;cursor:pointer;list-style:none}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.workout-more-fold>summary::-webkit-details-marker{display:none}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.workout-more-fold>summary>span{display:flex;flex-direction:column;gap:2px;font-size:14.5px;font-weight:650;color:var(--ws-ink)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.workout-more-fold>summary>span small{font-size:12.5px;font-weight:500;color:var(--ws-muted)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.workout-more-fold>summary:after{content:'';margin-left:auto;width:8px;height:8px;flex:none;border-right:2px solid var(--ws-faint);border-bottom:2px solid var(--ws-faint);transform:rotate(45deg);transition:transform .2s}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.workout-more-fold[open]>summary:after{transform:rotate(-135deg)}
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet details.workout-more-fold>.workout-more{border-radius:0;box-shadow:none;border-top:1px solid var(--ws-line)}
+
+
+
+
+
+
+
+
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-other-sensors{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 14px;font-size:12px;color:var(--ws-muted)}
 
 /* Removal is rare: a quiet text action at the end */
@@ -328,3 +328,9 @@
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-bands>div:first-child{font-size:10.5px;color:var(--ws-muted);padding-top:0}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-bands>div:last-child{border-bottom:0}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .pedalling-note{margin:10px 0 0}
+/* More analysis: one card, a row of switches, one view at a time */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more{gap:10px;margin:10px 0 0;padding:14px 16px}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more>*+*{border-top:0!important}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more>h3{font-size:15px;font-weight:650;color:var(--ws-ink)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more .view-switch-panel>*{margin-left:0;margin-right:0}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more .view-switch-panel>:is(section,div,details){border:0!important;box-shadow:none!important;background:transparent!important;padding-left:0!important;padding-right:0!important;margin-top:0!important}
