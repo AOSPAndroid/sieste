@@ -47,6 +47,23 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 .sieste-v3 .floating-sync{width:48px;height:48px;min-width:48px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:var(--n-ink);box-shadow:var(--n-float);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .sieste-v3 .floating-sync:hover{background:#fff;color:var(--n-ink)}
 
+/* Phones and tablets: sync, nav and chat sit on one line, same height, same white, same shadow */
+@media (max-width:1049px){
+ :root{--sieste-dock-bottom:calc(14px + var(--sieste-safe-bottom));--sieste-action-bottom:var(--sieste-dock-bottom)}
+ .sieste-v3 .mini-dock{align-items:center;height:48px;padding:4px;background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+ .sieste-v3 .mini-dock>button small{width:auto;height:auto}
+ .sieste-v3 .floating-sync,body:has(.sieste-v3)>.athena-launcher{width:48px;height:48px;min-width:48px;min-height:48px;padding:0;border:0;border-radius:999px;background:#fff;box-shadow:var(--n-float);-webkit-backdrop-filter:none;backdrop-filter:none}
+ body:has(.sieste-v3)>.athena-launcher svg{width:19px;height:19px}
+ /* The chat button lives outside the app root, so it gets the shadow spelled out. */
+ body:has(.sieste-v3)>.athena-launcher{box-shadow:0 0 0 1px rgba(11,18,32,.08),0 6px 18px -12px rgba(11,18,32,.18)}
+}
+/* Narrow phones: icons only, so four tabs fit between sync and chat */
+@media (max-width:360px){
+ .sieste-v3 .mini-dock{width:calc(100vw - 144px);justify-content:space-between}
+ .sieste-v3 .mini-dock>button,.sieste-v3 .mini-dock>button[aria-current=page]{flex:none;width:44px;min-width:44px;padding:0;justify-content:center}
+ .sieste-v3 .mini-dock>button[aria-current=page] small{display:none}
+}
+
 /* Home · today's health leads the page */
 .sieste-v3 .snapshot-home-focus{display:flex;flex-direction:column;gap:12px}
 .sieste-v3 .home-toolbar time{font-size:13px;font-weight:600;color:var(--n-muted)}
