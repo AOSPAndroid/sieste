@@ -40,7 +40,7 @@ export default function SleepWindowChart({data,onSelect,selectedDate,overlay=nul
      {(rows.length<=7||i%4===0||i===rows.length-1)&&<><text x={x(i)} y="244" textAnchor="middle" className="sleep-window-day">{new Date(r.date+'T12:00:00Z').toLocaleDateString('en-GB',{weekday:'short',timeZone:'UTC'})}</text><text x={x(i)} y="261" textAnchor="middle" className="sleep-window-date">{r.label.slice(0,2)}</text></>}
     </g>})}
     <path pointerEvents="none" d={path('bed')} className="sleep-window-bed-line"/><path pointerEvents="none" d={path('wake')} className="sleep-window-wake-line"/>
-    {overlay&&<g className="sleep-overlay" pointerEvents="none" style={{color:overlay.color}} aria-hidden="true">
+    {overlay&&<g key={overlay.key} className="sleep-overlay" pointerEvents="none" style={{color:overlay.color}} aria-hidden="true">
      {ov.map((o,i)=>o.range&&<rect key={'r'+i} x={x(i)-156/rows.length+2} width={312/rows.length-4} y={oy(o.range[1])} height={Math.max(1,oy(o.range[0])-oy(o.range[1]))} className="sleep-overlay-range"/>)}
      {overlay.key==='load'?ov.map((o,i)=>o.v!==null&&o.v>0&&<rect key={i} x={x(i)-Math.max(2,bw/4)} width={Math.max(4,bw/2)} y={oy(o.v)} height={220-oy(o.v)} rx="2" className="sleep-overlay-bar"/>)
       :<path d={ov.map((o,i)=>o.v===null?'':`${i&&ov[i-1].v!==null?'L':'M'}${x(i)},${oy(o.v)}`).join(' ')} className="sleep-overlay-line"/>}

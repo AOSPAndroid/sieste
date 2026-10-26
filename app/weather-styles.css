@@ -237,3 +237,18 @@
 .sieste-v3 .weather-recon .weather-map-arrow text{font-size:10px}
 .sieste-v3 .weather-recon .weather-rain-help{margin:8px 2px 0;font-size:12px;line-height:1.45;color:var(--n-muted)}
 .sieste-v3 .weather-recon .weather-rain-help b{color:var(--n-ink,inherit);font-weight:600}
+/* Day picker: plain pills like the other switches; the selected day is the dark one */
+.sieste-v3 .weather-recon .weather-days{gap:6px;padding:2px 0 4px;scrollbar-width:none}
+.sieste-v3 .weather-recon .weather-days::-webkit-scrollbar{display:none}
+.sieste-v3 .weather-recon .weather-days [data-slot=button]{min-width:68px;height:52px;padding:7px 12px;border:0;border-radius:16px;background:rgba(11,18,32,.055);color:var(--n-ink);box-shadow:none;font-size:14px;font-weight:650}
+.sieste-v3 .weather-recon .weather-days [data-slot=button] small{font-size:11.5px;font-weight:500;color:var(--n-muted)}
+.sieste-v3 .weather-recon .weather-days [data-slot=button][aria-pressed=true]{background:var(--n-ink);color:#fff}
+.sieste-v3 .weather-recon .weather-days [data-slot=button][aria-pressed=true] small{color:rgba(255,255,255,.75)}
+/* Town and its actions on one line */
+.sieste-v3 .weather-recon .weather-location{align-items:flex-end}
+.sieste-v3 .weather-recon .weather-location strong{font-size:22px;font-weight:700}
+.sieste-v3 .weather-recon .weather-location-actions button{width:38px;height:38px;min-height:38px;border:0;border-radius:999px;background:rgba(11,18,32,.055)}
+/* The key and the rain % note belong to the hourly table */
+.sieste-v3 .weather-recon .weather-hour-key{display:grid;gap:8px;padding:12px 14px 14px;border-top:1px solid var(--n-line)}
+.sieste-v3 .weather-recon .weather-hour-key .weather-rain-help{margin:0}
+@media (prefers-reduced-motion:no-preference){.sieste-v3 .weather-recon .weather-days [data-slot=button]{transition:background-color .18s ease,color .18s ease,transform .12s ease}.sieste-v3 .weather-recon .weather-days [data-slot=button]:active{transform:scale(.96)}}

@@ -18,6 +18,6 @@ export default function ViewSwitch({views,initial,label,remember,className=''}:{
    if(next===null)return;event.preventDefault();choose(views[next].id);event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
   }}>{v.label}</button>)}</div>
   {view.hint&&<small className="view-switch-hint">{view.hint}</small>}
-  <div role="tabpanel" id={`${baseId}-panel`} aria-labelledby={`${baseId}-tab-${views.indexOf(view)}`} tabIndex={0} className="view-switch-panel"><FeatureBoundary key={view.id}><Suspense fallback={<p role="status">Loading {view.label.toLowerCase()}…</p>}>{view.render()}</Suspense></FeatureBoundary></div>
+  <div key={view.id} role="tabpanel" id={`${baseId}-panel`} aria-labelledby={`${baseId}-tab-${views.indexOf(view)}`} tabIndex={0} className="view-switch-panel"><FeatureBoundary key={view.id}><Suspense fallback={<p role="status">Loading {view.label.toLowerCase()}…</p>}>{view.render()}</Suspense></FeatureBoundary></div>
  </div>;
 }

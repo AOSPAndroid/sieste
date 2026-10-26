@@ -1,13 +1,15 @@
 "use client";
-import {useEffect,useState,useRef} from 'react';
+import {useEffect,useMemo,useState,useRef} from 'react';
 import {cachedWorkout,loadWorkout} from './workout-detail-cache';
 import {routeGeometry} from './route-geometry';
-export default function RouteThumbnail({id,token,isDemo}:{id:string;token:string;isDemo:boolean}){
- const cached=cachedWorkout(token,id),initial=cached?.seriesSampled?.data;
+import {decode} from './route-signature';
+// Drawn from the stored route copy when there is one (instant, no download); otherwise from the workout's GPS stream.
+export default function RouteThumbnail({id,token,isDemo,route=null}:{id:string;token:string;isDemo:boolean;route?:{line:string}|null}){
+ const line=route?.line,stored=useMemo(()=>line?decode(line):null,[line]),cached=cachedWorkout(token,id),initial=stored?{positionLat:stored.map(p=>p[0]),positionLong:stored.map(p=>p[1])}:cached?.seriesSampled?.data;
  const host=useRef<HTMLSpanElement>(null),[geometry,setGeometry]=useState<ReturnType<typeof routeGeometry>>(()=>initial?routeGeometry(initial.positionLat??[],initial.positionLong??[]):null),[status,setStatus]=useState(cached?'No GPS recorded':'Loading route…');
- useEffect(()=>{if(isDemo){setStatus('No demo GPS track');return}if(!token){setStatus('Connect to load route');return}let live=true;const hit=cachedWorkout(token,id);if(hit){const d=hit.seriesSampled?.data??{};setGeometry(routeGeometry(d.positionLat??[],d.positionLong??[]));setStatus('No GPS recorded')}
+ useEffect(()=>{if(stored)return;if(isDemo){setStatus('No demo GPS track');return}if(!token){setStatus('Connect to load route');return}let live=true;const hit=cachedWorkout(token,id);if(hit){const d=hit.seriesSampled?.data??{};setGeometry(routeGeometry(d.positionLat??[],d.positionLong??[]));setStatus('No GPS recorded')}
  const load=()=>{void loadWorkout(token,id).then(d=>{if(!live)return;const s=d.seriesSampled?.data??{};setGeometry(routeGeometry(s.positionLat??[],s.positionLong??[]));setStatus('No GPS recorded')}).catch(()=>{if(live&&!hit)setStatus('Route unavailable · open session')})};
- const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observer.disconnect();load()}},{rootMargin:'200px'});if(host.current)observer.observe(host.current);return()=>{live=false;observer.disconnect()};},[id,token,isDemo]);
+ const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observer.disconnect();load()}},{rootMargin:'200px'});if(host.current)observer.observe(host.current);return()=>{live=false;observer.disconnect()};},[id,token,isDemo,stored]);
 
  if(!geometry)return <span ref={host} role={status==='Loading route…'?'status':undefined} className={`route-thumbnail route-thumbnail-empty${status==='Loading route…'?' is-loading':''}`}>{status}</span>;
  const points=geometry.points,minX=points.reduce((n,p)=>Math.min(n,p.x),Infinity),maxX=points.reduce((n,p)=>Math.max(n,p.x),-Infinity),minY=points.reduce((n,p)=>Math.min(n,p.y),Infinity),maxY=points.reduce((n,p)=>Math.max(n,p.y),-Infinity),scale=Math.min(200/Math.max(maxX-minX,1e-9),106/Math.max(maxY-minY,1e-9)),xy=(p:{x:number;y:number})=>({x:120+(p.x-geometry.center.x)*scale,y:65+(p.y-geometry.center.y)*scale}),first=xy(points[0]),last=xy(points.at(-1)!);

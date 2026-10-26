@@ -123,3 +123,88 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 .sieste-v3 .view-switch-tabs>button[aria-selected=true],.metric-expansion .view-switch-tabs>button[aria-selected=true]{background:var(--n-ink,#0b1220);color:#fff}
 .sieste-v3 .view-switch-hint,.metric-expansion .view-switch-hint{font-size:12px;color:var(--n-muted,#5b6678)}
 .sieste-v3 .view-switch-panel,.metric-expansion .view-switch-panel{min-width:0}
+
+/* Workout loading sheet: the same frame as the workout sheet, so opening never shows other UI */
+.activity-layer .activity-card-stack>.workout-skeleton{display:flex;flex-direction:column;gap:14px;padding:calc(env(safe-area-inset-top,0px) + 18px) 0 24px!important;border:0!important;border-radius:28px!important;background:#f3f4f7!important;box-shadow:0 30px 80px -30px rgba(9,12,19,.55)!important;overflow:hidden;color:#0b1220}
+.activity-layer .workout-skeleton>header{position:relative;padding:0 20px}
+.activity-layer .workout-skeleton>header p{padding-right:44px;display:flex;align-items:center;gap:7px;margin:0;font-size:13px;font-weight:500;color:#5b6678}
+.activity-layer .workout-skeleton>header p i{width:24px;height:24px;border-radius:8px;background:var(--sport,#64748b)}
+.activity-layer .workout-skeleton>header h2{margin:8px 0 2px;font-size:clamp(22px,6vw,28px);font-weight:700;line-height:1.1;letter-spacing:-.03em;overflow-wrap:anywhere}
+.activity-layer .workout-skeleton-close{position:absolute;top:-6px;right:12px;width:36px;height:36px;border-radius:999px;background:rgba(11,18,32,.06)}
+.activity-layer .workout-skeleton.sport-running{--sport:#ff5b35}.activity-layer .workout-skeleton.sport-cycling{--sport:#8b6cff}.activity-layer .workout-skeleton.sport-swimming{--sport:#18a9f2}.activity-layer .workout-skeleton:is(.sport-walking,.sport-hiking){--sport:#1fb56a}.activity-layer .workout-skeleton.sport-strength_training{--sport:#ffa21f}
+.activity-layer .workout-skeleton-tabs{display:flex;gap:8px;padding:0 16px}
+.activity-layer .workout-skeleton-tabs>*{height:36px;border-radius:999px;background:rgba(11,18,32,.06)}
+.activity-layer .workout-skeleton-tabs>b{width:96px;background:#0b1220}.activity-layer .workout-skeleton-tabs>i{width:64px}
+.activity-layer .workout-skeleton-body{display:grid;gap:10px;padding:0 14px}
+.activity-layer .workout-skeleton-body i{display:block;height:120px;border-radius:16px;background:linear-gradient(90deg,#fff 0%,#f6f7fa 40%,#fff 80%) 0 0/300% 100%;box-shadow:0 0 0 1px rgba(11,18,32,.06)}
+.activity-layer .workout-skeleton-body i.is-map{height:220px}
+.activity-layer .workout-skeleton-body>div{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.activity-layer .workout-skeleton-body>div i{height:96px}
+@media (max-width:719px){.activity-layer .activity-card-stack>.workout-skeleton{position:fixed;inset:0;width:100%;height:100dvh;margin:0;border-radius:0!important;z-index:2}}
+
+/* Motion: quick, quiet and only where something changes; nothing moves with reduced motion */
+@keyframes sieste-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sieste-fade{from{opacity:0}to{opacity:1}}
+@keyframes sieste-sheet-in{from{opacity:0;transform:translateY(28px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes sieste-shimmer{to{background-position:-300% 0}}
+@media (prefers-reduced-motion:no-preference){
+ .sieste-v3 .activity-card-stack>.workout-modal:not(.workout-loading),.activity-layer .activity-card-stack>.workout-skeleton{animation:sieste-sheet-in .32s cubic-bezier(.2,.8,.2,1) both}
+ .sieste-v3 .activity-card-stack>.workout-modal.is-swapped{animation:none}
+ .sieste-v3 .activity-card-stack>.workout-modal.is-swapped .activity-sheet-body{animation:sieste-fade .24s ease-out both}
+ .activity-layer .workout-skeleton-body i{animation:sieste-shimmer 1.4s linear infinite}
+ .sieste-v3 .overlay.activity-card-stack{animation:sieste-fade .2s ease-out both}
+ .sieste-v3 .view-switch-panel,.metric-expansion .view-switch-panel{animation:sieste-rise .24s cubic-bezier(.2,.8,.2,1) both}
+ .sieste-v3 .workout-sheet [role=tabpanel]{animation:sieste-fade .2s ease-out both}
+ .sieste-v3 :is(.view-switch-tabs,.sleep-overlay-picker)>*>button,.sieste-v3 .view-switch-tabs>button,.sieste-v3 [data-slot=toggle-group-item]{transition:background-color .18s ease,color .18s ease,transform .12s ease}
+ .sieste-v3 :is(.view-switch-tabs>button,.sleep-overlay-picker button,[data-slot=toggle-group-item],.home-insight-card button):active{transform:scale(.96)}
+ .sieste-v3 .sleep-overlay{animation:sieste-fade .3s ease-out both}
+ .sieste-v3 .zone-strip-bar>i,.sieste-v3 .sleep-stage-stack>i{transition:width .45s cubic-bezier(.2,.8,.2,1)}
+ .metric-expansion .expanded-widget{animation:sieste-sheet-in .28s cubic-bezier(.2,.8,.2,1) both}
+}
+
+/* Fitness & race predictions: label, value, change, as tiles on the card like the rest of Home */
+.sieste-v3 .coros-fitness{margin:12px 0;padding:16px;border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 .coros-fitness>header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 12px}
+.sieste-v3 .coros-fitness>header h2{font-size:16px;font-weight:650;letter-spacing:-.02em;color:var(--n-ink)}
+.sieste-v3 .coros-fitness>header small{font-size:12px;color:var(--n-muted)}
+.sieste-v3 .coros-fitness :is(.coros-fitness-metrics,.coros-races){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:none;border-radius:0;overflow:visible}
+.sieste-v3 .coros-fitness .coros-races{margin-top:8px}
+.sieste-v3 .coros-fitness :is(.coros-fitness-metrics,.coros-races)>button{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:2px;min-width:0;min-height:0;padding:12px 12px 10px;border:0;border-radius:14px;background:var(--n-ground);text-align:left;color:var(--n-ink);box-shadow:none}
+.sieste-v3 .coros-fitness :is(.coros-fitness-metrics,.coros-races)>button:hover{background:#eef0f4}
+.sieste-v3 .coros-fitness :is(.coros-fitness-metrics,.coros-races)>button>small{order:0;font-size:12px;line-height:1.3;color:var(--n-muted)}
+.sieste-v3 .coros-fitness :is(.coros-fitness-metrics,.coros-races)>button>:is(strong,.live-value){display:block;font-size:26px;line-height:1.1;font-weight:650;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--n-ink)}
+.sieste-v3 .coros-fitness .coros-races>button>strong{font-size:21px}
+.sieste-v3 .coros-fitness :is(.coros-fitness-metrics,.coros-races)>button em{font-size:13px;font-style:normal;font-weight:500;color:var(--n-muted)}
+.sieste-v3 .coros-fitness :is(.coros-fitness-metrics,.coros-races)>button>span{font-size:12px;line-height:1.3;color:var(--n-muted)}
+.sieste-v3 .coros-fitness .recorded-indicator{margin-top:4px}
+.sieste-v3 .coros-fitness .recorded-indicator .trend-badge{font-size:11.5px!important}
+.sieste-v3 .coros-fitness>p{margin:12px 0 0;font-size:12px;color:var(--n-muted)}
+@media (min-width:720px){.sieste-v3 .coros-fitness .coros-races{grid-template-columns:repeat(4,minmax(0,1fr))}.sieste-v3 .coros-fitness .coros-fitness-metrics{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
+
+/* Today's data bar (appears on scroll): solid, one row of icon-over-value cells, no dividers */
+.sieste-v3 .health-scroll-strip{padding:6px;border:0;border-radius:20px;background:var(--n-card);box-shadow:0 0 0 1px var(--n-line),0 10px 30px -12px rgba(11,18,32,.25);-webkit-backdrop-filter:none;backdrop-filter:none}
+.sieste-v3 .health-scroll-strip>.mini-data-caption{display:none}
+.sieste-v3 .health-scroll-strip button,.sieste-v3 .health-scroll-strip button+button{flex-direction:column;gap:3px;min-height:46px;padding:4px 2px;border:0;border-radius:14px;background:transparent}
+.sieste-v3 .health-scroll-strip button:hover{background:rgba(11,18,32,.04)}
+.sieste-v3 .health-scroll-strip button>svg{width:16px;height:16px}
+.sieste-v3 .health-scroll-strip strong{font-size:14px;font-weight:650;letter-spacing:-.02em;color:var(--n-ink)}
+.sieste-v3 .coros-fitness .coros-fitness-metrics:not(:has(>button:nth-child(4))){grid-template-columns:repeat(3,minmax(0,1fr))}
+.sieste-v3 .coros-fitness .coros-fitness-metrics:not(:has(>button:nth-child(4)))>button>:is(strong,.live-value){font-size:23px}
+
+/* Your data: the same flat card as the rest of Home, no tinted header or cell rules */
+.sieste-v3 .home-insights-board>header{margin:20px 2px 10px}
+.sieste-v3 .home-insights-board h2{font-size:20px;font-weight:700;letter-spacing:-.03em;color:var(--n-ink)}
+.sieste-v3 .home-insights-board .view-switch-panel>.home-insight-card{margin-top:4px;border:0;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 .home-insights-board .home-insight-ribbon{padding:14px 12px 4px 16px;border:0;background:transparent}
+.sieste-v3 .home-insights-board .home-insight-ribbon [data-slot=card-title]{font-size:15px;font-weight:650;color:var(--n-ink)}
+.sieste-v3 .home-insights-board .home-insight-ribbon svg{color:var(--n-muted)}
+.sieste-v3 .home-insights-board .home-insight-cells{gap:14px 18px;padding:8px 16px 6px}
+.sieste-v3 .home-insights-board .home-insight-cell,.sieste-v3 .home-insights-board .home-insight-cell:nth-child(odd),.sieste-v3 .home-insights-board .home-insight-cell:nth-child(n+3){padding:0;border:0}
+.sieste-v3 .home-insights-board .home-insight-cell>small{font-size:12px;color:var(--n-muted)}
+.sieste-v3 .home-insights-board .home-insight-cell>strong{font-size:24px;letter-spacing:-.03em;color:var(--n-ink)}
+.sieste-v3 .home-insights-board .home-insight-cell em{font-size:13px;color:var(--n-muted)}
+.sieste-v3 .home-insights-board .home-insight-note{padding:4px 16px 14px;border:0;background:transparent}
+.sieste-v3 .home-insights-board .home-insight-note small{font-size:12px;color:var(--n-faint)}
+/* About these metrics: a quiet text link under the cards, not a card of its own */
+.sieste-v3 main .home-method{margin:2px 0 0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.sieste-v3 main .home-method>summary{min-height:40px;padding:8px 4px;font-size:13px;font-weight:550;color:var(--n-muted)}
+.sieste-v3 main .home-method>summary::before{width:18px;height:18px;font-size:13px;background:rgba(11,18,32,.06)}
