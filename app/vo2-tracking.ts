@@ -12,7 +12,13 @@ const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
 
 export type Vo2Point={id:string;date:string;t:number;value:number;title?:string};
 export type Vo2Sport='running'|'cycling';
-type Activity={id:string;date:string;title?:string;sportType?:string;subSportType?:string;summary?:{vo2max?:unknown}};
+type Activity={id:string;date:string;title?:string;provider?:string;sportType?:string;subSportType?:string;summary?:{vo2max?:unknown}};
+
+/** A recorded Tredict estimate for an activity, with COROS fitness kept separate. */
+export function tredictActivityVo2(activity:Activity):number|null{
+ const value=activity.summary?.vo2max,family=sportFamily(activity as never);
+ return activity.provider!=='coros'&&!activity.id.startsWith('coros_')&&(family==='running'||family==='cycling')&&finite(value)&&value>=20&&value<=95?value:null;
+}
 
 export function median(values:number[]){
  if(!values.length)return null;

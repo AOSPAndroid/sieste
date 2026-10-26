@@ -2,10 +2,17 @@ import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
 function url(name){let code=ts.transpileModule(readFileSync(new URL('../app/'+name+'.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;code=code.replace(/from ['"]\.\/([^'"]+)['"]/g,(_,dep)=>`from "${url(dep)}"`);return 'data:text/javascript;base64,'+Buffer.from(code).toString('base64')}
-const {median,vo2Points,vo2Sports,windowMedian,vo2Trendline,vo2Summary,vo2Baseline,corosVo2History}=await import(url('vo2-tracking'));
+const {median,vo2Points,vo2Sports,windowMedian,vo2Trendline,vo2Summary,vo2Baseline,corosVo2History,tredictActivityVo2}=await import(url('vo2-tracking'));
 const {vo2Trend}=await import(url('trend'));
 const DAY=86400000,now=Date.parse('2026-10-18T12:00:00Z');
 const run=(id,daysAgo,vo2,extra={})=>({id,date:new Date(now-daysAgo*DAY).toISOString(),sportType:'running',title:'Run',summary:{vo2max:vo2},...extra});
+assert.equal(typeof tredictActivityVo2,'function','Activity listings need a Tredict-specific VO2 value');
+assert.equal(tredictActivityVo2(run('run',1,58.8)),58.8);
+assert.equal(tredictActivityVo2(run('ride',1,62.3,{sportType:'cycling',provider:'tredict'})),62.3);
+for(const value of [undefined,null,NaN,Infinity,0,-1,19.9,95.1,'58.8'])assert.equal(tredictActivityVo2(run('missing',1,value)),null,'Missing or invalid estimates stay absent');
+assert.equal(tredictActivityVo2(run('coros-run',1,55,{provider:'coros'})),null,'COROS fitness values cannot be relabelled as Tredict');
+assert.equal(tredictActivityVo2(run('coros_100_legacy',1,55)),null,'Legacy COROS IDs retain their source boundary');
+assert.equal(tredictActivityVo2(run('swim',1,55,{sportType:'swimming'})),null,'Run and ride estimates are not shown on other sports');
 assert.equal(median([3,1,2]),2);assert.equal(median([4,1,3,2]),2.5);assert.equal(median([]),null);
 // Only plausible running estimates, oldest first.
 const acts=[run('r5',2,54),run('r4',6,53),run('r3',12,60),run('r2',20,52),run('r1',26,53),run('old3',33,50),run('old2',40,51),run('old1',50,49),
