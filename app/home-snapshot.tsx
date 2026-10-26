@@ -9,7 +9,6 @@ import {previewFallbacks,useCalendarDetails} from './calendar-details';
 import {lapPreview} from './calendar-preview';
 import {lapElevation} from './lap-elevation';
 import {cyclingPowerStats} from './cycling-power-data';
-import {tredictActivityVo2} from './vo2-tracking';
 
 // Vector strokes stay crisp in the exported PNG without emoji/font dependencies.
 const icons:Record<string,string>={
@@ -40,8 +39,8 @@ export default function HomeSnapshot({data,dates,now,token,isDemo}:{data:Athlete
   const detail=JSON.parse(detailJson);
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(!ctx){setMessage('Image creation is unavailable in this browser.');return}
   const groups=dates.map(day=>({day,items:data.activities.filter(a=>localDate(new Date(a.date))===localDate(day)&&new Date(a.date)<=now).sort((a,b)=>a.date.localeCompare(b.date)).map(a=>{
-   const recorded=detail[a.id],s={...a.summary,...recorded?.summary},family=sportFamily(a),vo2=tredictActivityVo2({...a,summary:s}),cycling=family==='cycling',power=cycling?cyclingPowerStats({...a,...recorded,summary:s}):null,speed=workoutSpeed({summary:s}),pace=s.pace>0?s.pace:s.distance>0&&s.duration>0?s.duration/s.distance*1000:null;
-   const stats=[{label:'Duration',value:workoutDuration(s.duration)},...(valid(s.distance)?[{label:'Distance',value:`${(s.distance/1000).toFixed(2)} km`}]:[]),...(family!=='strength_training'?[{label:cycling?'Avg speed':'Avg pace',value:cycling?(speed===null?'—':speed.toFixed(1)+' km/h'):runningPace(pace)}]:[]),{label:'Avg HR',value:valid(s.heartrate)?Math.round(s.heartrate)+' bpm':'—'},...(power?[{label:'Avg power',value:power.average===null?'—':Math.round(power.average)+' W'},{label:power.normalizedSource==='estimated'?'Est. NP':'NP',value:power.normalized===null?'—':Math.round(power.normalized)+' W'}]:[]),...(vo2!==null?[{label:'VO₂ · Tredict',value:vo2.toFixed(1),unit:'ml/kg/min'}]:[]),...(valid(s.calories)?[{label:'Calories',value:Math.round(s.calories)+' kcal'}]:[])];
+   const recorded=detail[a.id],s={...a.summary,...recorded?.summary},family=sportFamily(a),cycling=family==='cycling',power=cycling?cyclingPowerStats({...a,...recorded,summary:s}):null,speed=workoutSpeed({summary:s}),pace=s.pace>0?s.pace:s.distance>0&&s.duration>0?s.duration/s.distance*1000:null;
+   const stats=[{label:'Duration',value:workoutDuration(s.duration)},...(valid(s.distance)?[{label:'Distance',value:`${(s.distance/1000).toFixed(2)} km`}]:[]),...(family!=='strength_training'?[{label:cycling?'Avg speed':'Avg pace',value:cycling?(speed===null?'—':speed.toFixed(1)+' km/h'):runningPace(pace)}]:[]),{label:'Avg HR',value:valid(s.heartrate)?Math.round(s.heartrate)+' bpm':'—'},...(power?[{label:'Avg power',value:power.average===null?'—':Math.round(power.average)+' W'},{label:power.normalizedSource==='estimated'?'Est. NP':'NP',value:power.normalized===null?'—':Math.round(power.normalized)+' W'}]:[]),...(valid(s.calories)?[{label:'Calories',value:Math.round(s.calories)+' kcal'}]:[])];
    const laps=family==='strength_training'?[]:lapPreview(recorded?.laps??[],cycling),elevation=recorded?.elevationPreview??lapElevation(recorded),lapTop=43+Math.ceil(stats.length/2)*31,showLap=family!=='strength_training'&&(laps.length>0||family==='running'||cycling);
    return {a,family,cycling,recorded,stats,laps,elevation,lapTop,height:lapTop+(showLap?60:8)};
   })}));
@@ -74,7 +73,7 @@ export default function HomeSnapshot({data,dates,now,token,isDemo}:{data:Athlete
    g.items.forEach(({a,family,cycling,recorded,stats,laps,elevation,lapTop,height:cardHeight})=>{
     const ink=sportInk[family]??'#64748b',chartX=x+8,chartWidth=col-32,chartY=y+lapTop+12,chartHeight=28;
     box(x+2,y,col-20,cardHeight,'#fff',7);icon(family==='walking'||family==='hiking'?'steps':family,x+8,y+4,ink,14);text(a.title||sportName(family),x+28,y+16,13,ink,true,col-52);text(new Date(a.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),x+28,y+30,9,'#81818e');
-    stats.forEach((stat,i)=>{const sx=x+8+i%2*(col-32)/2,sy=y+49+Math.floor(i/2)*31; text(stat.label,sx,sy,9,'#686875',false,(col-36)/2);text(stat.value,sx,sy+17,14,'#242433',true,(col-36)/2);if('unit' in stat && typeof stat.unit==='string'){const valueWidth=ctx.measureText(stat.value).width;text(stat.unit,sx+valueWidth+3,sy+17,8,'#686875',false,(col-36)/2-valueWidth-3)}});
+    stats.forEach((stat,i)=>{const sx=x+8+i%2*(col-32)/2,sy=y+49+Math.floor(i/2)*31; text(stat.label,sx,sy,9,'#686875',false,(col-36)/2);text(stat.value,sx,sy+17,14,'#242433',true,(col-36)/2)});
     if(laps.length){
      text(`${laps.length} laps · ${cycling?'km/h':'pace'}`,chartX,y+lapTop+6,6,'#64748b',false,chartWidth);
      if(elevation){ctx.textAlign='right';text(`${Math.round(elevation.min)}–${Math.round(elevation.max)} m`,chartX+chartWidth,y+lapTop+6,6,'#64748b');ctx.textAlign='left'}

@@ -1,0 +1,27 @@
+.activity-comparison{--comparison-vo2:#7662cf;--comparison-hr:#c45676;--comparison-pace:#278b76;--comparison-power:#b77a20;--comparison-time:#507cac;--comparison-distance:#79717b;margin-top:14px;min-width:0}
+.activity-comparison [data-slot=card-header]{align-items:center}
+.activity-comparison [data-slot=card-title] h2{margin:0;font:inherit}
+.activity-comparison [data-slot=card-description]{font-size:11px}
+.activity-comparison [data-slot=card-action]{max-width:150px}
+.activity-comparison-controls{display:flex;align-items:start;gap:4px;min-width:0}
+.activity-comparison-controls [data-slot=toggle-group]{min-width:0;gap:4px}
+.activity-comparison-controls i,.activity-comparison-readings dt i{display:inline-block;width:12px;height:3px;background:var(--metric-color);border-radius:2px;flex-shrink:0}
+.activity-comparison-scale{font-size:11px;color:var(--muted-foreground)}
+.activity-comparison-plot{display:block;min-width:0;overflow:visible;margin-top:-6px}
+.activity-comparison-axis line{stroke:var(--border);stroke-dasharray:2 4}
+.activity-comparison-axis text,.activity-comparison-date{font-size:10px;fill:var(--muted-foreground)}
+.activity-comparison-cursor{stroke:var(--muted-foreground);stroke-dasharray:3 4;stroke-opacity:.45;pointer-events:none}
+.activity-comparison-hit{fill:transparent;cursor:crosshair}
+.activity-comparison-plot [role=button]:focus{outline:none}
+.activity-comparison-plot [role=button]:focus-visible .activity-comparison-hit{stroke:var(--ring);stroke-width:2;rx:4}
+.activity-comparison-inspection{display:flex;flex-direction:column;gap:8px}
+.activity-comparison-session{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;font-size:12px}
+.activity-comparison-session>span{min-width:0;overflow-wrap:anywhere}
+.activity-comparison-session [data-slot=button]{flex-shrink:0}
+.activity-comparison-readings{display:flex;gap:10px 24px;flex-wrap:wrap;margin:0}
+.activity-comparison-readings>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.activity-comparison-readings dt{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted-foreground)}
+.activity-comparison-readings dd{margin:0;font-size:19px;line-height:1.2;font-variant-numeric:tabular-nums;color:var(--foreground)}
+.activity-comparison-readings dd small{margin-left:4px;font-size:10px;color:var(--muted-foreground)}
+.activity-comparison-note{margin:0;font-size:11px!important;line-height:1.5;color:var(--muted-foreground)}
+@media(max-width:450px){.activity-comparison [data-slot=card-header]{column-gap:5px}.activity-comparison [data-slot=card-action]{max-width:112px}.activity-comparison-controls [data-slot=toggle-group]{flex:1;flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.activity-comparison-readings{gap:10px 16px}.activity-comparison-readings dd{font-size:17px}.activity-comparison-session{align-items:start}.activity-comparison-session>span{font-size:11px}}
