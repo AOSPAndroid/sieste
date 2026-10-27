@@ -154,7 +154,7 @@ export default function RunningTechnique({
                         {number(Math.abs(b.change))}% <span>this run</span>
                       </span>
                     )}
-                    <small>
+                    <small className="technique-count">
                       {b.count}/{b.total} {b.total === 1 ? "run" : "runs"}
                     </small>
                   </td>

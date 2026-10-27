@@ -245,7 +245,7 @@
 .running-economy .economy-verdict.is-better { color: #15803d; }
 .running-economy .economy-verdict.is-worse { color: #c2410c; }
 .running-economy .economy-windows { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
-.running-economy .economy-windows li { display: grid; gap: 2px; padding: 8px 10px; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(11, 18, 32, 0.08); }
+.running-economy .economy-windows li { display: grid; gap: 2px; padding: 8px 10px; border-radius: 12px; background: rgba(11, 18, 32, 0.035); }
 .running-economy .economy-windows span { font-size: 11px; color: #5b6678; }
 .running-economy .economy-windows b { font-size: 15px; font-weight: 650; color: #0b1220; font-variant-numeric: tabular-nums; }
 .running-economy .economy-chart { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 4px; }
@@ -256,4 +256,32 @@
 .running-economy .economy-links li span { font-size: 12px; color: #5b6678; }
 .running-economy .economy-method summary { font-size: 12px; color: #5b6678; cursor: pointer; }
 .technique-subhead { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-.running-economy .economy-windows-note { margin-top: -4px; font-size: 11px; color: #5b6678; }
+.running-economy .economy-windows li[data-tone=better] b { color: #15803d; }
+.running-economy .economy-windows li[data-tone=worse] b { color: #c2410c; }
+.running-economy .economy-verdict small { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; color: #5b6678; }
+.running-economy .economy-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; font-size: 12px; color: #5b6678; }
+.running-economy .economy-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.running-economy .economy-legend i { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+.running-economy .economy-legend i.is-usual { width: 14px; height: 0; border-radius: 0; background: none; border-top: 2px dashed #94a3b8; }
+.running-economy .economy-legend i.is-today { width: 10px; height: 10px; background: #4f46e5; }
+/* Disclosures: a quiet chevron instead of the browser triangle */
+:is(.running-technique, .running-economy) details > summary { display: inline-flex; align-items: center; gap: 6px; list-style: none; font-size: 12.5px; font-weight: 500; color: #5b6678; cursor: pointer; }
+:is(.running-technique, .running-economy) details > summary::-webkit-details-marker { display: none; }
+:is(.running-technique, .running-economy) details > summary::after { content: ""; width: 6px; height: 6px; margin-top: -3px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); transition: transform .15s; }
+:is(.running-technique, .running-economy) details[open] > summary::after { margin-top: 3px; transform: rotate(-135deg); }
+
+/* Quiet table: sentence-case labels, ink numbers, one tint for this run, counts left to the header */
+.sieste-v3 .running-technique{border:0;color:var(--ws-ink,#0b1220)}
+.sieste-v3 .running-technique :is(h3,h4){color:var(--ws-ink,#0b1220)}
+.sieste-v3 .running-technique h4{font-size:15px;font-weight:650}
+.sieste-v3 .running-technique .technique-table-scroll{border:0;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(11,18,32,.08)}
+.sieste-v3 .running-technique :is(th,td){border-color:rgba(11,18,32,.06)!important;color:var(--ws-ink,#0b1220)}
+.sieste-v3 .running-technique thead th{text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;color:var(--ws-muted,#5b6678);background:transparent}
+.sieste-v3 .running-technique tbody th{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600}
+.sieste-v3 .running-technique tbody th small{text-transform:none;font-size:11.5px;font-weight:500;color:var(--ws-muted,#5b6678)}
+.sieste-v3 .running-technique .technique-current{background:rgba(79,70,229,.05)!important;color:var(--ws-ink,#0b1220)!important;font-weight:650}
+.sieste-v3 .running-technique .technique-count,.sieste-v3 .running-technique .technique-change span{display:none}
+.sieste-v3 .running-technique .technique-change{font-size:11.5px;color:var(--ws-muted,#5b6678)}
+.sieste-v3 .running-technique .technique-scope{background:rgba(11,18,32,.055);border-radius:999px}
+.sieste-v3 .running-technique .technique-scope button{border-radius:999px;color:var(--ws-muted,#5b6678);font-weight:600}
+.sieste-v3 .running-technique .technique-scope button[aria-pressed=true]{color:var(--ws-ink,#0b1220)}

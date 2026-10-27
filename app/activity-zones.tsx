@@ -17,7 +17,7 @@ export function ZoneStrip({summary,histogram=null,zones=null}:{summary:{zonesDis
  const ramp=['#60a5fa','#34d399','#facc15','#fb923c','#ef4444'],tone=(i:number)=>ramp[hr.rows.length<2?0:Math.round(i/(hr.rows.length-1)*(ramp.length-1))];
  const label=(i:number)=>hr.names?.[i]??`Z${i+1}`,top=hr.rows.reduce((best,r,i)=>(r.seconds??0)>(hr.rows[best].seconds??0)?i:best,0);
  return <section className="zone-strip" aria-label="Time in heart-rate zones">
-  <header><h3>Heart-rate zones</h3><small>Mostly {label(top)} · {Math.round(hr.rows[top].percent??0)}%{hr.names?'':' · zone limits not supplied'}</small></header>
+  <header><h3>Heart-rate zones</h3><small>Mostly {label(top)} · {Math.round(hr.rows[top].percent??0)}%</small></header>
   <div className="zone-strip-bar" role="img" aria-label={hr.rows.map((r,i)=>`${label(i)} ${Math.round(r.percent??0)}%`).join(', ')}>{hr.rows.map((r,i)=>(r.percent??0)>0&&<i key={i} style={{width:`${r.percent}%`,background:tone(i)}}/>)}</div>
   <ul>{hr.rows.map((r,i)=>(r.seconds??0)>=30&&<li key={i}><i style={{background:tone(i)}}/>{label(i)}{hr.ranges?<small>{hr.ranges[i]}</small>:null}<b>{zoneDuration(r.seconds)}</b></li>)}</ul>
  </section>;

@@ -252,3 +252,10 @@
 .sieste-v3 .weather-recon .weather-hour-key{display:grid;gap:8px;padding:12px 14px 14px;border-top:1px solid var(--n-line)}
 .sieste-v3 .weather-recon .weather-hour-key .weather-rain-help{margin:0}
 @media (prefers-reduced-motion:no-preference){.sieste-v3 .weather-recon .weather-days [data-slot=button]{transition:background-color .18s ease,color .18s ease,transform .12s ease}.sieste-v3 .weather-recon .weather-days [data-slot=button]:active{transform:scale(.96)}}
+/* Outlook numbers without rules; the daylight track is one soft bar */
+.sieste-v3 .weather-recon .weather-metrics>*{border:0!important}
+.sieste-v3 .weather-recon .weather-daylight-track{gap:2px}
+.sieste-v3 .weather-recon .weather-daylight-track>span{height:10px;border:0!important;border-radius:3px;background:rgba(11,18,32,.07)}
+.sieste-v3 .weather-recon .weather-daylight-track>span.is-daylight{background:#fde7a8}
+.sieste-v3 .weather-recon .weather-daylight-track>span:is(.is-best,.is-ride){background:#16a34a}
+.sieste-v3 .weather-recon .weather-rain-help{font-size:12px;line-height:1.5}

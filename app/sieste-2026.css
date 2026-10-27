@@ -208,3 +208,68 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 .sieste-v3 main .home-method{margin:2px 0 0;border:0;border-radius:0;background:transparent;box-shadow:none}
 .sieste-v3 main .home-method>summary{min-height:40px;padding:8px 4px;font-size:13px;font-weight:550;color:var(--n-muted)}
 .sieste-v3 main .home-method>summary::before{width:18px;height:18px;font-size:13px;background:rgba(11,18,32,.06)}
+
+/* ===== Design foundation · one scale, quiet structure ======================================
+   Headings: page 28 · card 17 · subsection 15. Labels 12.5 muted. Values 26–34 tight.
+   Structure comes from spacing and white cards, not from rules between cells. */
+.sieste-v3 main h1{font-size:28px;font-weight:700;letter-spacing:-.035em;line-height:1.1;color:var(--n-ink)}
+.sieste-v3 main :is(h2,[data-slot=card-title]){font-size:17px;font-weight:650;letter-spacing:-.02em;line-height:1.25;color:var(--n-ink)}
+.sieste-v3 main [data-slot=card-title] h2{font-size:inherit;font-weight:inherit}
+.sieste-v3 main h3{font-size:15px;font-weight:620;letter-spacing:-.01em;line-height:1.3;color:var(--n-ink)}
+.sieste-v3 main :is([data-slot=card-description],section>header>div>span,section>header>small,section>header>span){font-size:12.5px;line-height:1.4;color:var(--n-muted)}
+.sieste-v3 main{font-variant-numeric:tabular-nums}
+
+/* Dropdowns: pills like the switches, not form fields */
+.sieste-v3:is(.activity-layer) select:not([multiple]),.sieste-v3 :is(main,.metric-expansion,.activity-layer) select:not([multiple]){height:34px;min-height:34px;padding:0 34px 0 14px;border:0!important;border-radius:999px!important;background-color:rgba(11,18,32,.055);color:var(--n-ink,#0b1220);font:600 13.5px/1 inherit;font-family:inherit;box-shadow:none!important;appearance:none;-webkit-appearance:none;cursor:pointer}
+.sieste-v3:is(.activity-layer) select:not([multiple]):not([data-slot=native-select]),.sieste-v3 :is(main,.metric-expansion,.activity-layer) select:not([multiple]):not([data-slot=native-select]){background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235b6678' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+.sieste-v3:is(.activity-layer) select:not([multiple]):hover,.sieste-v3 :is(main,.metric-expansion,.activity-layer) select:not([multiple]):hover{background-color:rgba(11,18,32,.085)}
+.sieste-v3:is(.activity-layer) select:not([multiple]):focus-visible,.sieste-v3 :is(main,.metric-expansion,.activity-layer) select:not([multiple]):focus-visible{outline:2px solid #4f46e5;outline-offset:2px}
+.sieste-v3 [data-slot=native-select-wrapper]{width:auto}
+.sieste-v3 [data-slot=native-select-icon]{right:12px;width:14px;height:14px}
+
+/* No rules between cells inside cards */
+.sieste-v3 main :is(.health-headline,.home-week-day,.calendar-lap-preview,.weekly-volume-row,.volume-comparison-note,.load-tool-kpis,.load-tool-kpis>div,.load-tool-note,.journal-month-stats,.journal-month-stats>*,.route-thumbnail,.sleep-night-card){border-left:0!important;border-right:0!important}
+.sieste-v3 main :is(.health-headline,.calendar-lap-preview,.volume-comparison-note,.load-tool-note){border-top:0!important}
+.sieste-v3 main :is(.load-tool-kpis,.journal-month-stats){border-bottom:0!important}
+.sieste-v3 main :is(.weekly-volume,.fatigue-recovery,.journal-sessions,.sleep-vital-cards,.connect-banner){border:0!important;box-shadow:var(--n-shadow)!important}
+.sieste-v3 main [data-slot=badge][data-variant=outline]{border:0;background:rgba(11,18,32,.055);color:var(--n-muted);font-weight:600}
+
+/* Empty readings stay quiet */
+.sieste-v3 main .health-headline.is-empty .live-value,.sieste-v3 main .health-headline.is-empty>strong{color:var(--n-faint);font-weight:500}
+.sieste-v3 main .health-headline.is-empty .widget-spark{opacity:.35}
+
+/* Small print has a floor: nothing under 11.5px reads as finished */
+.sieste-v3 main :is(.health-headline-change,.health-headline-status,.volume-comparison,.journal-activity small,.calendar-session-stats small){font-size:12px}
+
+/* Header: logo and account only; the page names itself */
+.sieste-v3 .v2-current-page{display:none}
+.sieste-v3 .sieste-account{border:0;border-radius:999px;background:rgba(11,18,32,.055);box-shadow:none}
+
+/* Training · days: four key numbers per session on phones; the rest is one tap away */
+@media (max-width:560px){
+ .sieste-v3 main .calendar-session-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 6px}
+ .sieste-v3 main .calendar-session-stats>span:nth-child(n+5),.sieste-v3 main .calendar-session-stats>.calendar-power-stat{display:none}
+ .sieste-v3 main .calendar-session-stats small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+.sieste-v3 main .calendar-lap-note{font-size:12px;color:var(--n-faint)}
+.sieste-v3 main .health-headline.is-empty .no-data{display:none}
+
+/* Training load advice: a tone dot and the advice in the card, feelings as chips */
+.sieste-v3 main .load-analysis .load-guidance{margin:0 0 14px;padding:0 0 14px;border-radius:0;background:transparent;border-bottom:1px solid var(--n-line)}
+.sieste-v3 main .load-analysis .load-guidance header{display:flex;justify-content:flex-start;align-items:center;gap:8px}
+.sieste-v3 main .load-analysis .load-guidance header>i{width:9px;height:9px;flex:none;border-radius:50%;background:#94a3b8}
+.sieste-v3 main .load-analysis .load-guidance[data-tone=steady] header>i{background:#16a34a}
+.sieste-v3 main .load-analysis .load-guidance[data-tone=easy] header>i{background:#f59e0b}
+.sieste-v3 main .load-analysis .load-guidance[data-tone=rest] header>i{background:#dc2626}
+.sieste-v3 main .load-analysis .load-guidance header strong{font-size:15px;font-weight:650}
+.sieste-v3 main .load-analysis .load-guidance>p{margin:6px 0 0;font-size:13px;line-height:1.45;color:var(--n-muted)}
+.sieste-v3 main .load-analysis .load-feeling{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px}
+.sieste-v3 main .load-analysis .load-feeling>span{margin-right:4px;font-size:13px;font-weight:600;color:var(--n-ink)}
+.sieste-v3 main .load-analysis .load-feeling>button{height:32px;padding:0 13px;border:0;border-radius:999px;background:rgba(11,18,32,.055);color:var(--n-ink);font-size:13px;font-weight:600}
+.sieste-v3 main .load-analysis .load-feeling>button[aria-checked=true]{background:var(--n-ink);color:#fff}
+.sieste-v3 main .load-analysis .load-guidance summary{min-height:36px;margin-top:6px;font-size:12.5px;color:var(--n-muted)}
+/* Chart layer toggles read as pills: hairline when off, soft ink tint when on */
+.sieste-v3 main .load-analysis .load-overlay-legend{gap:6px}
+.sieste-v3 main .load-analysis .load-overlay-legend [data-slot=toggle-group-item]{min-height:34px;padding:0 12px;border:0;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 1px var(--n-line,rgba(11,18,32,.1));color:var(--n-muted,#5b6678);font-size:13px;font-weight:550}
+.sieste-v3 main .load-analysis .load-overlay-legend [data-slot=toggle-group-item][data-state=on]{background:rgba(11,18,32,.06);box-shadow:none;color:var(--n-ink,#0b1220)}
+.sieste-v3 main .load-analysis .load-overlay-legend [data-slot=toggle-group-item][data-state=off] i{opacity:.45}

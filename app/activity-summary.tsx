@@ -96,7 +96,7 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}
  <section className="workout-more" aria-labelledby="workout-more-title"><h3 id="workout-more-title">More analysis</h3>
  <ViewSwitch label="More analysis" remember={`workout-more-${family}`} initial={structured?'execution':family==='strength_training'?'zones':'splits'} views={[
-  ...(family!=='strength_training'?[{id:'splits',label:'Splits',hint:family==='cycling'?'Every 5 km':family==='swimming'?'Every 100 m':'Every kilometre',render:()=><WorkoutSplits detail={detail} family={family}/>}]:[]),
+  ...(family!=='strength_training'?[{id:'splits',label:'Splits',render:()=><WorkoutSplits detail={detail} family={family}/>}]:[]),
   {id:'zones',label:'Zones',hint:'Time in heart-rate and power zones',render:()=><ActivityZones summary={detail.summary??{}} loading={loading} zones={ownZones?.bands} histogram={detail.hrHistogram} zonesSince={ownZones?.since}/>},
   {id:'explore',label:'Explore',hint:family==='cycling'?'Replay · terrain · coasting · compare':family==='running'?'Replay · fingerprint · terrain · compare':'Laps · recovery',render:()=><WorkoutExplorer detail={detail} history={history} healthData={healthData} token={token} storageScope={storageScope} isDemo={isDemo}/>},
   ...(family==='cycling'?[{id:'deep',label:'Deep analysis',hint:'Efficiency, power & durability',render:()=><CyclingAnalysis detail={detail} history={history}/>}]:family==='running'?[{id:'deep',label:'Deep analysis',hint:'Running pace & repeats',render:()=><RunningAnalysis detail={detail}/>}]:[]),

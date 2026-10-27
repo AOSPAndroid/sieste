@@ -334,3 +334,8 @@
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more>h3{font-size:15px;font-weight:650;color:var(--ws-ink)}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more .view-switch-panel>*{margin-left:0;margin-right:0}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more .view-switch-panel>:is(section,div,details){border:0!important;box-shadow:none!important;background:transparent!important;padding-left:0!important;padding-right:0!important;margin-top:0!important}
+/* Tiles: every value sits on the same line whether or not a sparkline is drawn; labels may take two lines */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-square-grid>.activity-glance-card:not(:has(.activity-microchart))::after{content:"";flex:0 1 22px;min-height:0}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-square-grid>.activity-glance-card h3{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal}
+/* Comparisons inside a card use a soft fill, not another bordered box */
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet,.metric-expansion) .section-trend li{box-shadow:none;background:rgba(11,18,32,.035)}

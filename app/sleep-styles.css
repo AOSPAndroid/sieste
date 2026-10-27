@@ -360,3 +360,7 @@
 .sieste-v3 .sleep-focus .sleep-findings li[data-tone=watch]::before{background:#f59e0b}
 @media (max-width:420px){.sieste-v3 .sleep-focus .sleep-night-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .sieste-v3 .sleep-focus .sleep-overlay-picker small b{font-weight:650;color:var(--n-ink)}
+/* Recovery cards: no rules between them; an empty reading is a quiet dash */
+.sieste-v3 .sleep-focus .sleep-vital-cards{gap:8px;background:transparent;box-shadow:none!important;border-radius:0}
+.sieste-v3 .sleep-focus .sleep-vital-cards>button{border:0!important;border-radius:var(--n-radius);background:var(--n-card);box-shadow:var(--n-shadow)}
+.sieste-v3 .sleep-focus .sleep-window-selection span{font-size:14px;font-weight:600;color:var(--n-ink)}
