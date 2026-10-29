@@ -38,3 +38,33 @@ const leadingBlank={...watch,seriesSampled:{...watch.seriesSampled,data:{...watc
 assert.match(profile(leadingBlank,'speed').reason,/recorded distance/);
 assert.equal(profile(leadingBlank,'speed').laps.length,2);
 console.log('Tredict leading blank distance sample preserves distance-based lap selection.');
+
+// Some watches append a timed final lap beyond the sampled active recording.
+// Its missing distance must not hide earlier laps with complete route evidence.
+const partial={sportType:'running',summary:{duration:600,durationTotal:720,distance:2100},seriesSampled:{sampleSize:5,data:{speed:Array(120).fill(3.5),altitude:Array(120).fill(50),distance:Array.from({length:120},(_,i)=>(i+1)*17.5)}},laps:[{duration:180.5,distance:630,heartrate:130},{summary:{duration:119.8,distance:420,heartrate:155}},{duration:300.2,distance:1050,heartrate:140},{duration:110,heartrate:135}]};
+const original=JSON.stringify(partial),mapped=profile(partial,'speed');
+assert.deepEqual(mapped.laps.map(lap=>lap.index),[1,2,3]);
+assert.equal(mapped.laps[0].start,0);
+assert.equal(mapped.laps[0].end,mapped.laps[1].start);
+assert.equal(mapped.laps[1].end,mapped.laps[2].start);
+assert.equal(mapped.laps.at(-1).end,10,'Final mapped lap ends at the active recording, never the unmatched timer');
+assert.deepEqual(mapped.laps.map(lap=>lap.hr),[130,155,140],'Original lap numbers and recorded summary means stay intact');
+assert.match(mapped.reason,/3 of 4 laps/);assert.match(mapped.reason,/Lap 4 has no matching route data/);
+assert.equal(JSON.stringify(partial),original,'Alignment never edits the recorded lap metrics');
+const mapPartial=patch=>profile({...partial,...patch},'speed');
+assert.equal(mapPartial({laps:[partial.laps[0],partial.laps[3],partial.laps[1],partial.laps[2]]}).laps.length,0,'Unknown distance in a middle lap never shifts later boundaries');
+assert.equal(mapPartial({laps:[...partial.laps.slice(0,3),{duration:110,distance:100}]}).laps.length,0,'Incomplete distance totals cannot become a partial match');
+assert.equal(mapPartial({laps:[...partial.laps.slice(0,3),{duration:110,distance:-1}]}).laps.length,0,'Invalid negative distance is not a missing trailing lap');
+const reset=[...partial.seriesSampled.data.distance];reset[40]=0;
+assert.equal(mapPartial({seriesSampled:{...partial.seriesSampled,data:{...partial.seriesSampled.data,distance:reset}}}).laps.length,0,'Partial alignment cannot bridge a distance reset');
+const missing=[...partial.seriesSampled.data.distance];missing.fill(null,40,50);
+assert.equal(mapPartial({seriesSampled:{...partial.seriesSampled,data:{...partial.seriesSampled.data,distance:missing}}}).laps.length,0,'Partial alignment cannot bridge missing distance samples');
+assert.equal(mapPartial({summary:{duration:690,durationTotal:720}}).laps.length,0,'A prefix must account for the sampled active timeline');
+assert.equal(mapPartial({laps:[{duration:60,distance:630},{duration:60,distance:420},{duration:60,distance:1050},partial.laps[3]]}).laps.length,0,'Partial alignment cannot consume unexplained sensor time');
+assert.equal(mapPartial({mergedIds:['a','b']}).laps.length,0,'Partial alignment never bridges merged recordings');
+const zeroDistance=mapPartial({laps:[...partial.laps.slice(0,3),{duration:110,distance:0}]});
+assert.equal(zeroDistance.laps.length,3);
+const timed=mapPartial({laps:[{duration:500,distance:2100},{duration:100,distance:0}]});
+assert.equal(timed.laps.length,2,'A zero-distance lap with valid timing still keeps its sensor range');
+assert.equal(timed.laps[1].start,500/60);
+console.log('Complete lap prefixes stay selectable despite unmatched trailing timers; ambiguous distances, gaps, resets and merged timelines stay rejected.');
