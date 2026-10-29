@@ -5,9 +5,10 @@ type Point={t:number;a:number;d:number};
 export type ClimbDetectionOptions={mode?:'whole'|'steep';minGradePercent?:number};
 function climbSettings(family:unknown,options?:ClimbDetectionOptions){
  const cycling=['cycling','biking','bike','ride'].includes(String(family).toLowerCase()),mode=cycling&&options?.mode==='steep'?'steep':'whole';
+ const foot=['running','run','walking','hiking','trail_running'].includes(String(family).toLowerCase());
  const requested=finite(options?.minGradePercent)&&options.minGradePercent>0?options.minGradePercent:3;
  const grade=[2,3,4,5,6,8].reduce((best,value)=>Math.abs(value-requested)<Math.abs(best-requested)?value:best,3);
- return {mode:mode as 'whole'|'steep',grade:mode==='steep'?grade:1};
+ return {mode:mode as 'whole'|'steep',grade:mode==='steep'?grade:foot?0.5:1};
 }
 function steepSections(points:Point[],cutoff:number,thresholds:{minSeconds:number;minGainMetres:number;minDistanceMetres:number},windowMetres:number){
  const climbs:Climb[]=[];
@@ -39,9 +40,9 @@ function steepSections(points:Point[],cutoff:number,thresholds:{minSeconds:numbe
 function computeClimbAnalysis(detail:any,family=detail.sportType,options?:ClimbDetectionOptions){
  const running=['running','run','walking','hiking','trail_running'].includes(String(family).toLowerCase()),step=detail.seriesSampled?.sampleSize,s=detail.seriesSampled?.data??{};
  const settings=climbSettings(family,options),steep=settings.mode==='steep';
- const thresholds={minSeconds:running?30:60,minGainMetres:running?10:20,minDistanceMetres:running?60:150,minGradePercent:1,dipToleranceMetres:running?3:5,maxDipToleranceMetres:running?8:12,smoothingSeconds:5,maxSampleSeconds:15};
+ const thresholds={minSeconds:running?30:60,minGainMetres:running?5:20,minDistanceMetres:running?60:150,minGradePercent:settings.grade,dipToleranceMetres:running?3:5,maxDipToleranceMetres:running?8:12,smoothingSeconds:5,maxSampleSeconds:15};
  if(steep){thresholds.minSeconds=30;thresholds.minGainMetres=10;thresholds.minDistanceMetres=100;thresholds.minGradePercent=settings.grade}
- const method=steep?`Sections with local gradient at least ${settings.grade}% over approximately 50 metres of recorded moving distance; gentle approaches and tails are trimmed. Section average gradient is reported separately.`:'Valley-to-peak rise in recorded elevation and moving distance; median smoothing, small rolling dips and brief flats allowed. Net gain and average gradient describe the detected bounds.';
+ const method=steep?`Sections with local gradient at least ${settings.grade}% over approximately 50 metres of recorded moving distance; gentle approaches and tails are trimmed. Section average gradient is reported separately.`:'Valley-to-peak rise in recorded elevation and moving distance; median smoothing, small rolling dips and brief flats allowed. Net gain and average gradient describe the detected bounds.'+(running?' Small running, walking and hiking hills qualify from 5 m net gain and 0.5% average gradient; preceding flats do not extend a climb.':'');
  const result={climbs:[] as Climb[],reason:null as string|null,status:'unavailable' as 'detected'|'none'|'unavailable',method,thresholds,mode:settings.mode,gradeCutoffPercent:settings.grade,localGradeWindowMetres:steep?50:null};
  if(!finite(step)||step<=0){result.reason='Timed elevation and distance samples are needed to identify climbs.';return result}
  if(step>thresholds.maxSampleSeconds){result.reason='Climb detection needs samples at least every 15 seconds.';return result}
@@ -98,7 +99,12 @@ function computeClimbAnalysis(detail:any,family=detail.sportType,options?:ClimbD
    }
    if(!valley){valley=point;peak=point}
    else if(point.a<valley.a){finish();valley=point;peak=point}
-   else if(!peak||point.a>peak.a){peak=point}
+   else if(!peak||point.a>peak.a){
+    // Start small foot climbs at the last valley-level sample. Otherwise a
+    // long flat followed by a brief elevation step could pass the time limit.
+    if(running&&peak?.a===valley.a&&previous)valley=previous;
+    peak=point;
+   }
    else{
     const dip=Math.max(thresholds.dipToleranceMetres,Math.min(thresholds.maxDipToleranceMetres,(peak.a-valley.a)*.15));
     if(peak.a-point.a>dip||point.t-peak.t>(running?90:180)){finish();valley=point;peak=point}
@@ -108,7 +114,7 @@ function computeClimbAnalysis(detail:any,family=detail.sportType,options?:ClimbD
   finish();
  }
  result.status=result.climbs.length?'detected':'none';
- if(!result.climbs.length)result.reason=steep?`No sustained steep sections met the ${settings.grade}% local-gradient cutoff and the minimum gain, distance and duration requirements.`:'No sustained moving climbs met the gain, distance and average-gradient requirements in the available samples.';
+ if(!result.climbs.length)result.reason=steep?`No sustained steep sections met the ${settings.grade}% local-gradient cutoff and the minimum gain, distance and duration requirements.`:`No sustained moving climbs met all the requirements: ${thresholds.minGainMetres} m net gain, ${thresholds.minDistanceMetres} m moving distance, ${thresholds.minSeconds} seconds and ${thresholds.minGradePercent}% average gradient.`;
  return result;
 }
 export function paceFromSpeed(speed:unknown,metres=1000){if(!finite(speed)||speed<=0)return '—';const seconds=Math.round(metres/speed);return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`}

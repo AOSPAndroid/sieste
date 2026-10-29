@@ -1,6 +1,6 @@
 # Efforts and terrain
 
-Updated 6 October 2026. The activity summary uses a shared timeline for detected efforts, climbs and recorded laps. Selecting a section highlights the same elapsed sample interval on the chart and recorded GPS route. A focused chart retains context around the section; explicit map fitting preserves GPS gaps. Compact and expanded profiles share the current data revision and controls.
+Updated 29 October 2026. The activity summary uses a shared timeline for detected efforts, climbs and recorded laps. Selecting a section highlights the same elapsed sample interval on the chart and recorded GPS route. A focused chart retains context around the section; explicit map fitting preserves GPS gaps. Compact and expanded profiles share the current data revision and controls.
 
 ## Automatic sections
 
@@ -23,13 +23,15 @@ Both activity profiles and cycling analyses use the same detector. Climbs need r
 
 | Sport | Minimum time | Net gain | Moving distance | Gradient requirement |
 | --- | ---: | ---: | ---: | ---: |
-| Running/walking/hiking | 30 seconds | 10 m | 60 m | 1% |
+| Running/walking/hiking | 30 seconds | 5 m | 60 m | 0.5% |
 | Cycling · whole climb | 60 seconds | 20 m | 150 m | 1% |
 | Cycling · steep sections | 30 seconds | 10 m | 100 m | Local cutoff · 3% default |
 
 Short-bin and neighbouring median smoothing suppress isolated elevation spikes. Valley-to-peak detection tolerates small dips relative to the accumulated rise, plus brief moving flats. Stationary distance, gaps, resets, implausible elevation jumps and substantial descents separate sections. Shallow sustained road climbs can qualify. Gain is the smoothed net rise between detected boundaries, not an invented total ascent or a climb category.
 
-Cycling profiles default to **Steep sections**, trimming gentle approaches and tails and splitting sections at flats using the local smoothed gradient over roughly 50 m. The cutoff can be 2%, 3%, 4%, 5%, 6% or 8%; **Whole climb** retains the valley-to-peak view. Mode and cutoff are remembered on the device. Changing them clears the selected section and recomputes chart/map bounds, duration, distance, power, HR, gain, average gradient and copied text. The displayed section-average gradient is distinct from the local detection cutoff. Running and recorded laps keep their existing detection. The data API defaults to whole climbs for callers that supply no options.
+Running includes sustained small hills, which can add up to meaningful ascent without any one rise reaching ten metres. Leading flats are trimmed to the last valley-level sample so a brief elevation step cannot borrow the flat's duration and qualify as a climb. The time, distance, source-quality and noise checks still apply; cycling thresholds are unchanged. A no-climbs result names the actual thresholds used. Total workout ascent can differ from the sum of detected net rises.
+
+Cycling profiles default to **Steep sections**, trimming gentle approaches and tails and splitting sections at flats using the local smoothed gradient over roughly 50 m. The cutoff can be 2%, 3%, 4%, 5%, 6% or 8%; **Whole climb** retains the valley-to-peak view. Mode and cutoff are remembered on the device. Changing them clears the selected section and recomputes chart/map bounds, duration, distance, power, HR, gain, average gradient and copied text. The displayed section-average gradient is distinct from the local detection cutoff. These cycling controls do not change the running defaults or recorded laps. The data API defaults to whole climbs for callers that supply no options.
 
 ## Display and comparison
 
