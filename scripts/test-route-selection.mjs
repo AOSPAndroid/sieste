@@ -23,15 +23,15 @@ function span(view){return 800/(256*2**view.zoom)}
 assert.equal(span(context),span(shortFit)*2,'Automatic climb framing covers twice the surrounding distance of an explicit fit');
 assert.ok(context.zoom>long.zoom,'A small climb automatically zooms in from the whole-route view');
 assert.equal(JSON.stringify(selected),before,'Context fitting preserves GPS gaps and original selected samples');
-for(const kind of ['lap',undefined])assert.equal(contextualSelectionFit(shortFit,kind),null,'Other section types never request automatic camera changes');
-assert.deepEqual(contextualSelectionFit(shortFit,'effort'),context,'Efforts and climbs use the same centered contextual camera');
-for(const kind of ['climb','effort']){
+for(const kind of ['terrain','coasting','replay',undefined])assert.equal(contextualSelectionFit(shortFit,kind),null,'Other section types never request automatic camera changes');
+for(const kind of ['effort','lap'])assert.deepEqual(contextualSelectionFit(shortFit,kind),context,'Efforts, climbs and laps use the same centered contextual camera');
+for(const kind of ['climb','effort','lap']){
 for(const points of [[],[[]],[[geometry.points[0]]],[[geometry.points[0],geometry.points[0]]]])assert.equal(contextualSelectionFit(fitRouteSegments(points),kind),null,'Missing or stationary GPS never invents an automatic viewport');
 const datelineContext=contextualSelectionFit(datelineFit,kind);inside(datelineContext,datelineSelected);assert.deepEqual(datelineContext.center,datelineFit.center,'Auto framing preserves unwrapped dateline coordinates');
 const world=fitRouteSegments([[{x:0,y:0},{x:1,y:1}]]);assert.equal(contextualSelectionFit(world,kind).zoom,1,'Automatic framing remains inside map zoom limits');
 const tightBefore=JSON.stringify(shortFit);contextualSelectionFit(shortFit,kind);assert.equal(JSON.stringify(shortFit),tightBefore,'Automatic framing leaves the tighter explicit fit unchanged');
 }
-console.log('Effort and climb auto framing: consistent broader span, centered recorded bounds, real zoom-in, lap/unspecified no-ops, missing/stationary GPS, dateline continuity and bounded zoom passed.');
+console.log('Effort, climb and lap auto framing: consistent broader span, centered recorded bounds, real zoom-in, unrelated selection no-ops, missing/stationary GPS, dateline continuity and bounded zoom passed.');
 
 const contiguous=routeGeometry(Array.from({length:10},(_,i)=>48+i*.001),Array.from({length:10},(_,i)=>2+i*.001));
 const ranges={start:0,end:9,label:'Flat sections',kind:'terrain',ranges:[{start:6,end:9},{start:0,end:2},{start:1,end:3}]};

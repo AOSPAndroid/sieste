@@ -1,0 +1,6 @@
+.compact-laps .lap-select{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;min-width:44px;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.compact-laps .lap-select:focus-visible{outline:2px solid #4f46e5;outline-offset:1px}
+.compact-laps .compact-lap-scroll tr.is-selectable{cursor:pointer}
+.compact-laps .compact-lap-scroll tr.is-selectable:hover{background:#f5f3ff}
+.compact-laps .compact-lap-scroll tr.is-selected{background:#eeecff}
+.compact-laps .lap-unmapped{display:block;font-size:10px;font-weight:400;color:#7b8493}

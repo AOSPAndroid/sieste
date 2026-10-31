@@ -18,7 +18,7 @@ import {useScrollChrome} from './use-scroll-chrome';
 const CorosHub=lazy(()=>import('./coros-hub'));
 const BackgroundSyncSettings=lazy(()=>import('./background-sync-settings'));
 import CorosFitness from './coros-fitness';
-import {applyWorkoutExclusions} from './workout-exclusions';
+import {applyWorkoutChanges,workoutChangeConfirmed,type WorkoutChange} from './workout-exclusions';
 import {useEffect,useState,useRef,lazy,Suspense,useDeferredValue,startTransition,useCallback,useMemo} from 'react';
 import {Home as HomeIcon,CloudSun,ArrowUpRight,CalendarDays,Moon,Link2,RefreshCw,X,ShieldCheck} from 'lucide-react';
 import type {Workout,AthleteData as Data} from './analytics';
@@ -56,20 +56,36 @@ function closeAccount(){setModal(false);setConnectionMessage('')}
 const notifications=useActivityNotifications(deviceScope.current,isDemo?null:data,!accountLoading&&account.signedIn&&!isDemo);
 async function disconnectCoros(){setBusy(true);try{const r=await fetch('/api/coros',{method:'DELETE'});if(!r.ok)throw new Error('Could not disconnect COROS.');setCorosConnected(false);await discardDeviceData();await restoreAccount()}catch(e){setError(e instanceof Error?e.message:'Could not disconnect COROS.')}finally{setBusy(false)}}
 const [removedWorkout,setRemovedWorkout]=useState<Workout|null>(null),[undoBusy,setUndoBusy]=useState(false),[undoError,setUndoError]=useState('');
-async function removeWorkout(activity:Workout){if(busy)throw new Error('Please wait for the current sync to finish.');let excluded=[...(data.excludedWorkouts??[]),{id:activity.id,date:activity.date}];if(!isDemo){const response=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'remove',id:activity.id})});const result=await response.json() as {error?:string;excludedWorkouts:{id:string;date:string}[]};if(!response.ok)throw new Error(result.error||'Could not remove workout.');excluded=result.excludedWorkouts}setData(current=>applyWorkoutExclusions(current,excluded));setRemovedWorkout(activity);setUndoError('');setSelected(null)}
-async function undoRemoval(){if(!removedWorkout)return;setUndoBusy(true);setUndoError('');try{let excluded=(data.excludedWorkouts??[]).filter(e=>e.id!==removedWorkout.id);if(!isDemo){const response=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'restore',id:removedWorkout.id})});const result=await response.json() as {error?:string;excludedWorkouts:{id:string;date:string}[]};if(!response.ok)throw new Error(result.error||'Could not restore workout.');excluded=result.excludedWorkouts}const restored=removedWorkout;setData(current=>applyWorkoutExclusions({...current,activities:[...current.activities.filter(a=>a.id!==restored.id),restored].sort((a,b)=>b.date.localeCompare(a.date))},excluded));setRemovedWorkout(null)}catch(e){setUndoError(e instanceof Error?e.message:'Could not undo removal.')}finally{setUndoBusy(false)}}
+const workoutChanges=useRef<WorkoutChange[]>([]);
+async function removeWorkout(activity:Workout){
+ const changes=workoutChanges.current;
+ let excluded=[...(data.excludedWorkouts??[]),{id:activity.id,date:activity.date}];
+ if(!isDemo){const response=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'remove',id:activity.id}),signal:AbortSignal.timeout(30000)});const result=await response.json() as {error?:string;excludedWorkouts:{id:string;date:string}[]};if(!response.ok)throw new Error(result.error||'Could not remove workout.');if(!workoutChangeConfirmed(result.excludedWorkouts,activity.id,true))throw new Error('Removal was not confirmed. Please retry.');excluded=result.excludedWorkouts}
+ if(changes!==workoutChanges.current)throw new Error('Your connection changed. Please reopen the workout.');
+ const change={activity,excluded,removed:true};changes.push(change);
+ setData(current=>applyWorkoutChanges(current,[change]));setRemovedWorkout(activity);setUndoError('');setSelected(current=>current?.id===activity.id?null:current);
+}
+async function undoRemoval(){
+ if(!removedWorkout||undoBusy)return;
+ const restored=removedWorkout,changes=workoutChanges.current;setUndoBusy(true);setUndoError('');
+ try{let excluded=(data.excludedWorkouts??[]).filter(e=>e.id!==restored.id);if(!isDemo){const response=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'restore',id:restored.id}),signal:AbortSignal.timeout(30000)});const result=await response.json() as {error?:string;excludedWorkouts:{id:string;date:string}[]};if(!response.ok)throw new Error(result.error||'Could not restore workout.');if(!workoutChangeConfirmed(result.excludedWorkouts,restored.id,false))throw new Error('Restoration was not confirmed. Please retry.');excluded=result.excludedWorkouts}
+  if(changes!==workoutChanges.current)throw new Error('Your connection changed. Please reload your dashboard.');
+  const change={activity:restored,excluded,removed:false};changes.push(change);setData(current=>applyWorkoutChanges(current,[change]));setRemovedWorkout(current=>current?.id===restored.id?null:current);
+ }catch(e){setUndoError(e instanceof Error?e.message:'Could not undo removal.')}finally{setUndoBusy(false)}
+}
 async function restoreAccount(){
  const revision=++restoreRevision.current,current=()=>restoreRevision.current===revision;
+ let changes=workoutChanges.current,changeIndex=changes.length;
  setAccountLoading(true);
  await restoreDashboard({current,previous:deviceScope.current&&!isDemo?{scope:deviceScope.current,data}:undefined,
   onAccount:state=>{if(!current())return;setAccount({signedIn:state.signedIn,name:state.name});setCorosConnected(state.corosConnected);setToken(state.connected?'__saved__':'');},
-  onScope:scope=>{if(!current())return;if(deviceScope.current!==scope){clearWorkoutCache();setConnectionRevision(r=>r+1);lastPersisted.current=null;}deviceScope.current=scope;},
-  onData:(snapshot,savedAt)=>{if(!current())return;lastPersisted.current=savedAt?snapshot:null;setCachedAt(savedAt);if(snapshot){demoPending.current=null;setData(snapshot);setIsDemo(false)}else{setSelected(null);setData(emptyDashboard);setIsDemo(true);demoPending.current=revision;setAccountLoading(true);void import('./demo-data').then(({demoData})=>{if(current()){setData(demoData());setIsDemo(true)}}).catch(()=>{if(current())setError('The demo could not load. Refresh to try again.')}).finally(()=>{if(current()){demoPending.current=null;setAccountLoading(false)}})}},
+  onScope:scope=>{if(!current())return;if(deviceScope.current!==scope){workoutChanges.current=[];changes=workoutChanges.current;changeIndex=0;clearWorkoutCache();setConnectionRevision(r=>r+1);lastPersisted.current=null;}deviceScope.current=scope;},
+  onData:(snapshot,savedAt)=>{if(!current())return;lastPersisted.current=savedAt?snapshot:null;setCachedAt(savedAt);if(snapshot){demoPending.current=null;setData(applyWorkoutChanges(snapshot,changes===workoutChanges.current?changes.slice(changeIndex):[]));setIsDemo(false)}else{setSelected(null);setData(emptyDashboard);setIsDemo(true);demoPending.current=revision;setAccountLoading(true);void import('./demo-data').then(({demoData})=>{if(current()){setData(demoData());setIsDemo(true)}}).catch(()=>{if(current())setError('The demo could not load. Refresh to try again.')}).finally(()=>{if(current()){demoPending.current=null;setAccountLoading(false)}})}},
   onReady:()=>{if(current()&&demoPending.current!==revision)setAccountLoading(false)},
   onBusy:value=>{if(current())setBusy(value)},
   onError:message=>{if(current())setError(message)},
   onPhase:phase=>{if(current())setSyncPhase(phase)},
-  onRetrieved:fresh=>{if(current())void notifications.retrieved(deviceScope.current,fresh).catch(()=>{})},
+  onRetrieved:fresh=>{if(current())void notifications.retrieved(deviceScope.current,applyWorkoutChanges(fresh,changes===workoutChanges.current?changes.slice(changeIndex):[])).catch(()=>{})},
  });
 }
 // Persist changed snapshots after rendering; opening a cache does not renew its TTL.
@@ -82,7 +98,7 @@ useEffect(()=>{
 },[data,isDemo]);
 useEffect(()=>{if(!account.signedIn||isDemo)return;const refresh=(event:MessageEvent)=>{if(event.data?.type==='sieste-sync-completed'&&!busy)void restoreAccount()};navigator.serviceWorker?.addEventListener('message',refresh);return()=>navigator.serviceWorker?.removeEventListener('message',refresh)},[account.signedIn,isDemo,busy]);
 async function discardDeviceData(){
- restoreRevision.current++;deviceScope.current=null;lastPersisted.current=null;setCachedAt(null);clearWorkoutCache();await clearDeviceSnapshot();
+ restoreRevision.current++;workoutChanges.current=[];deviceScope.current=null;lastPersisted.current=null;setCachedAt(null);clearWorkoutCache();await clearDeviceSnapshot();
 }
 async function signOut(event:React.MouseEvent<HTMLAnchorElement>){
  event.preventDefault();const link=document.createElement('a');link.href=event.currentTarget.href;link.target='_top';
@@ -109,7 +125,7 @@ useEffect(()=>{
  }
  void restoreAccount();
 },[]);
-async function sync(automatic=false,provider?:'tredict'){if(busy||syncLock.current)return;if(!account.signedIn){setModal(true);return}const clean=automatic?'__saved__':tokenDraft.trim().replace(/^Bearer\s+/i,'')||(token==='__saved__'?'__saved__':'');if(!clean){setError('Connect COROS in your account settings.');setModal(true);return}if(/\s/.test(clean)){setError('The token contains spaces. Reconnect COROS.');setModal(true);return}const retrievalScope=deviceScope.current;syncLock.current=true;syncAttempt.current=Date.now();setBusy(true);setManualSync(!automatic);setError('');try{if(!automatic&&tokenDraft.trim())await discardDeviceData();await progressiveSync({token:clean,provider,manual:!automatic},fresh=>{if(automatic||!tokenDraft.trim())void notifications.retrieved(retrievalScope,fresh).catch(()=>{});startTransition(()=>{setCachedAt(null);setData(fresh);setIsDemo(false)})},setSyncPhase,fetch,!isDemo&&!tokenDraft.trim()?data:undefined);if(!automatic&&tokenDraft.trim()){setConnectionRevision(r=>r+1);await restoreAccount();}setToken('__saved__');if(!automatic)setTokenDraft('');setIsDemo(false);if(!automatic)closeAccount()}catch(e){setError(e instanceof Error?e.message:'Unable to sync.')}finally{syncLock.current=false;setBusy(false);setManualSync(false)}}
+async function sync(automatic=false,provider?:'tredict'){if(busy||syncLock.current)return;if(!account.signedIn){setModal(true);return}const clean=automatic?'__saved__':tokenDraft.trim().replace(/^Bearer\s+/i,'')||(token==='__saved__'?'__saved__':'');if(!clean){setError('Connect COROS in your account settings.');setModal(true);return}if(/\s/.test(clean)){setError('The token contains spaces. Reconnect COROS.');setModal(true);return}const retrievalScope=deviceScope.current;syncLock.current=true;syncAttempt.current=Date.now();setBusy(true);setManualSync(!automatic);setError('');try{if(!automatic&&tokenDraft.trim())await discardDeviceData();const changes=workoutChanges.current,changeIndex=changes.length;await progressiveSync({token:clean,provider,manual:!automatic},fresh=>{const updated=applyWorkoutChanges(fresh,changes===workoutChanges.current?changes.slice(changeIndex):[]);if(automatic||!tokenDraft.trim())void notifications.retrieved(retrievalScope,updated).catch(()=>{});startTransition(()=>{setCachedAt(null);setData(updated);setIsDemo(false)})},setSyncPhase,fetch,!isDemo&&!tokenDraft.trim()?data:undefined);if(!automatic&&tokenDraft.trim()){setConnectionRevision(r=>r+1);await restoreAccount();}setToken('__saved__');if(!automatic)setTokenDraft('');setIsDemo(false);if(!automatic)closeAccount()}catch(e){setError(e instanceof Error?e.message:'Unable to sync.')}finally{syncLock.current=false;setBusy(false);setManualSync(false)}}
 // Poll only while visible and online. Coming back to the app (e.g. after a run)
 // refreshes after one minute; while it stays open, every two. Failures wait too.
 useEffect(()=>{
