@@ -100,3 +100,36 @@ const select=nodes(mosaic).find(node=>node.props['aria-label']==='Select a lap')
 mosaicLap(mosaic,4).props.onClick();mosaic=mosaicHost.render(Mosaic,mosaicProps);assert.equal(mosaicSelections.at(-1),null);assert.match(text(mosaic),/lap timing cannot be placed reliably on the route/);
 assert.equal(JSON.stringify(detail),snapshot,'Interactions preserve all original recording data');
 console.log('Lap interactions: cards, chart shading, map bounds/framing, repeat selection, recorded table, missing-route stats, clear selection and mosaic dropdown passed.');
+
+// Compact climb settings stay reachable even when the current cutoff finds no
+// climbs. Changing bounds recomputes actual sections and clears stale selection.
+const cyclingDistance=Array.from({length:57},(_,i)=>i*25);
+const ride={id:'synthetic-climb-controls',sportType:'cycling',summary:{duration:285,durationTotal:285},seriesSampled:{sampleSize:5,data:{distance:cyclingDistance,altitude:cyclingDistance.map(d=>100+Math.min(400,Math.max(0,d-100))*.05+Math.min(400,Math.max(0,d-600))*.05),speed:cyclingDistance.map(()=>5),power:cyclingDistance.map(()=>180)}}};
+const cyclingHost=host(),cyclingSelections=[],cyclingProps={detail:ride,compact:true,modeRequest:{mode:'climbs',nonce:1},onSelection:value=>cyclingSelections.push(value)};
+cyclingHost.render(Profile,cyclingProps);let cyclingTree=cyclingHost.render(Profile,cyclingProps);
+const climbCards=view=>nodes(nodes(view).find(node=>node.props['aria-label']==='Select climbs')).filter(node=>node.type==='button');
+const menu=(view,label)=>{const node=nodes(view).find(node=>node.type==='select'&&node.props['aria-label']===label);assert.ok(node,`Control exists: ${label}`);return node};
+assert.equal(climbCards(cyclingTree).length,2,'Steep mode separates ramps with a brief easing');
+assert.equal(menu(cyclingTree,'Cycling climb bounds').props.value,'steep');
+assert.equal(menu(cyclingTree,'Minimum cycling climb gradient').props.value,3);
+climbCards(cyclingTree)[0].props.onClick();cyclingTree=cyclingHost.render(Profile,cyclingProps);assert.equal(cyclingSelections.at(-1).kind,'climb');
+menu(cyclingTree,'Cycling climb bounds').props.onChange({target:{value:'whole'}});cyclingTree=cyclingHost.render(Profile,cyclingProps);
+assert.equal(climbCards(cyclingTree).length,1,'Whole climb mode groups ramps on the same hill');
+assert.equal(cyclingSelections.at(-1),null,'Changing bounds clears chart/map selection from the old detector');
+assert.equal(nodes(cyclingTree).some(node=>node.props['aria-label']==='Minimum cycling climb gradient'),false);
+menu(cyclingTree,'Cycling climb bounds').props.onChange({target:{value:'steep'}});cyclingTree=cyclingHost.render(Profile,cyclingProps);
+menu(cyclingTree,'Minimum cycling climb gradient').props.onChange({target:{value:'6'}});cyclingTree=cyclingHost.render(Profile,cyclingProps);
+assert.equal(climbCards(cyclingTree).length,0);assert.ok(button(cyclingTree,'Climbs 0'));
+assert.equal(menu(cyclingTree,'Minimum cycling climb gradient').props.value,6,'Cutoff remains editable when no climbs qualify');
+assert.equal(nodes(cyclingTree).some(node=>node.type==='button'&&text(node)==='Table of all climbs'),false,'Empty climb comparisons stay hidden');
+menu(cyclingTree,'Minimum cycling climb gradient').props.onChange({target:{value:'3'}});cyclingTree=cyclingHost.render(Profile,cyclingProps);assert.equal(climbCards(cyclingTree).length,2);
+const flatRide={...ride,seriesSampled:{...ride.seriesSampled,data:{...ride.seriesSampled.data,altitude:cyclingDistance.map(()=>100)}}},flatHost=host(),flatProps={detail:flatRide,compact:true};
+let flatTree=flatHost.render(Profile,flatProps);button(flatTree,'Climbs 0').props.onClick();flatTree=flatHost.render(Profile,flatProps);assert.ok(menu(flatTree,'Cycling climb bounds'),'A ride with no detected climbs still exposes bounds');
+const hiddenSelectors=[...readFileSync('app/workout-sheet.css','utf8').matchAll(/:where\(([^)]+)\)\{display:none!important\}/g)].flatMap(match=>match[1].split(',').map(selector=>selector.trim()));
+assert.ok(!hiddenSelectors.includes('.effort-analysis-toolbar'),'Compact CSS must not hide the detection controls');
+
+const unalignedHost=host(),unalignedProps={...props,detail:{...detail,laps:[{duration:100,distance:100,heartrate:135}]}};
+unalignedHost.render(Profile,unalignedProps);let unalignedTree=unalignedHost.render(Profile,unalignedProps);
+button(unalignedTree,'Table of all laps').props.onClick();unalignedTree=unalignedHost.render(Profile,unalignedProps);
+assert.ok(nodes(unalignedTree).some(node=>node.type===Laps),'Recorded laps remain accessible when none can be aligned');
+console.log('Compact profile controls: steep/whole regrouping, cutoff edits at zero climbs, stale selection clearing, visible toolbar and unaligned lap statistics passed.');
