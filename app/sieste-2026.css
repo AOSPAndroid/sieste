@@ -123,3 +123,68 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 .sieste-v3 .view-switch-tabs>button[aria-selected=true],.metric-expansion .view-switch-tabs>button[aria-selected=true]{background:var(--n-ink,#0b1220);color:#fff}
 .sieste-v3 .view-switch-hint,.metric-expansion .view-switch-hint{font-size:12px;color:var(--n-muted,#5b6678)}
 .sieste-v3 .view-switch-panel,.metric-expansion .view-switch-panel{min-width:0}
+
+/* ── Home as snapshot ──────────────────────────────────────────────────────
+   The share snapshot's language applied to the live home: flat white panels on
+   a soft ground, one hue per health metric, training days as tinted headers
+   over small white session cards with sport-coloured titles. */
+.sieste-v3 main .home-board{--snap-ink:#242433;--snap-muted:#6e6e7c;--snap-faint:#8a8a96;--snap-day:rgba(36,36,51,.05);--snap-today:#efeeff;--snap-today-ink:#5145cd}
+.sieste-v3 main .home-board .snapshot-home-layout :is([data-slot=card]:not(.home-calendar),.weekly-volume,.load-analysis){border:0!important;border-radius:16px;box-shadow:none!important;background:#fff}
+.sieste-v3 main .home-board .snapshot-home-layout .home-calendar{border:0;box-shadow:none;background:transparent}
+.sieste-v3 main .home-board .snapshot-home-layout :is([data-slot=card-title],.weekly-volume,.load-analysis) h2{font-size:18px;font-weight:650;letter-spacing:-.015em;color:var(--snap-ink)}
+/* Health: label with a coloured icon, a 27px value, a sparkline in the same hue */
+.sieste-v3 main .home-board .health-headlines [data-slot=card-action] [data-slot=badge]{height:auto;padding:0;border:0;background:none;font-size:13px;font-weight:500;color:var(--snap-muted)}
+.sieste-v3 main .home-board .health-headline-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 12px}
+.sieste-v3 main .home-board .health-headline{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;padding:0;border:0;background:none;text-align:left;color:var(--snap-ink)}
+.sieste-v3 main .home-board .health-headline-label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--snap-muted)}
+.sieste-v3 main .home-board .health-metric-icon{display:inline-flex;width:auto;height:auto;padding:0;border-radius:0;background:none;color:var(--metric-hue,currentColor)}
+.sieste-v3 main .home-board .health-metric-icon svg{width:16px;height:16px}
+.sieste-v3 main .home-board .health-headline .live-value{font-size:27px;font-weight:700;line-height:1.1;letter-spacing:-.03em;color:var(--snap-ink)}
+.sieste-v3 main .home-board .health-headline .live-value small{margin-left:2px;font-size:13px;font-weight:600;letter-spacing:0;color:var(--snap-muted)}
+.sieste-v3 main .home-board .health-headline>svg{width:100%;max-width:150px;height:22px;margin-top:2px}
+.sieste-v3 main .home-board .health-headline-change{font-size:12px;line-height:1.3;color:var(--snap-muted)}
+.sieste-v3 main .home-board .health-headline-status{font-size:12px;font-weight:600;line-height:1.3}
+.sieste-v3 main .home-board .health-headline.is-empty .live-value{color:#c4c4cc}
+/* Training: the title sits on the ground, each day is a tinted header over white session cards */
+.sieste-v3 main .home-board .home-calendar{padding:4px 0 0;background:transparent}
+.sieste-v3 main .home-board .home-calendar>[data-slot=card-header]{padding:0 4px}
+.sieste-v3 main .home-board .home-calendar [data-slot=card-action] [data-slot=badge]{height:auto;padding:0;border:0;background:none;font-size:13px;font-weight:500;color:var(--snap-muted)}
+.sieste-v3 main .home-board .home-calendar .home-week-grid{gap:8px;min-height:0;padding:0;border:0;background:none}
+.sieste-v3 main .home-board .home-calendar .home-week-day{display:flex;flex-direction:column;gap:6px;min-width:0;padding:0;border:0;background:none;box-shadow:none}
+.sieste-v3 main .home-board .home-calendar .home-day-label{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:4px;min-height:0;padding:7px 9px;border:0;border-radius:9px;background:var(--snap-day)}
+.sieste-v3 main .home-board .home-calendar .home-day-label :is(span,strong){font-size:11.5px;line-height:1.2;color:var(--snap-muted)}
+.sieste-v3 main .home-board .home-calendar .home-day-label strong{font-weight:650;color:var(--snap-ink)}
+.sieste-v3 main .home-board .home-calendar .home-week-day.current .home-day-label{background:var(--snap-today)}
+.sieste-v3 main .home-board .home-calendar .home-week-day.current .home-day-label :is(span,strong){color:var(--snap-today-ink)}
+.sieste-v3 main .home-board .home-calendar .home-day-sessions{display:flex;flex-direction:column;gap:6px;padding:0}
+.sieste-v3 main .home-board .home-calendar .home-day-sessions button.calendar-session-preview{padding:10px 9px;border:0;border-radius:10px;background:#fff;box-shadow:none}
+.sieste-v3 main .home-board .home-calendar .calendar-session-preview{--sport-ink:#64748b}
+.sieste-v3 main .home-board .home-calendar .calendar-session-preview.sport-running{--sport-ink:#2563eb}
+.sieste-v3 main .home-board .home-calendar .calendar-session-preview.sport-cycling{--sport-ink:#7c3aed}
+.sieste-v3 main .home-board .home-calendar .calendar-session-preview.sport-strength_training{--sport-ink:#b76a08}
+.sieste-v3 main .home-board .home-calendar .calendar-session-title b{font-size:13px;font-weight:650;line-height:1.3;color:var(--sport-ink)}
+.sieste-v3 main .home-board .home-calendar .calendar-session-title>svg:first-child{color:var(--sport-ink)}
+.sieste-v3 main .home-board .home-calendar .calendar-session-title small{font-size:10.5px;color:var(--snap-faint)}
+.sieste-v3 main .home-board .home-calendar .calendar-session-stats{gap:8px 8px;margin:10px 0 0}
+.sieste-v3 main .home-board .home-calendar .calendar-session-stats>span{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:1px;min-width:0}
+.sieste-v3 main .home-board .home-calendar .calendar-session-stats small{font-size:10.5px;font-weight:500;color:var(--snap-muted)}
+.sieste-v3 main .home-board .home-calendar .calendar-session-stats strong{font-size:14px;font-weight:700;color:var(--snap-ink)}
+.sieste-v3 main .home-board .home-calendar .calendar-session-stats em{font-size:10.5px;font-style:normal;font-weight:500;color:var(--snap-muted)}
+.sieste-v3 main .home-board .home-calendar .home-day-empty{flex:none;display:block;min-height:0;margin:0;padding:6px 9px;border:0;text-align:left;gap:0}
+.sieste-v3 main .home-board .home-calendar .home-day-empty :is([data-slot=empty-header],[data-slot=empty-title]){display:block;max-width:none;margin:0;padding:0;text-align:left;font-size:12px;font-weight:500;color:var(--snap-faint)}
+.sieste-v3 main .home-board .home-calendar .home-day-sessions{align-self:stretch;justify-content:flex-start}
+/* Phones: three snapshot columns leave ~100px per card, so days stack, today first, stats in one row */
+@media(max-width:560px){
+ .sieste-v3 main .home-board .home-calendar .home-week-grid{display:flex;flex-direction:column-reverse;gap:12px}
+ .sieste-v3 main .home-board .home-calendar .home-week-day{order:0}
+ .sieste-v3 main .home-board .home-calendar .home-day-label{padding:8px 11px}
+ .sieste-v3 main .home-board .home-calendar .home-day-label :is(span,strong){font-size:12.5px}
+ .sieste-v3 main .home-board .home-calendar .home-day-sessions button.calendar-session-preview{padding:12px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-title>svg:first-child{display:block;width:16px;height:16px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-title{gap:8px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-title b{font-size:14.5px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-title small{font-size:11.5px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-stats strong{font-size:15px;overflow-wrap:normal;white-space:nowrap}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-stats small{font-size:11px}
+}
