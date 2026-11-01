@@ -15,6 +15,7 @@ function steepSections(points:Point[],cutoff:number,thresholds:{minSeconds:numbe
  if(points.length<2||points.at(-1)!.d-points[0].d<windowMetres)return climbs;
  let leftIndex=0,rightIndex=0,start=-1,end=-1;
  const slope=(i:number)=>100*(points[i].a-points[i-1].a)/(points[i].d-points[i-1].d);
+ const runs:{first:number;last:number}[]=[];
  const finish=()=>{
   if(start>=0){
    // Distance-window gradients can straddle a change in slope. Trim gentle
@@ -22,8 +23,7 @@ function steepSections(points:Point[],cutoff:number,thresholds:{minSeconds:numbe
    let first=start,last=end;
    while(first<last&&slope(first+1)+1e-9<cutoff)first++;
    while(last>first&&slope(last)+1e-9<cutoff)last--;
-   const a=points[first],b=points[last],gain=b.a-a.a,distance=b.d-a.d;
-   if(b.t-a.t>=thresholds.minSeconds&&gain>=thresholds.minGainMetres&&distance>=thresholds.minDistanceMetres)climbs.push({start:a.t,end:b.t,gain,distance,grade:100*gain/distance});
+   runs.push({first,last});
   }
   start=-1;end=-1;
  };
@@ -35,14 +35,34 @@ function steepSections(points:Point[],cutoff:number,thresholds:{minSeconds:numbe
   const grade=100*(elevationAt(right,rightIndex)-elevationAt(left,leftIndex))/windowMetres;
   if(grade+1e-9>=cutoff){if(start<0)start=i-1;end=i}else finish();
  }
- finish();return climbs;
+ finish();
+ // One hill often eases briefly (a hairpin, a bend, a short false flat). Join
+ // steep stretches across such an easing when it is short and loses almost no
+ // height, so the hill reads as one climb; longer flats still separate climbs.
+ const merged:{first:number;last:number}[]=[];
+ for(const run of runs){
+  const previous=merged.at(-1);
+  if(previous){
+   const gap=points[run.first].d-points[previous.last].d;
+   let highest=points[previous.last].a,drop=0;
+   for(let i=previous.last;i<=run.first;i++){highest=Math.max(highest,points[i].a);drop=Math.max(drop,highest-points[i].a)}
+   if(gap<=bridge.maxMetres&&drop<=bridge.maxDipMetres){previous.last=run.last;continue}
+  }
+  merged.push({...run});
+ }
+ for(const {first,last} of merged){
+  const a=points[first],b=points[last],gain=b.a-a.a,distance=b.d-a.d;
+  if(b.t-a.t>=thresholds.minSeconds&&gain>=thresholds.minGainMetres&&distance>=thresholds.minDistanceMetres)climbs.push({start:a.t,end:b.t,gain,distance,grade:100*gain/distance});
+ }
+ return climbs;
 }
+const bridge={maxMetres:200,maxDipMetres:3};
 function computeClimbAnalysis(detail:any,family=detail.sportType,options?:ClimbDetectionOptions){
  const running=['running','run','walking','hiking','trail_running'].includes(String(family).toLowerCase()),step=detail.seriesSampled?.sampleSize,s=detail.seriesSampled?.data??{};
  const settings=climbSettings(family,options),steep=settings.mode==='steep';
  const thresholds={minSeconds:running?30:60,minGainMetres:running?5:20,minDistanceMetres:running?60:150,minGradePercent:settings.grade,dipToleranceMetres:running?3:5,maxDipToleranceMetres:running?8:12,smoothingSeconds:5,maxSampleSeconds:15};
  if(steep){thresholds.minSeconds=30;thresholds.minGainMetres=10;thresholds.minDistanceMetres=100;thresholds.minGradePercent=settings.grade}
- const method=steep?`Sections with local gradient at least ${settings.grade}% over approximately 50 metres of recorded moving distance; gentle approaches and tails are trimmed. Section average gradient is reported separately.`:'Valley-to-peak rise in recorded elevation and moving distance; median smoothing, small rolling dips and brief flats allowed. Net gain and average gradient describe the detected bounds.'+(running?' Small running, walking and hiking hills qualify from 5 m net gain and 0.5% average gradient; preceding flats do not extend a climb.':'');
+ const method=steep?`Sections with local gradient at least ${settings.grade}% over approximately 50 metres of recorded moving distance; gentle approaches and tails are trimmed, and easings of up to 200 m with no drop over 3 m are kept inside one climb. Section average gradient is reported separately.`:'Valley-to-peak rise in recorded elevation and moving distance; median smoothing, small rolling dips and brief flats allowed. Net gain and average gradient describe the detected bounds.'+(running?' Small running, walking and hiking hills qualify from 5 m net gain and 0.5% average gradient; preceding flats do not extend a climb.':'');
  const result={climbs:[] as Climb[],reason:null as string|null,status:'unavailable' as 'detected'|'none'|'unavailable',method,thresholds,mode:settings.mode,gradeCutoffPercent:settings.grade,localGradeWindowMetres:steep?50:null};
  if(!finite(step)||step<=0){result.reason='Timed elevation and distance samples are needed to identify climbs.';return result}
  if(step>thresholds.maxSampleSeconds){result.reason='Climb detection needs samples at least every 15 seconds.';return result}
@@ -125,3 +145,12 @@ export function activityClimbAnalysis(detail:any,family=detail.sportType,options
  const settings=climbSettings(family,options),key=String(family)+'::'+settings.mode+'::'+settings.grade;const cached=entries.get(key);if(cached)return cached;const result=computeClimbAnalysis(detail,family,options);entries.set(key,result);return result;
 }
 export function activityClimbs(detail:any,family=detail.sportType,options?:ClimbDetectionOptions){return activityClimbAnalysis(detail,family,options).climbs}
+
+/** Climb category by the usual length × gradient score (Cat 4 to HC); gentler or shorter climbs have none. */
+export function climbCategory(distanceMetres:number,gradePercent:number){
+ if(!finite(distanceMetres)||!finite(gradePercent)||gradePercent<3)return null;
+ const score=distanceMetres*gradePercent;
+ return score>=80000?'HC':score>=64000?'Cat 1':score>=32000?'Cat 2':score>=16000?'Cat 3':score>=8000?'Cat 4':null;
+}
+/** Vertical ascent speed in metres per hour. */
+export const climbVam=(gainMetres:number,seconds:number)=>finite(gainMetres)&&finite(seconds)&&seconds>0?gainMetres/seconds*3600:null;

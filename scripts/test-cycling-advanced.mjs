@@ -74,3 +74,16 @@ console.log('Canonical climb bounds, optional sensor metadata, power-independent
  assert.equal(ref({date:'2026-07-01T08:00:00Z',summary:{},cyclingContext:{bodyvalues:body,manualReference:{weight:68},profile:{weight:80}}}).weight,68,'A weight you entered yourself still wins');
  console.log('Tredict thresholds and zones: dated versions, FTP fallback, logged weight and histogram zones passed.');
 }
+
+{
+ const effortReference=new Function('cyclingReference','capacityAt',transpile(readFileSync('app/effort-reference.ts','utf8'))+';return effortReference')(ref,thresholds.capacityAt);
+ const capacity={cycling:[{timestamp:'2026-01-01T00:00:00Z',ftp:250,hrLth:160},{timestamp:'2026-12-01T00:00:00Z',ftp:400,hrLth:190}],running:[{timestamp:'2026-01-01T00:00:00Z',ftp:350,hrLth:170}]},workout={date:'2026-06-01',cyclingContext:{tredictCapacity:capacity}};
+ assert.deepEqual(effortReference(workout,'cycling'),{ftp:250,lthr:160},'Efforts use thresholds from the workout date, never future entries');
+ assert.deepEqual(effortReference({...workout,summary:{ftp:275}},'cycling'),{ftp:275,lthr:160},'A recorded workout FTP retains precedence');
+ assert.deepEqual(effortReference({...workout,cyclingContext:{...workout.cyclingContext,fitnessHistory:{20260501:{ftp:260}}}},'cycling'),{ftp:260,lthr:160},'Dated COROS FTP retains precedence');
+ assert.deepEqual(effortReference(workout,'running'),{ftp:null,lthr:170},'Running heart-rate sections use running thresholds and no cycling FTP');
+ assert.equal(effortReference({...workout,date:'2025-01-01'},'cycling'),null,'Future thresholds cannot anchor an earlier workout');
+ assert.deepEqual(effortReference({cyclingContext:{manualReference:{ftp:240}}},'cycling'),{ftp:240,lthr:null},'Manual FTP remains a fallback');
+ assert.equal(effortReference({},'cycling'),null);
+ console.log('Automatic effort references: dated capacities, sport-specific HR, recorded/COROS FTP precedence and missing/manual fallbacks passed.');
+}
