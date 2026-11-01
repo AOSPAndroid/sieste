@@ -173,18 +173,21 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
 .sieste-v3 main .home-board .home-calendar .home-day-empty{flex:none;display:block;min-height:0;margin:0;padding:6px 9px;border:0;text-align:left;gap:0}
 .sieste-v3 main .home-board .home-calendar .home-day-empty :is([data-slot=empty-header],[data-slot=empty-title]){display:block;max-width:none;margin:0;padding:0;text-align:left;font-size:12px;font-weight:500;color:var(--snap-faint)}
 .sieste-v3 main .home-board .home-calendar .home-day-sessions{align-self:stretch;justify-content:flex-start}
-/* Phones: three snapshot columns leave ~100px per card, so days stack, today first, stats in one row */
+/* Phones keep the snapshot's three columns: about 100px per card, so stats list in one column, at most four */
 @media(max-width:560px){
- .sieste-v3 main .home-board .home-calendar .home-week-grid{display:flex;flex-direction:column-reverse;gap:12px}
+ .sieste-v3 main .home-board .home-calendar .home-week-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
  .sieste-v3 main .home-board .home-calendar .home-week-day{order:0}
- .sieste-v3 main .home-board .home-calendar .home-day-label{padding:8px 11px}
- .sieste-v3 main .home-board .home-calendar .home-day-label :is(span,strong){font-size:12.5px}
- .sieste-v3 main .home-board .home-calendar .home-day-sessions button.calendar-session-preview{padding:12px}
- .sieste-v3 main .home-board .home-calendar .calendar-session-title>svg:first-child{display:block;width:16px;height:16px}
- .sieste-v3 main .home-board .home-calendar .calendar-session-title{gap:8px}
- .sieste-v3 main .home-board .home-calendar .calendar-session-title b{font-size:14.5px}
- .sieste-v3 main .home-board .home-calendar .calendar-session-title small{font-size:11.5px}
- .sieste-v3 main .home-board .home-calendar .calendar-session-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
- .sieste-v3 main .home-board .home-calendar .calendar-session-stats strong{font-size:15px;overflow-wrap:normal;white-space:nowrap}
- .sieste-v3 main .home-board .home-calendar .calendar-session-stats small{font-size:11px}
+ .sieste-v3 main .home-board .home-calendar .home-day-label{padding:6px 7px}
+ .sieste-v3 main .home-board .home-calendar .home-day-label :is(span,strong){font-size:11px}
+ .sieste-v3 main .home-board .home-calendar .home-day-sessions button.calendar-session-preview{padding:9px 8px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-title{gap:5px;align-items:flex-start}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-title>svg:first-child{display:block;flex:none;width:13px;height:13px;margin-top:2px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-title>svg:last-child{display:none}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-title b{font-size:12.5px;line-height:1.25;overflow-wrap:anywhere}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-title small{font-size:10px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-stats{grid-template-columns:minmax(0,1fr);gap:6px;margin-top:8px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-stats>span:nth-child(n+5),.sieste-v3 main .home-board .home-calendar .calendar-session-stats>.calendar-power-stat{display:none}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-stats small{font-size:10px}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-stats strong{font-size:14px;white-space:nowrap}
+ .sieste-v3 main .home-board .home-calendar .calendar-session-stats em{font-size:10px}
 }
