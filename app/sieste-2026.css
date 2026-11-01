@@ -191,3 +191,24 @@ html:has(.sieste-v3.shell),body:has(.sieste-v3.shell),.sieste-v3.shell{backgroun
  .sieste-v3 main .home-board .home-calendar .calendar-session-stats strong{font-size:14px;white-space:nowrap}
  .sieste-v3 main .home-board .home-calendar .calendar-session-stats em{font-size:10px}
 }
+/* Snapshot health: a value and its sparkline; the change and status live in the tap-through analysis */
+.sieste-v3 main .home-board .health-headline :is(.health-headline-change,.health-headline-status){display:none}
+.sieste-v3 main .home-board .health-headline-grid{gap:18px 12px}
+/* Snapshot header: one quiet line of date and controls, icon-only actions */
+.sieste-v3 main .home-board .home-toolbar{gap:8px;margin-bottom:12px}
+.sieste-v3 main .home-board .home-toolbar time{font-size:17px;font-weight:500;color:var(--snap-muted)}
+.sieste-v3 main .home-board .home-toolbar-actions{gap:6px}
+.sieste-v3 main .home-board .home-toolbar-actions>button{width:34px;min-width:34px;height:34px;padding:0;border:0;border-radius:999px;background:transparent;box-shadow:none;color:var(--snap-muted)}
+.sieste-v3 main .home-board .home-toolbar-actions>button>span{display:none}
+.sieste-v3 main .home-board .home-toolbar-actions>button svg{width:17px;height:17px}
+/* One header line like the snapshot's: date, then ‹ › and the snapshot, share and poster icons, ⋯ last */
+.sieste-v3 main .home-board .home-toolbar{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:2px}
+.sieste-v3 main .home-board :is(.home-toolbar-heading,.home-period-navigation,.home-toolbar-actions){display:contents}
+.sieste-v3 main .home-board .home-toolbar time{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sieste-v3 main .home-board .home-period-navigation>button{order:1;width:34px;min-width:34px;height:34px}
+.sieste-v3 main .home-board .home-toolbar-actions>button{order:2}
+.sieste-v3 main .home-board .home-toolbar .home-more-menu{order:3}
+/* The 3 / 7 days switch sits in the Training header it controls */
+.sieste-v3 main .home-board .home-calendar [data-slot=card-action] [data-slot=toggle-group]{gap:2px;padding:3px;border:0;border-radius:999px;background:rgba(36,36,51,.06)}
+.sieste-v3 main .home-board .home-calendar [data-slot=card-action] [data-slot=toggle-group-item]{height:26px;min-height:26px;padding:0 10px;border:0!important;border-radius:999px!important;background:transparent;font-size:12.5px;font-weight:600;color:var(--snap-muted);box-shadow:none}
+.sieste-v3 main .home-board .home-calendar [data-slot=card-action] [data-slot=toggle-group-item][data-state=on]{background:#fff;color:var(--snap-ink)}
