@@ -68,3 +68,18 @@ assert.equal(activityClimbAnalysis(route([[600,1]]),'cycling',steep).status,'non
 assert.equal(activityClimbAnalysis({sportType:'cycling',seriesSampled:{sampleSize:1,data:{}}},'cycling',steep).status,'unavailable');
 assert.equal(activityClimbAnalysis(route([[600,6]],30),'cycling',steep).status,'unavailable');
 console.log('Steep cycling selections: gentle boundary trimming, local grade, separate cores, noise/spikes, gaps/stops/resets, stricter subsets, sample timing and normalized/cache-compatible settings passed.');
+// One hill with a brief easing reads as one climb; a dip that loses height,
+// or a longer flat, still separates two climbs.
+const eased=route([[120,1],[100,6],[20,0],[100,6],[120,1]]),easedClimbs=activityClimbs(eased,'cycling',steep);
+assert.equal(easedClimbs.length,1,'A 100 m false flat stays inside one climb');assert.ok(easedClimbs[0].start<=125&&easedClimbs[0].end>=335);
+const dipped=route([[120,1],[100,6],[40,-2],[100,6],[120,1]]);assert.equal(activityClimbs(dipped,'cycling',steep).length,2,'A 4 m descent separates two climbs');
+const longFlat=route([[120,1],[100,6],[60,0],[100,6],[120,1]]);assert.equal(activityClimbs(longFlat,'cycling',steep).length,2,'A 300 m flat separates two climbs');
+assert.match(activityClimbAnalysis(eased,'cycling',steep).method,/easings of up to 200 m/);
+console.log('Steep climbs bridge short easings but not descents or long flats.');
+{
+ const {climbCategory,climbVam}=new Function(code+';return {climbCategory,climbVam}')();
+ assert.equal(climbCategory(1000,5),null,'1 km at 5% is uncategorised');assert.equal(climbCategory(2000,5),'Cat 4');assert.equal(climbCategory(4000,6),'Cat 3');
+ assert.equal(climbCategory(8000,6),'Cat 2');assert.equal(climbCategory(10000,7),'Cat 1');assert.equal(climbCategory(12000,8),'HC');assert.equal(climbCategory(20000,2.5),null,'Under 3% is never categorised');
+ assert.equal(climbVam(41,144),1025);assert.equal(climbVam(41,0),null);
+ console.log('Climb category and VAM passed.');
+}

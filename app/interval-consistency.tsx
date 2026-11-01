@@ -4,11 +4,12 @@ import {intervalConsistency} from './training-coach-data';
 import {sportFamily,runningPace} from './sports';
 import {valueTrend} from './trend';
 import {effortProfile} from './effort-profile-data';
+import {effortReference} from './effort-reference';
 import TrendBadge from './trend-badge';
 const labels:Record<string,string>={pace:'Pace',power:'Power',heartrate:'HR',cadence:'Cadence',stepLength:'Step length'};
 export default function IntervalConsistency({detail}:{detail:any}){
  const [selected,setSelected]=useState<number[]>([]),[source,setSource]=useState('laps'),family=sportFamily(detail);
- const detected=useMemo(()=>effortProfile(detail,family==='cycling'?'power':'speed').efforts.map((e:any)=>({duration:(e.end-e.start)*60,distance:family==='running'?e.mean*(e.end-e.start)*60:undefined,power:family==='cycling'?e.mean:undefined,pace:family==='running'?1000/e.mean:undefined,start:e.start})),[detail,family]);
+ const detected=useMemo(()=>effortProfile(detail,family==='cycling'?'power':'speed',family,effortReference(detail,family)).efforts.map((e:any)=>({duration:(e.end-e.start)*60,distance:family==='running'?e.mean*(e.end-e.start)*60:undefined,power:family==='cycling'?e.mean:undefined,pace:family==='running'?1000/e.mean:undefined,start:e.start})),[detail,family]);
  const laps=source==='laps'?(detail.laps??[]):detected;
  if(!['running','cycling'].includes(family))return null;
  const result=intervalConsistency(laps,selected,family);
