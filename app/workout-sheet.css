@@ -334,3 +334,9 @@
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more>h3{font-size:15px;font-weight:650;color:var(--ws-ink)}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more .view-switch-panel>*{margin-left:0;margin-right:0}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-more .view-switch-panel>:is(section,div,details){border:0!important;box-shadow:none!important;background:transparent!important;padding-left:0!important;padding-right:0!important;margin-top:0!important}
+/* Climb category and effort zone: small labels inside the segment cards */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments .climb-category{padding:1px 6px;border-radius:999px;background:rgba(11,18,32,.07);font-size:10.5px;font-weight:650;color:var(--ws-ink)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments .effort-zone{display:block;margin-top:2px;font-size:11.5px;font-weight:600;color:var(--ws-muted)}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments .effort-zone:is([data-zone=Threshold],[data-zone="Above threshold"]){color:#c2410c}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments .effort-zone:is([data-zone="VO₂max"],[data-zone=Anaerobic],[data-zone=Sprint]){color:#b91c1c}
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments .effort-zone[data-zone=Tempo]{color:#a16207}

@@ -1,5 +1,9 @@
 const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
-type Effort={start:number;end:number;mean:number;gain:number|null;peak:number};
+type Effort={start:number;end:number;mean:number;gain:number|null;peak:number;intensity?:number|null;zone?:string|null};
+/** The athlete's own thresholds on the activity date; efforts are only counted from tempo upwards when they are known. */
+export type EffortReference={ftp?:number|null;lthr?:number|null}|null;
+const powerZones:[number,string][]=[[.55,'Recovery'],[.75,'Endurance'],[.9,'Tempo'],[1.05,'Threshold'],[1.2,'VO₂max'],[1.5,'Anaerobic'],[Infinity,'Sprint']];
+const heartZones:[number,string][]=[[.85,'Endurance'],[.9,'Tempo'],[1,'Threshold'],[Infinity,'Above threshold']];
 type EffortStatus='detected'|'none'|'unavailable';
 function sustainedLevels(rows:{value:number|null}[],step:number,seconds:number,recoverySeconds:number,cap:number,limit:number,zeros:boolean){
  const known=(v:unknown):v is number=>finite(v)&&v>=0&&v<=limit&&(zeros||v>0),window=Math.max(1,Math.ceil(seconds/step)),recoveryWindow=Math.max(3,Math.round(recoverySeconds/step));
@@ -20,10 +24,10 @@ function sustainedLevels(rows:{value:number|null}[],step:number,seconds:number,r
  }
  return finite(low)&&finite(high)?{low,high}:null;
 }
-function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}[],streams:any,step:number,sensor:string,family:string,cap:number){
+function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}[],streams:any,step:number,sensor:string,family:string,cap:number,reference:EffortReference=null){
  const foot=['running','run','trail_running','walking','hiking'].includes(family),speed=sensor==='speed',power=sensor==='power';
  const smoothingSamples=Math.max(1,Math.ceil((power?15:speed?(foot?6:10):15)/step)),smoothingSeconds=smoothingSamples*step,minSeconds=Math.max(speed&&foot?20:power||speed?30:60,step*3);
- const effortMethod={smoothingSeconds,minSeconds,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:power?30:speed?(foot?.25:1):8,maxSampleSeconds:10};
+ const effortMethod={smoothingSeconds,minSeconds,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:power?30:speed?(foot?.25:1):8,maxSampleSeconds:10,threshold:null as number|null,floor:null as number|null};
  const result={efforts:[] as Effort[],threshold:null as number|null,effortReason:null as string|null,effortSource:sensor,effortStatus:'unavailable' as EffortStatus,effortMethod};
  if(!['power','speed','heartrate'].includes(sensor)){result.effortReason='This sensor is not supported for automatic sections.';return result}
  if(step>effortMethod.maxSampleSeconds){result.effortReason='Automatic sections need samples at least every 10 seconds. Recorded laps remain available.';return result}
@@ -44,7 +48,17 @@ function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}
  const contrast=contrastAt(low);
  effortMethod.minContrast=contrast;
  if(high-low<contrast){result.effortStatus='none';result.effortReason='No distinct sustained changes in the recorded signal; a steady session can have no automatic sections.';return result}
- const cutoff=low+(high-low)*.5,release=low+(high-low)*.35;result.threshold=cutoff;effortMethod.cutoff=cutoff;effortMethod.releaseCutoff=release;
+ let cutoff=low+(high-low)*.5,release=low+(high-low)*.35;
+ // Halfway between the session's easy and hard levels makes a slightly harder
+ // stretch of an easy ride an "effort". With a known FTP or threshold heart
+ // rate, only tempo or harder counts: 75% of FTP, 85% of threshold heart rate.
+ const own=power?reference?.ftp:sensor==='heartrate'?reference?.lthr:null,threshold=finite(own)&&own>0?own:null,zones=power?powerZones:heartZones;
+ if(threshold!==null){
+  const floor=threshold*(power?.75:.85);effortMethod.threshold=threshold;effortMethod.floor=floor;
+  if(cutoff<floor){cutoff=floor;release=Math.max(release,floor*.92)}
+  if(high<floor){result.effortStatus='none';result.effortReason=`Nothing sustained at tempo or harder: ${power?`${Math.round(floor)} W, 75% of your FTP`:`${Math.round(floor)} bpm, 85% of your threshold heart rate`}.`;return result}
+ }
+ result.threshold=cutoff;effortMethod.cutoff=cutoff;effortMethod.releaseCutoff=release;
  const distanceStops=new Uint8Array(sensor==='heartrate'?rows.length:0);
  if(sensor==='heartrate'){
   // With no speed reading, a sustained plateau in cumulative distance can
@@ -65,7 +79,7 @@ function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}
    const end=Math.min(cap,(lastHigh+1)*step),seconds=end-start*step;
    let total=0,count=0,peak=0,above=0;
    for(let i=start;i<=lastHigh;i++){const v=rows[i].value!;total+=v;count++;peak=Math.max(peak,v);if(v>=release)above+=Math.min(step,Math.max(0,cap-i*step))}
-   if(seconds>=minSeconds-1e-7&&above>=minSeconds*.8-1e-7&&above>=seconds*.65){const a=rows[start].altitude,b=rows[lastHigh].altitude;result.efforts.push({start:start*step/60,end:end/60,mean:total/count,peak,gain:finite(a)&&finite(b)?b-a:null})}
+   if(seconds>=minSeconds-1e-7&&above>=minSeconds*.8-1e-7&&above>=seconds*.65){const a=rows[start].altitude,b=rows[lastHigh].altitude;const mean=total/count,intensity=threshold===null?null:mean/threshold;result.efforts.push({start:start*step/60,end:end/60,mean,peak,gain:finite(a)&&finite(b)?b-a:null,intensity,zone:intensity===null?null:zones.find(([upper])=>intensity<upper)![1]})}
    candidateFloor=lastHigh+1;
   }
   start=-1;lastHigh=-1;
@@ -86,14 +100,14 @@ function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}
  if(!result.efforts.length)result.effortReason='No sustained sections met the duration and signal-contrast requirements in the available samples.';
  return result;
 }
-function computeeffortProfile(detail:any,sensor='power',family=detail.sportType){
+function computeeffortProfile(detail:any,sensor='power',family=detail.sportType,reference:EffortReference=null){
  const streams=detail.seriesSampled?.data??{},step=detail.seriesSampled?.sampleSize;
- const blank={efforts:[] as Effort[],threshold:null as number|null,effortReason:'Timed sensor samples are needed to identify automatic sections.' as string|null,effortSource:sensor,effortStatus:'unavailable' as EffortStatus,effortMethod:{smoothingSeconds:sensor==='power'?15:sensor==='speed'?6:15,minSeconds:sensor==='power'?30:sensor==='speed'?20:60,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:sensor==='power'?30:sensor==='speed'?.25:8,maxSampleSeconds:10}};
+ const blank={efforts:[] as Effort[],threshold:null as number|null,effortReason:'Timed sensor samples are needed to identify automatic sections.' as string|null,effortSource:sensor,effortStatus:'unavailable' as EffortStatus,effortMethod:{smoothingSeconds:sensor==='power'?15:sensor==='speed'?6:15,minSeconds:sensor==='power'?30:sensor==='speed'?20:60,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:sensor==='power'?30:sensor==='speed'?.25:8,maxSampleSeconds:10,threshold:null as number|null,floor:null as number|null}};
  if(!finite(step)||step<=0)return {rows:[],laps:[],...blank,reason:'Timed sensor samples are needed to align the profile.'};
  const n=Math.max(...['altitude',sensor].map(k=>Array.isArray(streams[k])?streams[k].length:0)),duration=detail.summary?.durationTotal;
  if(n>604800)return {rows:[],laps:[],...blank,effortReason:'This recording is too large for automatic sections.',reason:'This recording is too large for the interactive profile.'};
  const rows=Array.from({length:n},(_,i)=>({time:i*step/60,altitude:finite(streams.altitude?.[i])?streams.altitude[i]:null,value:finite(streams[sensor]?.[i])?streams[sensor][i]:null})).filter(r=>!finite(duration)||r.time*60<=duration);
- const detection=detectEfforts(rows,streams,step,sensor,String(family??(sensor==='speed'?'running':'cycling')).toLowerCase(),finite(duration)&&duration>=0?duration:n*step);
+ const detection=detectEfforts(rows,streams,step,sensor,String(family??(sensor==='speed'?'running':'cycling')).toLowerCase(),finite(duration)&&duration>=0?duration:n*step,reference);
  const laps:{index:number;start:number;end:number;power:number|null;hr:number|null}[]=[];let cursor=0,aligned=true;
  for(const [i,lap] of (detail.laps??[]).entries()){const s={...lap,...lap.summary},d=s.durationTotal??s.duration;if(!finite(d)||d<=0){aligned=false;break}if(detail.mergedIds){if(!finite(lap.mergedStartSeconds)){aligned=false;break}cursor=lap.mergedStartSeconds;}laps.push({index:i+1,start:cursor/60,end:(cursor+d)/60,power:finite(s.power)?s.power:null,hr:finite(s.heartrate)?s.heartrate:null});cursor+=d}
  // Sensor streams may omit pauses while lap timestamps use wall-clock time.
@@ -141,7 +155,7 @@ function computeeffortProfile(detail:any,sensor='power',family=detail.sportType)
 }
 
 const resultCache=new WeakMap<object,Map<string,ReturnType<typeof computeeffortProfile>>>();
-export function effortProfile(detail:any,sensor='power',family=detail.sportType){
+export function effortProfile(detail:any,sensor='power',family=detail.sportType,reference:EffortReference=null){
  let entries=resultCache.get(detail);if(!entries){entries=new Map();resultCache.set(detail,entries)}
- const key=String(sensor)+'::'+String(family);const cached=entries.get(key);if(cached)return cached;const result=computeeffortProfile(detail,sensor,family);entries.set(key,result);return result;
+ const key=String(sensor)+'::'+String(family)+'::'+(reference?.ftp??'')+'::'+(reference?.lthr??'');const cached=entries.get(key);if(cached)return cached;const result=computeeffortProfile(detail,sensor,family,reference);entries.set(key,result);return result;
 }
