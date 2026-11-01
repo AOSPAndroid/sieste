@@ -56,7 +56,8 @@ function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}
  if(threshold!==null){
   const floor=threshold*(power?.75:.85);effortMethod.threshold=threshold;effortMethod.floor=floor;
   if(cutoff<floor){cutoff=floor;release=Math.max(release,floor*.92)}
-  if(high<floor){result.effortStatus='none';result.effortReason=`Nothing sustained at tempo or harder: ${power?`${Math.round(floor)} W, 75% of your FTP`:`${Math.round(floor)} bpm, 85% of your threshold heart rate`}.`;return result}
+  // A short real interval can sit above the floor even when the session's
+  // 90th percentile does not. Check the timed signal before declaring none.
  }
  result.threshold=cutoff;effortMethod.cutoff=cutoff;effortMethod.releaseCutoff=release;
  const distanceStops=new Uint8Array(sensor==='heartrate'?rows.length:0);
@@ -97,7 +98,7 @@ function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}
   if(start>=0){if(value>=release)lastHigh=i;if(average<release)finish()}
  }
  finish();result.effortStatus=result.efforts.length?'detected':'none';
- if(!result.efforts.length)result.effortReason='No sustained sections met the duration and signal-contrast requirements in the available samples.';
+ if(!result.efforts.length)result.effortReason=threshold!==null?`No sustained sections met the tempo floor (${power?`${Math.round(effortMethod.floor!)} W, 75% of your FTP`:`${Math.round(effortMethod.floor!)} bpm, 85% of your threshold heart rate`}) and duration requirements.`:'No sustained sections met the duration and signal-contrast requirements in the available samples.';
  return result;
 }
 function computeeffortProfile(detail:any,sensor='power',family=detail.sportType,reference:EffortReference=null){

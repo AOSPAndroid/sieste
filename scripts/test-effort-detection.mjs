@@ -96,6 +96,10 @@ console.log('Automatic sections: majority-work repeats, original boundaries, sto
  const hard=recording('cycling',step,{power:[...Array(1800)].map((_,i)=>i%600<300?150:290)},{durationTotal:1800}),work=effortProfile(hard,'power','cycling',{ftp:300});
  assert.equal(work.efforts.length,3);assert.ok(work.efforts.every(e=>e.zone==='Threshold'&&Math.abs(e.intensity-290/300)<.02),'Threshold efforts carry zone and intensity');
  assert.ok(work.effortMethod.cutoff>=225&&work.effortMethod.floor===225&&work.effortMethod.threshold===300);
+ const rare=recording('cycling',step,{power:watts.map((v,i)=>i>=900&&i<960?290:v)},{durationTotal:1800});
+ const rareWork=effortProfile(rare,'power','cycling',{ftp:300});
+ assert.equal(rareWork.efforts.length,1,'A real one-minute interval survives even when the 90th percentile stays below the tempo floor');
+ assert.equal(rareWork.efforts[0].start,15);assert.equal(rareWork.efforts[0].end,16);
  assert.notStrictEqual(effortProfile(hard,'power','cycling',{ftp:300}),effortProfile(hard,'power','cycling',{ftp:250}),'Results are cached per threshold');
  const heart=recording('cycling',step,{heartrate:[...Array(1800)].map((_,i)=>i%600<300?120:150)},{durationTotal:1800});
  assert.equal(effortProfile(heart,'heartrate','cycling',{lthr:170}).efforts[0].zone,'Tempo','150 bpm is tempo against a 170 bpm threshold');

@@ -34,7 +34,7 @@ type SelectionStore=ReturnType<typeof profileStore>;
 type ProfileSegment={start:number;end:number;label:string;index?:number;gain?:number|null;grade?:number;distance?:number;intensity?:number|null;zone?:string|null};
 type ProfileRow={time:number;[key:string]:number|null};
 function sameProfileData(a:any,b:any){
- return a.seriesSampled===b.seriesSampled&&a.laps===b.laps&&a.id===b.id&&a.sportType===b.sportType&&a.subSportType===b.subSportType&&a.title===b.title&&a.date===b.date&&a.summary?.duration===b.summary?.duration&&a.summary?.durationTotal===b.summary?.durationTotal&&a.summary?.ftp===b.summary?.ftp&&['manualReference','fitness','fitnessHistory','profile'].every(key=>a.cyclingContext?.[key]===b.cyclingContext?.[key]);
+ return a.seriesSampled===b.seriesSampled&&a.laps===b.laps&&a.id===b.id&&a.sportType===b.sportType&&a.subSportType===b.subSportType&&a.title===b.title&&a.date===b.date&&a.summary?.duration===b.summary?.duration&&a.summary?.durationTotal===b.summary?.durationTotal&&a.summary?.ftp===b.summary?.ftp&&['manualReference','fitness','fitnessHistory','profile','tredictCapacity'].every(key=>a.cyclingContext?.[key]===b.cyclingContext?.[key]);
 }
 // compact: the Summary view, limited to climbs and laps; the expanded widget keeps every mode and control.
 export default function ActivityProfile({detail:incomingDetail,expanded=false,compact=false,onSelection,selectionStore,modeRequest,onCursor,pickedIndex=null,segmentNote}:{segmentNote?:(mode:string,start:number,end:number)=>string|null;detail:any;expanded?:boolean;compact?:boolean;onSelection?:(selection:RouteSelection|null)=>void;selectionStore?:SelectionStore;modeRequest?:{mode:SectionMode;nonce:number}|null;onCursor?:(sampleIndex:number|null)=>void;pickedIndex?:number|null}){
@@ -42,7 +42,7 @@ export default function ActivityProfile({detail:incomingDetail,expanded=false,co
  // The expanded widget is a retained element. Share new same-session streams
  // with it so source choices and interval indices always refer to one revision.
  useEffect(()=>{if(!expanded&&!sameProfileData(state.detail,incomingDetail)){
-  const a=state.detail,b=incomingDetail,boundsChanged=a.seriesSampled!==b.seriesSampled||a.laps!==b.laps||a.sportType!==b.sportType||a.subSportType!==b.subSportType||a.summary?.duration!==b.summary?.duration||a.summary?.durationTotal!==b.summary?.durationTotal;
+  const a=state.detail,b=incomingDetail,aRef=effortReference(a,sportFamily(a)),bRef=effortReference(b,sportFamily(b)),boundsChanged=a.seriesSampled!==b.seriesSampled||a.laps!==b.laps||a.sportType!==b.sportType||a.subSportType!==b.subSportType||a.summary?.duration!==b.summary?.duration||a.summary?.durationTotal!==b.summary?.durationTotal||aRef?.ftp!==bRef?.ftp||aRef?.lthr!==bRef?.lthr;
   store.set({detail:incomingDetail,...(boundsChanged?{selection:null,focus:false}:{})});
  }},[incomingDetail,expanded,store,state.detail]);
  const streams=detail.seriesSampled?.data??{},step=detail.seriesSampled?.sampleSize,family=sportFamily(detail),cycling=family==='cycling',foot=['running','walking','hiking'].includes(family),swimming=family==='swimming',pace=foot||swimming,paceUnit=swimming?'/100m':'/km',cadenceLabel=cadenceUnit(family);

@@ -73,6 +73,8 @@ console.log('Steep cycling selections: gentle boundary trimming, local grade, se
 const eased=route([[120,1],[100,6],[20,0],[100,6],[120,1]]),easedClimbs=activityClimbs(eased,'cycling',steep);
 assert.equal(easedClimbs.length,1,'A 100 m false flat stays inside one climb');assert.ok(easedClimbs[0].start<=125&&easedClimbs[0].end>=335);
 const dipped=route([[120,1],[100,6],[40,-2],[100,6],[120,1]]);assert.equal(activityClimbs(dipped,'cycling',steep).length,2,'A 4 m descent separates two climbs');
+const hiddenDip=route([[120,1],[100,6],[16,2.8],[14,-6],[6,0],[100,6],[120,1]]);
+assert.equal(activityClimbs(hiddenDip,'cycling',steep).length,2,'A rise inside an easing must not conceal a descent of more than 3 m');
 const longFlat=route([[120,1],[100,6],[60,0],[100,6],[120,1]]);assert.equal(activityClimbs(longFlat,'cycling',steep).length,2,'A 300 m flat separates two climbs');
 assert.match(activityClimbAnalysis(eased,'cycling',steep).method,/easings of up to 200 m/);
 console.log('Steep climbs bridge short easings but not descents or long flats.');

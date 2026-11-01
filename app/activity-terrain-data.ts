@@ -44,8 +44,9 @@ function steepSections(points:Point[],cutoff:number,thresholds:{minSeconds:numbe
   const previous=merged.at(-1);
   if(previous){
    const gap=points[run.first].d-points[previous.last].d;
-   let lowest=Infinity;for(let i=previous.last;i<=run.first;i++)lowest=Math.min(lowest,points[i].a);
-   if(gap<=bridge.maxMetres&&points[previous.last].a-lowest<=bridge.maxDipMetres){previous.last=run.last;continue}
+   let highest=points[previous.last].a,drop=0;
+   for(let i=previous.last;i<=run.first;i++){highest=Math.max(highest,points[i].a);drop=Math.max(drop,highest-points[i].a)}
+   if(gap<=bridge.maxMetres&&drop<=bridge.maxDipMetres){previous.last=run.last;continue}
   }
   merged.push({...run});
  }
@@ -61,7 +62,7 @@ function computeClimbAnalysis(detail:any,family=detail.sportType,options?:ClimbD
  const settings=climbSettings(family,options),steep=settings.mode==='steep';
  const thresholds={minSeconds:running?30:60,minGainMetres:running?5:20,minDistanceMetres:running?60:150,minGradePercent:settings.grade,dipToleranceMetres:running?3:5,maxDipToleranceMetres:running?8:12,smoothingSeconds:5,maxSampleSeconds:15};
  if(steep){thresholds.minSeconds=30;thresholds.minGainMetres=10;thresholds.minDistanceMetres=100;thresholds.minGradePercent=settings.grade}
- const method=steep?`Sections with local gradient at least ${settings.grade}% over approximately 50 metres of recorded moving distance; gentle approaches and tails are trimmed, and easings of up to 200 m that lose under 3 m are kept inside one climb. Section average gradient is reported separately.`:'Valley-to-peak rise in recorded elevation and moving distance; median smoothing, small rolling dips and brief flats allowed. Net gain and average gradient describe the detected bounds.'+(running?' Small running, walking and hiking hills qualify from 5 m net gain and 0.5% average gradient; preceding flats do not extend a climb.':'');
+ const method=steep?`Sections with local gradient at least ${settings.grade}% over approximately 50 metres of recorded moving distance; gentle approaches and tails are trimmed, and easings of up to 200 m with no drop over 3 m are kept inside one climb. Section average gradient is reported separately.`:'Valley-to-peak rise in recorded elevation and moving distance; median smoothing, small rolling dips and brief flats allowed. Net gain and average gradient describe the detected bounds.'+(running?' Small running, walking and hiking hills qualify from 5 m net gain and 0.5% average gradient; preceding flats do not extend a climb.':'');
  const result={climbs:[] as Climb[],reason:null as string|null,status:'unavailable' as 'detected'|'none'|'unavailable',method,thresholds,mode:settings.mode,gradeCutoffPercent:settings.grade,localGradeWindowMetres:steep?50:null};
  if(!finite(step)||step<=0){result.reason='Timed elevation and distance samples are needed to identify climbs.';return result}
  if(step>thresholds.maxSampleSeconds){result.reason='Climb detection needs samples at least every 15 seconds.';return result}
