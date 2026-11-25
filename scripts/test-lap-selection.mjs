@@ -146,6 +146,25 @@ assert.equal(detectedSelections.at(-1).start,indoorBlock.reps[1].bounds.start);
 assert.deepEqual(detectedResults,[true]);
 console.log('Detected workout blocks: indoor power, recovery coverage, and exact timeline selection passed.');
 
+const shortPower=[...Array(60).fill(95),...[320,335,315,330].flatMap(watts=>[...Array(15).fill(watts),...Array(15).fill(95)])];
+const shortSeries={sampleSize:1,data:{power:shortPower}};
+const shortDetail={...indoorDetail,summary:{duration:shortPower.length,durationTotal:shortPower.length},seriesSampled:shortSeries};
+const [shortBlock]=detectedWorkoutBlocks(effortProfile(shortDetail,'power','cycling'),1,shortSeries.data);
+assert.deepEqual(shortBlock.reps.map(rep=>Math.round(rep.duration)),[15,15,15,15]);
+assert.equal(shortBlock.reps[1].recoverySpan.end*60-shortBlock.reps[1].recoverySpan.start*60,15);
+let shortSelection=null;
+const shortRequest={detail:shortDetail,compact:true,onSelection:selection=>{shortSelection=selection},
+ modeRequest:{mode:'efforts',effort:{span:shortBlock.reps[1].bounds,source:shortSeries,sensor:'power',onResolve:aligned=>assert.equal(aligned,true)}}};
+const shortHost=host();shortHost.render(Profile,shortRequest);shortHost.render(Profile,shortRequest);
+assert.deepEqual([shortSelection.start,shortSelection.end],[shortBlock.reps[1].bounds.start,shortBlock.reps[1].bounds.end],
+ 'Selecting a short repeat highlights the same bounds in the timeline and map');
+const longAndShort=shortPower.concat(Array(75).fill(325),Array(60).fill(95));
+const mixedSeries={sampleSize:1,data:{power:longAndShort}};
+const mixedDetail={...indoorDetail,summary:{duration:longAndShort.length,durationTotal:longAndShort.length},seriesSampled:mixedSeries};
+const mixedBlocks=detectedWorkoutBlocks(effortProfile(mixedDetail,'power','cycling'),1,mixedSeries.data);
+assert.deepEqual(mixedBlocks.map(block=>[block.format,block.reps.length]),[['time',4]],
+ 'A nearby longer effort does not turn the short repeat set into an incomparable block');
+
 const {withRepElevation}=load('app/workout-blocks-terrain.ts');
 const originalHill={index:1,duration:30,distance:150,pace:200,power:300,heartrate:150,ascent:0,descent:0};
 const hillFixture={sampleSize:1,data:{altitude:Array.from({length:91},(_,i)=>100+i*.5)}};

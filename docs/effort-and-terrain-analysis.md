@@ -1,6 +1,6 @@
 # Efforts and terrain
 
-Updated 1 November 2026. The activity summary uses a shared timeline for detected efforts, climbs and recorded laps. Selecting a section highlights the same elapsed sample interval on the chart and recorded GPS route. A focused chart retains context around the section; explicit map fitting preserves GPS gaps. Compact and expanded profiles share the current data revision and controls.
+Updated 25 November 2026. The activity summary uses a shared timeline for workout reps, detected efforts, climbs and recorded laps. Selecting a section highlights the same elapsed sample interval on the chart and recorded GPS route. A focused chart retains context around the section. Explicit map fitting preserves GPS gaps. Compact and expanded profiles share the current data revision and controls.
 
 ## Automatic sections
 
@@ -18,6 +18,8 @@ Smoothing rounds up to whole samples; minimum section duration is at least three
 When a reference is available, power sections must begin at a cutoff of at least 75% of FTP and heart-rate sections at least 85% of threshold heart rate. Workout FTP and dated COROS/Tredict values retain their existing precedence, followed by available manual/current FTP fallbacks; heart-rate thresholds are sport-specific Tredict versions on the workout date. The floor does not reject a real short interval merely because most of the session is easy. Section cards show the recorded mean as a percentage of the reference and an estimated conventional zone. No reference means relative detection with no invented zone or threshold. A reference update recomputes compact and expanded profiles and clears the obsolete chart/map selection.
 
 Missing primary samples, primary zeros and distance resets break sections. Heart-rate detection also checks recorded stops because HR recovery can lag. Positive stationary cycling power is retained for indoor trainers. Brief positive dips can remain within an otherwise sustained section. Boundaries use original sample times, rather than trailing smoothing times.
+
+With samples at most three seconds apart, a group of at least three similarly timed efforts can qualify from 10 seconds for running pace or 12 seconds for cycling power. The work must be separated by measured easier sections. Distance resets and mostly missing recoveries break the group. Isolated short surges still use the standard duration requirement. The workout rep card uses the same sample bounds as the timeline.
 
 ## Climbs
 
@@ -40,6 +42,8 @@ Climb cards also show vertical ascent speed (net gain divided by duration, in me
 ## Display and comparison
 
 Cards show output or climb gain/gradient alongside duration. Users can order sections by time, duration, output or climb gain, move between sections, focus the timeline, compare all sections and fit the selected route. Detection requirements and chart scales stay behind a disclosure.
+
+The Workout reps card shows pace or power alongside each rep's duration. Rep analysis compares recorded work and recovery and uses the watch's lap labels when available. Two unlabelled laps can qualify as a set when their distances or durations closely match, the middle lap shows a drop in output, and a distinct warm-up and cool-down bracket the pair. Automatic distance splits alone do not qualify.
 
 The activity summary keeps the route and analysis together: a compact pinned map on phones, and adjacent map/profile columns on larger screens. Selecting a compact card updates the map and chart without moving the scroll position. Small section cards, one-row climb controls and a shorter chart leave room for both terrain and output; expanded map/profile views keep their full controls and larger charts. Map pinning ends with the analysis section so later workout metrics remain readable.
 

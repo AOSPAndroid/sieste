@@ -136,6 +136,20 @@ function similarIntensity(a: Lap, b: Lap, family: string) {
   return positive(first) && positive(last) && Math.min(first, last) >= Math.max(first, last) * .65;
 }
 
+function clearWorkPair(laps: readonly (Lap | null)[], first: number, last: number, family: string) {
+  const work = laps[first], next = laps[last], before = laps[first - 1], after = laps[last + 1];
+  if (!work || !next || !before || !after || before.trigger === 'auto' || after.trigger === 'auto') return false;
+  const matches = uniform([work.rep.duration, next.rep.duration], 1.08) ||
+    uniform([work.rep.distance, next.rep.distance], 1.08);
+  // Ordinary alternating laps can have the same two lower-output neighbours.
+  // Require a separate warm-up and cool-down, marked or clearly longer.
+  const warmedUp = before.role === 'boundary' ||
+    (before.rep.duration >= work.rep.duration * 2 && strongerThanRecovery(work, before, family));
+  const cooledDown = after.role === 'boundary' ||
+    (after.rep.duration >= next.rep.duration * 2 && strongerThanRecovery(next, after, family));
+  return matches && warmedUp && cooledDown;
+}
+
 type NextRep = { offset: number; recovery: Lap[]; explicit: boolean; manual: boolean };
 
 function followingRep(laps: readonly (Lap | null)[], offset: number, work: Lap, family: string): NextRep | null {
@@ -146,7 +160,8 @@ function followingRep(laps: readonly (Lap | null)[], offset: number, work: Lap, 
     if (!candidate) return null;
     if (recovery.length && workCandidate(candidate, family)) {
       const explicit = markedWork(work) && markedWork(candidate) && recovery.every(lap => lap.role === 'recovery');
-      const limit = Math.min(300, work.rep.duration * 4, candidate.rep.duration * 4);
+      const restLimit = recoveryTime > 300 && clearWorkPair(laps, offset, i, family) ? 480 : 300;
+      const limit = Math.min(restLimit, work.rep.duration * 4, candidate.rep.duration * 4);
       const contrasted = work.trigger !== 'auto' && candidate.trigger !== 'auto' &&
         recoveryTime <= limit && similarIntensity(work, candidate, family) &&
         recovery.every(lap => strongerThanRecovery(candidate, lap, family));
@@ -190,7 +205,7 @@ export function workoutBlocks(laps: readonly unknown[], family = 'running'): Wor
     const format = workoutBlockFormat(reps);
     const uniformDistance = uniform(included.map(lap => lap.rep.distance), 1.04);
     const sufficient = explicit || (manual && (reps.length >= 3 || format !== 'mixed')) ||
-      (reps.length >= 3 && !uniformDistance);
+      (!uniformDistance && (reps.length >= 3 || clearWorkPair(recorded, start, end, family)));
     if (sufficient) {
       const kind = family === 'running' && reps.every(isUphillRep) ? 'uphill' : 'repeats';
       blocks.push({ kind, format, source: 'laps', reps });

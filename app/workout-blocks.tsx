@@ -105,6 +105,9 @@ export default function WorkoutBlocks({blocks,detail,history,token,family,select
      const label=['Rep '+(index+1),...repMeasures(rep,family),climb&&climb+' climbing',
       powerBars&&rep.power!==null?Math.round(rep.power)+' watts':null].filter(Boolean).join(', ');
      const bar=bars[index];
+     const rate=repRate(rep.pace,family);
+     const output=powerBars?(rep.power===null?null:`${Math.round(rep.power)} W`):rate&&`${rate.value} ${rate.unit}`;
+     const time=elapsed(rep.duration);
      return <li key={rep.index}>
       <Button type="button" variant={active?'secondary':'ghost'} size="sm" className="workout-rep"
        aria-label={label} aria-pressed={active} title={label} onClick={()=>onSelect(active?null:rep.index)}>
@@ -112,7 +115,8 @@ export default function WorkoutBlocks({blocks,detail,history,token,family,select
         {bar!==null&&<i style={{height:(bar/high*100)+'%'}}/>}
        </span>}
        <span className="workout-rep-number">{uphill&&<Mountain size={11} aria-hidden="true"/>}{index+1}</span>
-       <strong>{elapsed(rep.duration)}</strong>
+       <strong>{output??time}</strong>
+       {output&&<small className="workout-rep-time">{time}</small>}
       </Button>
      </li>;
     })}

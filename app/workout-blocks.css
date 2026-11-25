@@ -86,7 +86,7 @@
 }
 
 .workout-reps > li {
-  flex: 1 0 38px;
+  flex: 1 0 68px;
   min-width: 0;
 }
 
@@ -94,6 +94,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: auto;
   min-height: 44px;
   gap: 2px;
   padding: 2px 3px;
@@ -136,6 +137,12 @@
   font-size: .75rem;
   font-weight: 650;
   line-height: 1.25;
+}
+
+.workout-rep-time {
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  line-height: 1.1;
 }
 
 .workout-rep-number {

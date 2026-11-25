@@ -44,7 +44,15 @@ const work = lap(90, 400, 255);
 for (const gap of [lap(30, 0, 0), lap(40, 8, 45), lap(350, 500, 130), null, { duration: 60, distance: NaN }]) {
   assert.deepEqual(workoutBlocks([work, gap, work, gap, work]), [], 'Invalid or stopped laps break the pattern');
 }
-assert.deepEqual(workoutBlocks([work, lap(60, 120, 130), work]), [], 'Two work laps are too few');
+assert.deepEqual(workoutBlocks([work, lap(60, 120, 130), work]), [], 'Two unlabelled work laps alone are inconclusive');
+
+const bookendedPair = [lap(908, 2870, 195), lap(200, 770, 275), lap(340, 1070, 195),
+  lap(190, 780, 285), lap(480, 1520, 195), lap(12, 0, 0)];
+const [pair] = workoutBlocks(bookendedPair);
+assert.deepEqual(pair.reps.map(rep => rep.index), [2, 4], 'Two matching work laps with an observed recovery and longer easy bookends qualify');
+assert.deepEqual(pair.reps.map(rep => rep.recoveryLaps), [[3], undefined]);
+assert.deepEqual(workoutBlocks(bookendedPair.slice(1, -2)), [], 'Unlabelled short sets require warm-up and cool-down evidence');
+assert.deepEqual(workoutBlocks(bookendedPair.map(value => ({ ...value, lapTrigger: 'distance' }))), [], 'Automatic distance splits cannot supply a two-rep pattern');
 
 const uphillByPower = lap(53, 200, 315, 12, 1);
 const downhill = lap(56, 220, 160, 1, 12);

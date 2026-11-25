@@ -33,6 +33,25 @@ for(const [sport,sensor,low,high] of [['cycling','power',100,300],['running','sp
  assert.equal(effortProfile(noisyRare,sensor).efforts.length,1,'A single positive noisy dip does not erase otherwise sustained work');
 }
 assert.equal(effortProfile(recording('running',1,{speed:Array.from({length:180},(_,i)=>i>=60&&i<75?4.5:3)}),'speed').efforts.length,0,'A 15s spike is not a sustained run section');
+for(const [sport,sensor,easy,hard,minimum] of [['running','speed',2.6,4.7,10],['cycling','power',90,335,12]]){
+ const values=Array.from({length:215},(_,index)=>index>=50&&index<155&&(index-50)%35<15?hard:easy);
+ const repeats=effortProfile(recording(sport,1,{[sensor]:values}),sensor);
+ assert.equal(repeats.effortMethod.shortRepeatMinSeconds,minimum);
+ assert.deepEqual(repeats.efforts.map(e=>[Math.round(e.start*60),Math.round(e.end*60)]),
+  [[50,65],[85,100],[120,135]],'Short work keeps its original boundaries');
+ repeats.efforts.forEach(e=>close(e.mean,hard));
+
+ const gap=values.map((value,index)=>index>=65&&index<85?null:value);
+ assert.equal(effortProfile(recording(sport,1,{[sensor]:gap}),sensor).efforts.length,0,'Three short surges require measured recoveries throughout');
+ const distance=values.map((_,index)=>index<75?index:index-75);
+ assert.equal(effortProfile(recording(sport,1,{[sensor]:values,distance}),sensor).efforts.length,0,'A distance reset breaks a short repeat set');
+ const coarse=values.filter((_,index)=>index%5===0);
+ assert.equal(effortProfile(recording(sport,5,{[sensor]:coarse}),sensor).efforts.length,0,'Coarse telemetry is insufficient for short repeats');
+
+ const mixed=values.concat(Array(75).fill(hard),Array(60).fill(easy));
+ assert.deepEqual(effortProfile(recording(sport,1,{[sensor]:mixed}),sensor).efforts.map(e=>Math.round((e.end-e.start)*60)),
+  [15,15,15,75],'Short repeats do not duplicate or replace standard efforts');
+}
 for(const gap of [0,null]){
  const power=Array.from({length:500},(_,i)=>i>=60&&i<140?(i>=90&&i<100?gap:300):100),profile=effortProfile(recording('cycling',1,{power}));
  assert.equal(profile.efforts.length,2,'Recorded zeros and missing values separate work');

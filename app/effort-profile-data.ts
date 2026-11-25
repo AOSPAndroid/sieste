@@ -5,6 +5,25 @@ export type EffortReference={ftp?:number|null;lthr?:number|null}|null;
 const powerZones:[number,string][]=[[.55,'Recovery'],[.75,'Endurance'],[.9,'Tempo'],[1.05,'Threshold'],[1.2,'VO₂max'],[1.5,'Anaerobic'],[Infinity,'Sprint']];
 const heartZones:[number,string][]=[[.85,'Endurance'],[.9,'Tempo'],[1,'Threshold'],[Infinity,'Above threshold']];
 type EffortStatus='detected'|'none'|'unavailable';
+type ShortRepeatSettings={smoothingSeconds:number;minSeconds:number};
+
+/** Confirm a lower, observed effort between two work sections. Bounds are in minutes. */
+export function measuredRecoveryBetween(previous:Effort,next:Effort,step:number,readings:readonly unknown[],minContrast:number,distances?:readonly unknown[]){
+ const start=previous.end*60,end=next.start*60,duration=end-start;
+ const shorterRep=Math.min(previous.end-previous.start,next.end-next.start)*60;
+ if(duration+1e-6<Math.max(6,step*2)||duration-1e-6>Math.min(480,Math.max(90,shorterRep*3)))return false;
+ let total=0,covered=0;
+ for(let index=Math.floor((start+1e-7)/step);index*step<end-1e-7;index++){
+  const distance=distances?.[index],prior=distances?.[index-1];
+  if(finite(distance)&&finite(prior)&&distance<prior-.5)return false;
+  const value=readings[index];
+  if(!finite(value)||value<0)continue;
+  const overlap=Math.min(end,(index+1)*step)-Math.max(start,index*step);
+  total+=value*overlap;
+  covered+=overlap;
+ }
+ return covered>=duration*.8&&Math.min(previous.mean,next.mean)-total/covered>=minContrast;
+}
 function sustainedLevels(rows:{value:number|null}[],step:number,seconds:number,recoverySeconds:number,cap:number,limit:number,zeros:boolean){
  const known=(v:unknown):v is number=>finite(v)&&v>=0&&v<=limit&&(zeros||v>0),window=Math.max(1,Math.ceil(seconds/step)),recoveryWindow=Math.max(3,Math.round(recoverySeconds/step));
  const minima:number[]=[],maxima:number[]=[],signal:number[]=[];let minHead=0,maxHead=0,from=0,low=Infinity,high=-Infinity;
@@ -24,10 +43,11 @@ function sustainedLevels(rows:{value:number|null}[],step:number,seconds:number,r
  }
  return finite(low)&&finite(high)?{low,high}:null;
 }
-function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}[],streams:any,step:number,sensor:string,family:string,cap:number,reference:EffortReference=null){
+function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}[],streams:any,step:number,sensor:string,family:string,cap:number,reference:EffortReference=null,short?:ShortRepeatSettings){
  const foot=['running','run','trail_running','walking','hiking'].includes(family),swimming=family==='swimming'||family==='swim',speed=sensor==='speed',power=sensor==='power';
- const smoothingSamples=Math.max(1,Math.ceil((power?15:speed?(foot||swimming?6:10):15)/step)),smoothingSeconds=smoothingSamples*step,minSeconds=Math.max(speed&&(foot||swimming)?20:power||speed?30:60,step*3);
- const effortMethod={smoothingSeconds,minSeconds,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:power?30:speed?(swimming?.12:foot?.25:1):8,maxSampleSeconds:10,threshold:null as number|null,floor:null as number|null};
+ const targetSmoothing=short?.smoothingSeconds??(power?15:speed?(foot||swimming?6:10):15);
+ const smoothingSamples=Math.max(1,Math.ceil(targetSmoothing/step)),smoothingSeconds=smoothingSamples*step,minSeconds=Math.max(short?.minSeconds??(speed&&(foot||swimming)?20:power||speed?30:60),step*3);
+ const effortMethod={smoothingSeconds,minSeconds,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:power?30:speed?(swimming?.12:foot?.25:1):8,maxSampleSeconds:short?3:10,threshold:null as number|null,floor:null as number|null,shortRepeatMinSeconds:null as number|null};
  const result={efforts:[] as Effort[],threshold:null as number|null,effortReason:null as string|null,effortSource:sensor,effortStatus:'unavailable' as EffortStatus,effortMethod};
  if(!['power','speed','heartrate'].includes(sensor)){result.effortReason='This sensor is not supported for automatic sections.';return result}
  if(step>effortMethod.maxSampleSeconds){result.effortReason='Automatic sections need samples at least every 10 seconds. Recorded laps remain available.';return result}
@@ -101,14 +121,53 @@ function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}
  if(!result.efforts.length)result.effortReason=threshold!==null?`No sustained sections met the tempo floor (${power?`${Math.round(effortMethod.floor!)} W, 75% of your FTP`:`${Math.round(effortMethod.floor!)} bpm, 85% of your threshold heart rate`}) and duration requirements.`:'No sustained sections met the duration and signal-contrast requirements in the available samples.';
  return result;
 }
+
+/** Short surges only qualify as a repeated pattern with similar work lengths and observed recoveries. */
+function confirmedShortRepeats(short:ReturnType<typeof detectEfforts>,regular:ReturnType<typeof detectEfforts>,step:number,readings:readonly unknown[],distances?:readonly unknown[]){
+ const confirmed:Effort[]=[];
+ let group:Effort[]=[],regularIndex=0;
+ const finishGroup=()=>{if(group.length>=3)confirmed.push(...group);group=[]};
+ for(const effort of short.efforts){
+  while(regularIndex<regular.efforts.length&&regular.efforts[regularIndex].end<=effort.start+1e-7)regularIndex++;
+  const duration=(effort.end-effort.start)*60,overlap=regular.efforts[regularIndex];
+  if(duration>=regular.effortMethod.minSeconds-1e-7||(overlap&&overlap.start<effort.end-1e-7)){
+   finishGroup();
+   continue;
+  }
+  const first=group[0],previous=group.at(-1);
+  if(first&&previous){
+   const firstDuration=(first.end-first.start)*60;
+   const contrast=Math.max(short.effortMethod.minContrast,Math.min(previous.mean,effort.mean)*.12);
+   if(Math.abs(firstDuration-duration)>Math.max(firstDuration*.25,step)+1e-7||
+    !measuredRecoveryBetween(previous,effort,step,readings,contrast,distances))finishGroup();
+  }
+  group.push(effort);
+ }
+ finishGroup();
+ return confirmed;
+}
+
 function computeeffortProfile(detail:any,sensor='power',family=detail.sportType,reference:EffortReference=null){
  const streams=detail.seriesSampled?.data??{},step=detail.seriesSampled?.sampleSize;
- const blank={efforts:[] as Effort[],threshold:null as number|null,effortReason:'Timed sensor samples are needed to identify automatic sections.' as string|null,effortSource:sensor,effortStatus:'unavailable' as EffortStatus,effortMethod:{smoothingSeconds:sensor==='power'?15:sensor==='speed'?6:15,minSeconds:sensor==='power'?30:sensor==='speed'?20:60,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:sensor==='power'?30:sensor==='speed'?.25:8,maxSampleSeconds:10,threshold:null as number|null,floor:null as number|null}};
+ const blank={efforts:[] as Effort[],threshold:null as number|null,effortReason:'Timed sensor samples are needed to identify automatic sections.' as string|null,effortSource:sensor,effortStatus:'unavailable' as EffortStatus,effortMethod:{smoothingSeconds:sensor==='power'?15:sensor==='speed'?6:15,minSeconds:sensor==='power'?30:sensor==='speed'?20:60,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:sensor==='power'?30:sensor==='speed'?.25:8,maxSampleSeconds:10,threshold:null as number|null,floor:null as number|null,shortRepeatMinSeconds:null as number|null}};
  if(!finite(step)||step<=0)return {rows:[],laps:[],...blank,reason:'Timed sensor samples are needed to align the profile.'};
  const n=Math.max(...['altitude',sensor].map(k=>Array.isArray(streams[k])?streams[k].length:0)),duration=detail.summary?.durationTotal;
  if(n>604800)return {rows:[],laps:[],...blank,effortReason:'This recording is too large for automatic sections.',reason:'This recording is too large for the interactive profile.'};
  const rows=Array.from({length:n},(_,i)=>({time:i*step/60,altitude:finite(streams.altitude?.[i])?streams.altitude[i]:null,value:finite(streams[sensor]?.[i])?streams[sensor][i]:null})).filter(r=>!finite(duration)||r.time*60<=duration);
- const detection=detectEfforts(rows,streams,step,sensor,String(family??(sensor==='speed'?'running':'cycling')).toLowerCase(),finite(duration)&&duration>=0?duration:n*step,reference);
+ const sport=String(family??(sensor==='speed'?'running':'cycling')).toLowerCase(),cap=finite(duration)&&duration>=0?duration:n*step;
+ const detection=detectEfforts(rows,streams,step,sensor,sport,cap,reference);
+ const shortSettings=sensor==='speed'&&['running','run','trail_running'].includes(sport)?{smoothingSeconds:3,minSeconds:10}
+  :sensor==='power'&&sport==='cycling'?{smoothingSeconds:5,minSeconds:12}:null;
+ if(shortSettings&&step<=3&&Array.isArray(streams[sensor])){
+  const short=detectEfforts(rows,streams,step,sensor,sport,cap,reference,shortSettings);
+  const repeats=confirmedShortRepeats(short,detection,step,streams[sensor],streams.distance);
+  if(repeats.length){
+   detection.efforts=detection.efforts.concat(repeats).sort((a,b)=>a.start-b.start);
+   detection.effortStatus='detected';
+   detection.effortReason=null;
+   detection.effortMethod.shortRepeatMinSeconds=short.effortMethod.minSeconds;
+  }
+ }
  const laps:{index:number;start:number;end:number;power:number|null;hr:number|null}[]=[];let cursor=0,aligned=true;
  for(const [i,lap] of (detail.laps??[]).entries()){const s={...lap,...lap.summary},d=s.durationTotal??s.duration;if(!finite(d)||d<=0){aligned=false;break}if(detail.mergedIds){if(!finite(lap.mergedStartSeconds)){aligned=false;break}cursor=lap.mergedStartSeconds;}laps.push({index:i+1,start:cursor/60,end:(cursor+d)/60,power:finite(s.power)?s.power:null,hr:finite(s.heartrate)?s.heartrate:null});cursor+=d}
  // Sensor streams may omit pauses while lap timestamps use wall-clock time.
