@@ -25,13 +25,13 @@ function sustainedLevels(rows:{value:number|null}[],step:number,seconds:number,r
  return finite(low)&&finite(high)?{low,high}:null;
 }
 function detectEfforts(rows:{time:number;altitude:number|null;value:number|null}[],streams:any,step:number,sensor:string,family:string,cap:number,reference:EffortReference=null){
- const foot=['running','run','trail_running','walking','hiking'].includes(family),speed=sensor==='speed',power=sensor==='power';
- const smoothingSamples=Math.max(1,Math.ceil((power?15:speed?(foot?6:10):15)/step)),smoothingSeconds=smoothingSamples*step,minSeconds=Math.max(speed&&foot?20:power||speed?30:60,step*3);
- const effortMethod={smoothingSeconds,minSeconds,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:power?30:speed?(foot?.25:1):8,maxSampleSeconds:10,threshold:null as number|null,floor:null as number|null};
+ const foot=['running','run','trail_running','walking','hiking'].includes(family),swimming=family==='swimming'||family==='swim',speed=sensor==='speed',power=sensor==='power';
+ const smoothingSamples=Math.max(1,Math.ceil((power?15:speed?(foot||swimming?6:10):15)/step)),smoothingSeconds=smoothingSamples*step,minSeconds=Math.max(speed&&(foot||swimming)?20:power||speed?30:60,step*3);
+ const effortMethod={smoothingSeconds,minSeconds,cutoff:null as number|null,releaseCutoff:null as number|null,minContrast:power?30:speed?(swimming?.12:foot?.25:1):8,maxSampleSeconds:10,threshold:null as number|null,floor:null as number|null};
  const result={efforts:[] as Effort[],threshold:null as number|null,effortReason:null as string|null,effortSource:sensor,effortStatus:'unavailable' as EffortStatus,effortMethod};
  if(!['power','speed','heartrate'].includes(sensor)){result.effortReason='This sensor is not supported for automatic sections.';return result}
  if(step>effortMethod.maxSampleSeconds){result.effortReason='Automatic sections need samples at least every 10 seconds. Recorded laps remain available.';return result}
- const limit=power?5000:speed?(foot?15:40):240;
+ const limit=power?5000:speed?(swimming?5:foot?15:40):240;
  const valid=(value:unknown):value is number=>finite(value)&&value>0&&value<=limit;
  const values=rows.flatMap((row)=>row.time*60<cap&&valid(row.value)?[row.value]:[]);
  if(values.length<6||values.length*step<minSeconds*2){result.effortReason=`Not enough recorded ${sensor==='heartrate'?'heart-rate':sensor} samples to identify sustained sections.`;return result}
@@ -151,7 +151,7 @@ function computeeffortProfile(detail:any,sensor='power',family=detail.sportType,
   aligned=true;timerApproximate=true;
  }
  const partialReason=distanceAligned&&laps.length<detail.laps.length?`${laps.length} of ${detail.laps.length} laps can be highlighted using recorded distance. ${detail.laps.length-laps.length===1?`Lap ${laps.length+1} has`:'The remaining laps have'} no matching route data; their recorded stats remain in the table. Boundaries are approximate at the sensor sample resolution.`:null;
- return {rows,laps:aligned?laps:[],...detection,reason:partialReason??(timerApproximate?'Lap highlights are approximate: recorded lap timers were fitted to the active sensor timeline. Recorded durations and averages are unchanged.':distanceAligned?'Lap highlights follow recorded distance; boundaries are approximate at the sensor sample resolution.':!aligned&&detail.laps?.length?'Recorded laps are available below. Their timing cannot be reliably aligned with this sensor timeline.':null)};
+ return {rows,laps:aligned?laps:[],...detection,timerApproximate,distanceAligned,reason:partialReason??(timerApproximate?'Lap highlights are approximate: recorded lap timers were fitted to the active sensor timeline. Recorded durations and averages are unchanged.':distanceAligned?'Lap highlights follow recorded distance; boundaries are approximate at the sensor sample resolution.':!aligned&&detail.laps?.length?'Recorded laps are available below. Their timing cannot be reliably aligned with this sensor timeline.':null)};
 
 }
 

@@ -1,0 +1,37 @@
+.workout-rep-phases-body {
+  padding: 0 4px 9px;
+}
+
+.workout-rep-phases-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-bottom: 6px;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+}
+
+.workout-rep-phases-control [data-slot="native-select-wrapper"] {
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 10rem;
+}
+
+.workout-rep-phases-control select {
+  min-height: 44px;
+}
+
+.workout-rep-phases-table th:first-child {
+  width: 34%;
+}
+
+.workout-rep-phases-table thead th small {
+  display: block;
+  white-space: normal;
+}
+
+.workout-rep-phases-table td {
+  color: var(--foreground);
+  font-weight: 620;
+}

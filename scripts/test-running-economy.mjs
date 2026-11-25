@@ -51,4 +51,38 @@ const beats=e.runningEconomy(today,[],{bodyvalues:athlete.bodyvalues});assert.eq
 // Runs without a stored block use whole-run averages only against other whole-run averages.
 const rough=e.runningEconomy({id:'r',date:day(20),sportType:'running',summary:{duration:3000,distance:9900,heartrate:150,altitude:{ascent:20}}},history,athlete);
 assert.equal(rough.steady,false);assert.equal(rough.history,0,'Steady blocks are not mixed with whole-run averages');
-console.log('Running economy: steady block, oxygen cost, reference values, pace-matched comparison, mechanics links and fallbacks passed.');
+const reps = [
+ { index: 2, duration: 179, heartrate: 160, distance: 700 },
+ { index: 5, duration: 240, heartrate: 160, distance: 1250 },
+ { index: 8, duration: 180, heartrate: 170, distance: null },
+ { index: 11, duration: 240, heartrate: 193, distance: 1000 },
+ { index: 14, duration: 240, heartrate: null, distance: 1000 },
+ { index: 17, duration: 180, heartrate: 192, distance: 1000 },
+];
+const interval = e.intervalOxygenCost(reps, athlete, history, day(20));
+assert.deepEqual(interval.map(rep => rep.index), [2, 5, 8, 11, 14, 17], 'Keep rep indices and unavailable slots');
+assert.equal(interval[0].oxygenPerRep, null, 'Short sprints do not support an HR-based oxygen estimate');
+const rate = 3.5 + (160 - 50) / (192 - 50) * (54 - 3.5);
+assert.equal(interval[1].oxygenPerRep, rate * 4, 'Use the shared aerobic model multiplied by active minutes');
+assert.equal(interval[1].oxygenPerKm, rate * 4 / 1.25, 'Normalize by observed distance');
+assert.ok(interval[2].oxygenPerRep > 0, 'Distance is unnecessary for the mass-specific interval total');
+assert.equal(interval[2].oxygenPerKm, null);
+assert.equal(interval[3].oxygenPerRep, null, 'HR above the personal max is outside model inputs');
+assert.equal(interval[4].oxygenPerRep, null, 'Missing mean HR stays unavailable');
+assert.equal(interval[5].oxygenPerRep, 54 * 3, 'At max HR the rate equals the anchored VO₂ max');
+assert.deepEqual(e.intervalOxygenCost(reps, { ...athlete, bodyvalues: [] }, history, day(20)).map(rep => rep.oxygenPerRep), Array(reps.length).fill(null));
+
+const futureAndCurrent = [run('later', day(21), 4, 160), run('this-workout', day(20), 4, 160), run('one-prior', day(19), 4, 160)];
+const futureFitness = { ...athlete, fitness: { vo2max: 60, observedAt: day(21) } };
+assert.equal(e.intervalOxygenCost(reps, futureFitness, futureAndCurrent, day(20))[1].oxygenPerRep, null, 'Exclude same-workout and future fitness');
+const undatedFitness = { ...athlete, fitness: { vo2max: 60 } };
+assert.equal(e.intervalOxygenCost(reps, undatedFitness, [], day(20))[1].oxygenPerRep, null);
+const historicalFitness = { ...undatedFitness, fitnessHistory: {
+ 20261019: { vo2max: 54 },
+ 20261020: { vo2max: 64, observedAt: '2026-10-20T08:00:00Z' },
+} };
+assert.equal(e.intervalOxygenCost(reps, historicalFitness, [], day(20))[1].oxygenPerRep, rate * 4, 'Use available earlier COROS estimates and exclude later same-day observations');
+assert.equal(e.intervalOxygenCost(reps, { ...athlete, fitnessHistory: { 20261020: { vo2max: 60 } } }, [], day(20))[1].oxygenPerRep, null, 'A calendar day alone cannot establish an earlier same-day reading');
+assert.equal(e.intervalOxygenCost(reps, { ...athlete, fitness: { vo2max: 54, observedAt: '2026-10-20T06:00:00Z' } }, [], day(20))[1].oxygenPerRep, rate * 4);
+
+console.log('Running economy: steady and interval oxygen, dated reference values, pace-matched comparison, mechanics and fallbacks passed.');

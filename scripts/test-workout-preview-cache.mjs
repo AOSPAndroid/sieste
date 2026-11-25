@@ -4,33 +4,41 @@ import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 const compile=path=>ts.transpileModule(readFileSync(new URL('../'+path,import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/^import .*;\s*$/gm,'').replaceAll('export ','');
 const savedSource=compile('app/api/sync/tredict-saved.ts');
+const {HILL_REP_VERSION}=new Function(compile('app/route-version.ts')+';return {HILL_REP_VERSION}')();
+const {sportFamily}=new Function(compile('app/sports.ts')+';return {sportFamily}')();
 const clock=Date.parse('2026-10-04T19:00:00Z');
 const activity={id:'run',date:'2026-10-04T16:09:00Z',sportType:'running',summary:{duration:3000,durationTotal:3300,distance:10000}};
 const signature=value=>JSON.stringify([value.date,value.sportType,value.subSportType??null,value.summary??null]);
 const cacheKey='owner/workout-cache-v1/account-identity/preview-elevation-v1/run.json';
 const ready={id:'run',summary:activity.summary,laps:[{duration:1500,distance:5000},{duration:1500,distance:5000}],previewVersion:1,elevationPreview:{version:1,min:40,max:70,segments:[[{x:0,metres:40},{x:.5,metres:70},{x:1,metres:45}]]}};
-const fullReady={...ready,evidence:{version:1},seriesSampled:{sampleSize:1000,data:{altitude:[40,70,45],heartrate:[130,145,138]}}};
-async function scenario({age,detail,entrySignature=signature(activity),action='preview',legacyCache=false}){
+const indexedEvidence={version:1,hillRepVersion:HILL_REP_VERSION,hillReps:[]};
+const fullReady={...ready,evidence:indexedEvidence,seriesSampled:{sampleSize:1000,data:{altitude:[40,70,45],heartrate:[130,145,138]}}};
+const fullLegacy={...fullReady,evidence:{version:1}};
+const fullCacheKey=cacheKey.replace('preview-elevation-v1','detail');
+async function scenario({age,detail,entrySignature=signature(activity),action='preview',legacyCache=false,hillHistory=false,savedFull,changedConnection=false,analysisFails=false}){
  const key=action==='preview'?cacheKey:cacheKey.replace('preview-elevation-v1',action==='enrich'?'enrich-preview-v2':action);
  const seededKey=legacyCache?key.replace('enrich-preview-v2','enrich'):key;
  const objects=new Map([['snapshot.json',{activities:[activity],sleep:{},hrv:{}}],[seededKey,{signature:entrySignature,savedAt:clock-age,detail}]]);
+ if(savedFull)objects.set(fullCacheKey,savedFull);
  const writes=[],calls=[],analyses=[];
  const row={owner:'athlete',revision:'connection-1',snapshot_key:'snapshot.json',token_ciphertext:'sealed-synthetic',updated_at:new Date(clock).toISOString()};
  const bucket={get:async k=>objects.has(k)?{json:async()=>structuredClone(objects.get(k))}:null,put:async(k,v)=>{objects.set(k,JSON.parse(v));writes.push(k)},delete:async k=>objects.delete(k)};
  const db={prepare:sql=>({bind:()=>({all:async()=>({results:[]})})})};
+ let connectionReads=0;
  const dependencies={
   healthDay:()=> '20261004',hasDailyReading:()=>false,mergeRecentSnapshot:(a,b)=>({...a,...b}),sessionLabels:[],
   analysisIdentity:async()=> 'account-identity',analysisSignature:signature,restoreAnalyses:async(_,__,data)=>data,
-  saveAnalysis:async(...args)=>analyses.push(args),workoutExclusions:async()=>[],filteredSnapshot:async(_,data)=>data,
+  saveAnalysis:async(...args)=>{if(analysisFails)throw Error('D1 write failed');analyses.push(args)},workoutExclusions:async()=>[],filteredSnapshot:async(_,data)=>data,
   activityRecords:async(_owner,snapshotKey,ids)=>ids.map(id=>objects.get(snapshotKey)?.activities.find(a=>a.id===id)),
   getChatGPTUser:async()=>({userId:'athlete',displayName:'Synthetic athlete'}),chatGPTSignInPath:()=>'/signin',chatGPTSignOutPath:()=>'/signout',
-  connection:async()=>row,storage:()=>({bucket,db,key:'unused-synthetic'}),privateJson:(body,status=200)=>Response.json(body,{status}),
+  connection:async()=>++connectionReads>1&&changedConnection?{...row,revision:'connection-2'}:row,storage:()=>({bucket,db,key:'unused-synthetic'}),privateJson:(body,status=200)=>Response.json(body,{status}),
   sameOrigin:()=>true,ownerPrefix:async()=> 'owner/',removeObjects:async()=>{},seal:async()=> 'sealed-synthetic',unseal:async()=> 'synthetic-provider-token',
-  tredict:async request=>{const body=await request.json();calls.push(body);return Response.json({details:[structuredClone(action==='detail'?fullReady:ready)]})},corosConnection:async()=>null
+  tredict:async request=>{const body=await request.json();calls.push(body);return Response.json({details:[structuredClone(action==='detail'?fullReady:hillHistory?{...ready,evidence:indexedEvidence}:ready)]})},corosConnection:async()=>null,
+  HILL_REP_VERSION,sportFamily,withHillRepEvidence:record=>record.seriesSampled&&sportFamily(record)==='running'&&record.evidence?.hillRepVersion!==HILL_REP_VERSION?{...record,evidence:indexedEvidence}:record,
  };
  const {POST}=new Function(...Object.keys(dependencies),savedSource+';return {POST}')(...Object.values(dependencies));
- const request=new Request('https://sieste.test/api/sync',{method:'POST',headers:{'Content-Type':'application/json','Origin':'https://sieste.test'},body:JSON.stringify({action,id:'run',...(action==='enrich'?{ids:['run']}:{}),token:'__saved__'})});
- const response=await POST(request);assert.equal(response.status,200);const body=await response.json();
+ const request=new Request('https://sieste.test/api/sync',{method:'POST',headers:{'Content-Type':'application/json','Origin':'https://sieste.test'},body:JSON.stringify({action,id:'run',...(action==='enrich'?{ids:['run']}:{}),...(hillHistory?{hillHistory:true,background:true}:{}),token:'__saved__'})});
+ const response=await POST(request);assert.equal(response.status,changedConnection?409:analysisFails?503:200);const body=await response.json();
  assert.ok(!JSON.stringify(body).includes('synthetic-provider-token'),'Provider token never appears in response');
  return {body,calls,writes,objects,analyses,key};
 }
@@ -85,13 +93,49 @@ try{
   assert.equal(result.calls.length,0);assert.deepEqual(result.body.details[0].seriesSampled,fullReady.seriesSampled);assert.equal(result.writes.length,0);
  });
  await test('Summary-only enrichment keeps its24h cache policy',async()=>{
-  const result=await scenario({age:3600000,detail:{id:'run',summary:activity.summary,evidence:{version:1}},action:'enrich'});assert.equal(result.calls.length,0);
+  const result=await scenario({age:3600000,detail:{id:'run',summary:activity.summary,evidence:{version:1}},action:'enrich'});assert.equal(result.calls.length,0);assert.equal(result.writes.length,0);
  });
  await test('Legacy summary-only enrichment cache is skipped to retrieve laps and elevation',async()=>{
   const result=await scenario({age:1000,detail:{id:'run',summary:activity.summary,evidence:{version:1}},action:'enrich',legacyCache:true});
   assert.equal(result.calls.length,1);assert.deepEqual(result.calls[0].ids,['run']);
   assert.deepEqual(result.body.details[0].laps,ready.laps);assert.deepEqual(result.body.details[0].elevationPreview,ready.elevationPreview);
   assert.ok(result.objects.has('owner/workout-cache-v1/account-identity/enrich-preview-v2/run.json'));
+ });
+ await test('Opening a cached recording indexes its saved streams without renewing its TTL',async()=>{
+  const result=await scenario({age:30000,detail:fullLegacy,action:'detail'});
+  assert.equal(result.calls.length,0);assert.deepEqual(result.writes,[fullCacheKey]);
+  assert.equal(result.objects.get(fullCacheKey).savedAt,clock-30000);
+  assert.deepEqual(result.body.details[0].seriesSampled,fullLegacy.seriesSampled);
+  assert.deepEqual(result.analyses[0][3].evidence,indexedEvidence);
+ });
+ await test('Explicit hill history reuses expired same-recording full data and returns compact detail',async()=>{
+  const savedAt=clock-3*86400000;
+  const savedFull={signature:signature(activity),savedAt,detail:fullLegacy};
+  const result=await scenario({age:1000,detail:ready,action:'enrich',hillHistory:true,savedFull});
+  assert.equal(result.calls.length,0);assert.deepEqual(result.writes,[result.key,fullCacheKey]);
+  assert.equal(result.objects.get(fullCacheKey).savedAt,savedAt);
+  assert.deepEqual(result.body.details[0].evidence,indexedEvidence);
+  assert.deepEqual(result.body.details[0].laps,ready.laps);
+  assert.equal(result.body.details[0].seriesSampled,undefined);
+  assert.deepEqual(result.analyses[0][3].evidence,indexedEvidence);
+ });
+ await test('Explicit hill history reuses an already indexed compact cache of the same recording',async()=>{
+  const result=await scenario({age:3*86400000,detail:{...ready,evidence:indexedEvidence},action:'enrich',hillHistory:true});
+  assert.equal(result.calls.length,0);assert.equal(result.writes.length,0);assert.deepEqual(result.body.details[0].evidence,indexedEvidence);
+ });
+ await test('Explicit hill history fetches the selected ID when saved full data cannot be reused',async()=>{
+  const savedFull={signature:'different recording',savedAt:clock-1000,detail:fullLegacy};
+  const result=await scenario({age:1000,detail:ready,action:'enrich',hillHistory:true,savedFull});
+  assert.equal(result.calls.length,1);assert.deepEqual(result.calls[0].ids,['run']);
+  assert.deepEqual(result.writes,[result.key]);assert.equal(result.body.details[0].seriesSampled,undefined);
+ });
+ await test('Cache migration checks the connection revision before writing',async()=>{
+  const result=await scenario({age:30000,detail:fullLegacy,action:'detail',changedConnection:true});
+  assert.equal(result.calls.length,0);assert.equal(result.writes.length,0);assert.equal(result.analyses.length,0);
+ });
+ await test('A failed account analysis write leaves the legacy cache retryable',async()=>{
+  const result=await scenario({age:30000,detail:fullLegacy,action:'detail',analysisFails:true});
+  assert.equal(result.writes.length,0);assert.deepEqual(result.objects.get(fullCacheKey).detail.evidence,fullLegacy.evidence);
  });
 }finally{Date.now=originalNow}
 if(failures)process.exitCode=1;

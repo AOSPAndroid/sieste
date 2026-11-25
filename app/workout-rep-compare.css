@@ -1,0 +1,116 @@
+.workout-rep-compare {
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+.workout-rep-compare > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  gap: 8px;
+  color: var(--foreground);
+  font-size: .8125rem;
+  font-weight: 650;
+  list-style: none;
+  cursor: pointer;
+}
+
+.workout-rep-compare > summary::-webkit-details-marker {
+  display: none;
+}
+
+.workout-rep-compare > summary svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.workout-rep-compare[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.workout-rep-compare-body {
+  padding-bottom: 8px;
+}
+
+.workout-rep-compare-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.workout-rep-compare-controls > div {
+  min-width: 0;
+}
+
+.workout-rep-compare-controls label {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  font-weight: 550;
+}
+
+.workout-rep-compare-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.workout-rep-compare-select select {
+  min-height: 44px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: .75rem;
+  text-overflow: ellipsis;
+}
+
+.workout-rep-compare .workout-rep-compare-context {
+  margin: 6px 0 0;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  line-height: 1.35;
+}
+
+.workout-rep-compare-table {
+  width: 100%;
+  margin-top: 6px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  line-height: 1.25;
+}
+
+.workout-rep-compare .workout-rep-compare-table :is(th, td) {
+  padding: 5px 3px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  background: transparent;
+  color: var(--foreground);
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.workout-rep-compare .workout-rep-compare-table th:first-child {
+  width: 37%;
+  text-align: left;
+}
+
+.workout-rep-compare .workout-rep-compare-table thead th,
+.workout-rep-compare-table small {
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+}
+
+.workout-rep-compare .workout-rep-compare-table td:last-child {
+  font-weight: 650;
+}
+
+.workout-rep-compare-table small {
+  font-weight: 450;
+  white-space: nowrap;
+}

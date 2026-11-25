@@ -2,3 +2,4 @@
 export const ROUTE_VERSION=1;
 // Bump to have the background analysis store each run's steady block again.
 export const ECONOMY_VERSION=1;
+export const HILL_REP_VERSION=1;

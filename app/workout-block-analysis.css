@@ -1,0 +1,288 @@
+.workout-analysis {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.workout-analysis-block {
+  margin: 0 0 8px;
+  min-width: 0;
+}
+
+.workout-analysis-block h5 {
+  margin: 0 0 5px;
+  font-size: .8125rem;
+  font-weight: 650;
+}
+
+.workout-analysis-block .workout-analysis-note,
+.workout-analysis-pace small,
+.workout-analysis-economy small,
+.workout-analysis-recovery-averages small,
+.workout-analysis-table small {
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  font-weight: 450;
+  line-height: 1.4;
+}
+
+.workout-analysis-pace,
+.workout-analysis-recovery-averages {
+  border-radius: var(--radius-lg);
+  padding: 8px 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.workout-analysis-pace {
+  margin-bottom: 5px;
+  background: color-mix(in srgb, var(--primary) 6%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--primary) 15%, var(--border));
+}
+
+.workout-analysis-pace-heading,
+.workout-analysis-pace-readings {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workout-analysis-pace-heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  margin-bottom: 5px;
+}
+
+.workout-analysis-pace .workout-analysis-pace-heading h5 {
+  margin: 0;
+}
+
+.workout-analysis-pace-heading strong {
+  color: var(--primary);
+  font-size: .75rem;
+  font-weight: 650;
+}
+
+.workout-analysis-pace-readings dl {
+  flex: 1 1 0;
+  margin: 0;
+}
+
+.workout-analysis-pace-readings svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.workout-analysis-pace-readings dt,
+.workout-analysis-recovery-averages dt {
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  line-height: 1.3;
+}
+
+.workout-analysis-pace-readings dd,
+.workout-analysis-recovery-averages dd {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1.375rem;
+  font-weight: 650;
+  letter-spacing: -.025em;
+  line-height: 1.2;
+}
+
+.workout-analysis-pace-readings dl:last-child {
+  text-align: right;
+}
+
+.workout-analysis-pace-readings dl:last-child dd {
+  color: var(--primary);
+}
+
+.workout-analysis-recovery-averages {
+  display: flex;
+  margin: 0 0 7px;
+  gap: 8px;
+  background: var(--muted);
+}
+
+.workout-analysis-recovery-averages > div {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.workout-analysis-recovery-averages > div + div {
+  border-inline-start: 1px solid var(--border);
+  padding-inline-start: 8px;
+}
+
+.workout-analysis-recovery-averages dd {
+  font-size: 1.125rem;
+}
+
+.workout-analysis-block .workout-analysis-note {
+  margin: 4px 0 0;
+}
+
+.workout-analysis-economy {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--block-line);
+  border-radius: var(--radius-lg);
+  background: var(--block-wash);
+  font-variant-numeric: tabular-nums;
+}
+
+.workout-analysis-economy header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+
+.workout-analysis-economy header h5 {
+  margin: 0;
+}
+
+.workout-analysis-details {
+  margin-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.workout-analysis-details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding-inline: 4px;
+  color: var(--muted-foreground);
+  font-size: .8125rem;
+  font-weight: 650;
+  list-style: none;
+  cursor: pointer;
+}
+
+.workout-analysis-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.workout-analysis-details[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.workout-analysis-details-body {
+  padding-bottom: 8px;
+}
+
+.workout-analysis-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 14px;
+}
+
+.workout-analysis-columns > div {
+  min-width: 0;
+}
+
+.workout-analysis-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: .8125rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+
+.workout-analysis .workout-analysis-table :is(th, td) {
+  padding: 5px 4px;
+  background: transparent;
+  text-align: right;
+  text-transform: none;
+  letter-spacing: normal;
+  border-top: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.workout-analysis .workout-analysis-table th:first-child {
+  text-align: left;
+}
+
+.workout-analysis-comparison th:first-child {
+  width: 42%;
+}
+
+.workout-analysis-comparison thead th:last-child {
+  width: 20%;
+}
+
+.workout-analysis-economy-table thead th:first-child {
+  width: 34px;
+}
+
+.workout-analysis .workout-analysis-table thead th {
+  font-size: .75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.workout-analysis .workout-analysis-table tbody th {
+  color: var(--foreground);
+  font-weight: 550;
+}
+
+.workout-analysis-comparison td:last-child {
+  font-weight: 650;
+}
+
+.workout-analysis-table th small {
+  white-space: nowrap;
+  font-size: .6875rem;
+}
+
+.workout-analysis-recovery thead th:first-child {
+  width: 64px;
+}
+
+.workout-analysis .workout-analysis-recovery tbody th {
+  padding: 0;
+}
+
+.workout-analysis-recovery .workout-analysis-rep-link {
+  display: grid;
+  justify-content: start;
+  align-content: center;
+  width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  height: auto;
+  gap: 0;
+  padding: 4px;
+  text-align: left;
+}
+
+.workout-analysis-rep-id {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.workout-analysis-table tr[data-selected] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.workout-analysis-table .workout-analysis-hr-readings {
+  display: block;
+  font-size: .6875rem;
+}
+
+@media (max-width: 360px) {
+  .workout-analysis .workout-analysis-table :is(th, td) {
+    padding-inline: 2px;
+  }
+
+  .workout-analysis .workout-analysis-recovery tbody th {
+    padding-inline: 0;
+  }
+}

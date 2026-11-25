@@ -3,6 +3,7 @@ import {lapElevation} from '../../lap-elevation';
 import {cyclingPowerStats} from '../../cycling-power-data';
 // Personal Tredict integration. Tokens and athlete records are never persisted.
 import {workoutEvidence} from '../../training-coach-data';
+import {hillRepEvidenceFields} from '../../workout-hill-evidence';
 const API='https://www.tredict.com/api/oauth/v2/';
 const headers={'Cache-Control':'no-store, private','Pragma':'no-cache'};
 function reply(body:unknown,status=200){return Response.json(body,{status,headers})}
@@ -31,7 +32,7 @@ export async function POST(request:Request){
   const pool=requestPool(4);const details=await Promise.all(ids.map(id=>pool(async()=>{const detail=await get(`${API}activity/${encodeURIComponent(id!)}?extraValues=1&withLaps=1&allSeries=1`) as unknown as Record<string,unknown>;const powerStats=cyclingPowerStats(detail);
    // A home-page preview only shows laps and elevation; skipping the full analysis keeps it fast.
    if(payload.action==='preview')return {id,summary:detail.summary,powerStats,laps:detail.laps,elevationPreview:lapElevation(detail),previewVersion:1};
-   const hrHistogram=heartRateHistogram(detail),evidence=workoutEvidence(detail);return payload.action==='detail'?{...detail,id,powerStats,hrHistogram,evidence,elevationPreview:lapElevation(detail)}:{id,summary:detail.summary,powerStats,hrHistogram,evidence,laps:detail.laps,elevationPreview:lapElevation(detail),previewVersion:1};})));
+   const hrHistogram=heartRateHistogram(detail),evidence={...workoutEvidence(detail),...hillRepEvidenceFields(detail)};return payload.action==='detail'?{...detail,id,powerStats,hrHistogram,evidence,elevationPreview:lapElevation(detail)}:{id,summary:detail.summary,powerStats,hrHistogram,evidence,laps:detail.laps,elevationPreview:lapElevation(detail),previewVersion:1};})));
   return reply({details});
  }
  const results=await Promise.allSettled([get(`${API}activityList?${query}&pageSize=500&extendedSummary=1`),payload.skipSleep?Promise.resolve({sleep:{}}):get(`${API}sleep?${query}`),payload.skipHrv?Promise.resolve({hrv:{}}):get(`${API}hrv?${query}`)]);
