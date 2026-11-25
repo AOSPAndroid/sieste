@@ -10,6 +10,17 @@ import {seal,unseal} from '../../../db/token-crypto';
 import {POST as tredict} from './tredict';
 import {corosConnection} from '../../../db/coros';
 import {savedSnapshot} from '../../../db/snapshot-data';
+import {HILL_REP_VERSION} from '../../route-version';
+import {sportFamily} from '../../sports';
+import {withHillRepEvidence} from '../../workout-hill-evidence';
+
+type WorkoutCacheEntry={signature:string;savedAt:number;detail:any};
+type WorkoutCacheWrite={key:string;entry:WorkoutCacheEntry};
+
+function compactWorkout(detail:any){
+ return {id:detail.id,summary:detail.summary,powerStats:detail.powerStats,hrHistogram:detail.hrHistogram,evidence:detail.evidence,laps:detail.laps,elevationPreview:detail.elevationPreview,previewVersion:1};
+}
+
 export const dynamic='force-dynamic';
 export async function loadSavedTredictData(owner:string,savedRow?:Awaited<ReturnType<typeof connection>>){const row=savedRow===undefined?await connection(owner):savedRow;if(!row)return null;const {key}=storage();const [data,identity]=await Promise.all([savedSnapshot(owner,row.snapshot_key),unseal(row.token_ciphertext,key,owner).then(analysisIdentity)]);return data?filteredSnapshot(owner,await restoreAnalyses(owner,identity,data)):null;}
 export async function GET(){const user=await getChatGPTUser();if(!user)return privateJson({signedIn:false,connected:false,signInUrl:chatGPTSignInPath('/')});try{const [row,coros]=await Promise.all([connection(user.userId),corosConnection(user.userId)]);return privateJson({signedIn:true,name:user.displayName,connected:!!row,corosConnected:!!coros,preferredProvider:'coros',activeProvider:row?'tredict':null,data:await loadSavedTredictData(user.userId,row),signOutUrl:chatGPTSignOutPath('/')})}catch{return privateJson({error:'Your saved account could not be loaded. Please retry.'},503)}}
@@ -70,14 +81,68 @@ async function savedAccountPOST(request:Request,owner:string){
   }
   const labels=await db.prepare(`SELECT activity_id,label FROM athlete_session_labels WHERE owner = ? AND identity = ? AND activity_id IN (${ids.map(()=>'?').join(',')})`).bind(user.userId,identity,...ids).all<{activity_id:string;label:string}>();
   const labelMap=new Map(labels.results.map(r=>[r.activity_id,r.label]));
-  const selected=await Promise.all(ids.map(async(id:string)=>{const cacheKey=prefix+'workout-cache-v1/'+identity+'/'+(action==='preview'?'preview-elevation-v1':action==='enrich'?'enrich-preview-v2':action)+'/'+id+'.json',signature=analysisSignature(activities.get(id));const cached=await bucket.get(cacheKey);if(cached){const entry:any=await cached.json();if(entry.signature===signature&&Date.now()-entry.savedAt<(['preview','detail'].includes(action)&&!entry.detail?.elevationPreview?60000:86400000)&&entry.detail)return {id,detail:entry.detail,cacheKey,signature,cached:true};}return {id,cacheKey,signature,cached:false,detail:null};}));
-  const missing=selected.filter(item=>!item.cached);
+  const cachePrefix=prefix+'workout-cache-v1/'+identity+'/';
+  const cacheKeyFor=(folder:string,id:string)=>cachePrefix+folder+'/'+id+'.json';
+  const cacheFolder=action==='preview'?'preview-elevation-v1':action==='enrich'?'enrich-preview-v2':action;
+  const hillHistory=action==='enrich'&&payload.hillHistory===true;
+  const readCache=async (cacheKey:string,signature:string)=>{
+   const object=await bucket.get(cacheKey);
+   const entry=await object?.json<WorkoutCacheEntry>();
+   return entry?.signature===signature&&Number.isFinite(entry.savedAt)&&entry.detail?entry:null;
+  };
+  const selected=await Promise.all(ids.map(async(id:string)=>{
+   const activity=activities.get(id),signature=analysisSignature(activity),cacheKey=cacheKeyFor(cacheFolder,id);
+   const entry=await readCache(cacheKey,signature);
+   const writes:WorkoutCacheWrite[]=[];
+   const item={id,signature,cacheKey,writes};
+   if(hillHistory&&sportFamily(activity)==='running'){
+    // The saved index belongs to this exact recording even when its general cache TTL elapsed.
+    if(entry?.detail.evidence?.hillRepVersion===HILL_REP_VERSION)return {...item,detail:entry.detail};
+    const fullKey=cacheKeyFor('detail',id),full=await readCache(fullKey,signature);
+    if(full){
+     const storedDetail={...activity,...full.detail,id};
+     const indexed=withHillRepEvidence(storedDetail);
+     if(indexed.evidence?.hillRepVersion===HILL_REP_VERSION){
+      const detail=compactWorkout(indexed);
+      writes.push({key:cacheKey,entry:{signature,savedAt:full.savedAt,detail}});
+      if(indexed!==storedDetail)writes.push({key:fullKey,entry:{...full,detail:indexed}});
+      return {...item,detail};
+     }
+    }
+    return {...item,detail:null};
+   }
+   const ttl=['preview','detail'].includes(action)&&!entry?.detail.elevationPreview?60000:86400000;
+   if(!entry||Date.now()-entry.savedAt>=ttl)return {...item,detail:null};
+   if(action!=='detail')return {...item,detail:entry.detail};
+   const storedDetail={...activity,...entry.detail,id};
+   const detail=withHillRepEvidence(storedDetail);
+   if(detail!==storedDetail)writes.push({key:cacheKey,entry:{...entry,detail}});
+   return {...item,detail};
+  }));
+  const missing=selected.filter(item=>!item.detail);
   const fetched=action==='enrich'&&missing.length?[await upstream({action,ids:missing.map(item=>item.id)})]:await Promise.all(missing.map(item=>upstream({action,id:item.id})));
   for(const response of fetched)if(!response.ok)return response;
   const bodies:any[]=await Promise.all(fetched.map(response=>response.json()));const fresh=new Map<string,any>(bodies.flatMap(body=>body.details??[]).map(detail=>[detail.id,detail]));
   if(missing.some(item=>!fresh.has(item.id)))return privateJson({error:'Tredict returned incomplete workout data.'},502);
-  if(missing.length){const current=await connection(user.userId);if(current?.revision!==previous!.revision)return privateJson({error:'Your connection changed. Reload the page.'},409);}
-  const details=await Promise.all(selected.map(async item=>{if(item.cached)return action==='detail'?{...activities.get(item.id),...item.detail,id:item.id}:item.detail;const detail=action==='detail'?{...activities.get(item.id),...fresh.get(item.id),id:item.id}:fresh.get(item.id);await Promise.all([action!=='preview'?saveAnalysis(user.userId,identity,activities.get(item.id),detail,previous!.revision):Promise.resolve(),bucket.put(item.cacheKey,JSON.stringify({signature:item.signature,savedAt:Date.now(),detail}),{httpMetadata:{contentType:'application/json'}})]);return detail;}));
+  if(missing.length||selected.some(item=>item.writes.length)){
+   const current=await connection(user.userId);
+   if(current?.revision!==previous!.revision)return privateJson({error:'Your connection changed. Reload the page.'},409);
+  }
+  const details=await Promise.all(selected.map(async item=>{
+   const activity=activities.get(item.id);
+   let detail=item.detail;
+   if(!detail){
+    detail=action==='detail'?withHillRepEvidence({...activity,...fresh.get(item.id),id:item.id}):fresh.get(item.id);
+    item.writes.push({key:item.cacheKey,entry:{signature:item.signature,savedAt:Date.now(),detail}});
+   }
+   if(item.writes.length){
+    const analysis=action!=='preview'?saveAnalysis(user.userId,identity,activity,detail,previous!.revision):Promise.resolve();
+    // An upgraded cache hit must not hide a failed account analysis write on retry.
+    if(item.detail||hillHistory)await analysis;
+    await Promise.all([analysis,...item.writes.map(({key,entry})=>bucket.put(key,JSON.stringify(entry),{httpMetadata:{contentType:'application/json'}}))]);
+   }
+   return detail;
+  }));
   return privateJson({details:details.map(d=>({...d,sessionLabel:labelMap.get(d.id)??null}))});
  }catch{return privateJson({error:'Your saved connection could not be used. Please retry or reconnect Tredict.'},503)}
 }

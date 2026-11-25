@@ -1,0 +1,202 @@
+.workout-hill-history {
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+.workout-hill-history > summary,
+.workout-hill-history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.workout-hill-history > summary {
+  min-height: 44px;
+  color: var(--foreground);
+  font-size: .8125rem;
+  font-weight: 650;
+  list-style: none;
+  cursor: pointer;
+}
+
+.workout-hill-history > summary::-webkit-details-marker {
+  display: none;
+}
+
+.workout-hill-history > summary svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.workout-hill-history[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.workout-hill-history > summary small {
+  margin-inline-start: 4px;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  font-weight: 500;
+}
+
+.workout-hill-history-body {
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+.workout-hill-history-heading {
+  margin-bottom: 6px;
+}
+
+.workout-hill-history-heading strong {
+  color: var(--foreground);
+  font-size: .75rem;
+}
+
+.workout-hill-history .workout-hill-history-note,
+.workout-hill-history-heading p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  line-height: 1.35;
+}
+
+.workout-hill-history-select {
+  min-width: 0;
+  max-width: 48%;
+}
+
+.workout-hill-history-select select {
+  min-height: 44px;
+  background: var(--card);
+  font-size: .75rem;
+  text-overflow: ellipsis;
+}
+
+.workout-hill-history-readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 66px), 1fr));
+  gap: 5px 8px;
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  background: var(--muted);
+}
+
+.workout-hill-history-readout dt,
+.workout-hill-history-readout small,
+.workout-hill-history-trend figcaption,
+.workout-hill-history-axis {
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  font-weight: 500;
+}
+
+.workout-hill-history-readout dd {
+  margin: 0;
+  color: var(--foreground);
+  font-size: .875rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.workout-hill-history-readout > div:first-child dd {
+  color: var(--primary);
+}
+
+.workout-hill-history-trend {
+  margin: 0 0 6px;
+}
+
+.workout-hill-history-plot {
+  display: grid;
+  grid-template-columns: 29px minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.workout-hill-history-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  line-height: 10px;
+}
+
+.workout-hill-history-plot svg {
+  display: block;
+  width: 100%;
+  height: 52px;
+  color: var(--primary);
+  background: linear-gradient(var(--border), var(--border)) 0 5px / 100% 1px no-repeat,
+              linear-gradient(var(--border), var(--border)) 0 calc(100% - 5px) / 100% 1px no-repeat;
+}
+
+.workout-hill-history-plot path {
+  stroke-width: 1.4;
+}
+
+.workout-hill-history-plot circle {
+  fill: var(--card);
+  stroke: currentColor;
+  stroke-width: 1.3;
+}
+
+.workout-hill-history-plot circle[data-selected] {
+  fill: currentColor;
+  stroke: var(--card);
+}
+
+.workout-hill-history-trend figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-inline-start: 29px;
+}
+
+.workout-hill-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.workout-hill-history .workout-hill-history-table :is(th, td) {
+  padding: 5px 3px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  background: transparent;
+  color: var(--foreground);
+  font-size: .75rem;
+  font-weight: 500;
+  line-height: 1.22;
+  letter-spacing: normal;
+  text-transform: none;
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.workout-hill-history .workout-hill-history-table th:first-child {
+  width: 34%;
+  text-align: left;
+}
+
+.workout-hill-history .workout-hill-history-table thead th,
+.workout-hill-history-table small {
+  color: var(--muted-foreground);
+  font-size: .625rem;
+}
+
+.workout-hill-history-table th small {
+  display: block;
+}
+
+.workout-hill-history-table tr[data-selected] {
+  background: var(--muted);
+}
+
+.workout-hill-history .workout-hill-history-search {
+  margin-top: 7px;
+  min-height: 44px;
+  font-size: .75rem;
+}

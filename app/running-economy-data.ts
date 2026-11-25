@@ -1,6 +1,7 @@
 import {terrainSamples,gradeFactor,type AnalysisRow} from './section-analysis-data';
 import {capacityAt} from './athlete-thresholds';
 import {sportFamily} from './sports';
+import type {WorkoutBlockRep} from './workout-blocks-data';
 
 // Running economy: what a kilometre costs you, estimated from heart rate and
 // judged against your own usual cost at the same pace.
@@ -52,7 +53,8 @@ export function steadyBlock(detail:{summary?:Record<string,unknown>;seriesSample
 }
 
 type Run={id?:string;date?:string;sportType?:string;subSportType?:string;summary?:Record<string,unknown>;evidence?:{steady?:SteadyBlock|null;economyVersion?:number}|null};
-type Athlete={tredictCapacity?:unknown;bodyvalues?:unknown;fitness?:{vo2max?:unknown};fitnessHistory?:Record<string,{vo2max?:unknown}>}|null|undefined;
+type FitnessEstimate={vo2max?:unknown;observedAt?:unknown};
+type Athlete={tredictCapacity?:unknown;bodyvalues?:unknown;fitness?:FitnessEstimate;fitnessHistory?:Record<string,FitnessEstimate>}|null|undefined;
 const day=86400000,time=(d:unknown)=>typeof d==='string'?Date.parse(d):NaN;
 
 /**
@@ -60,7 +62,7 @@ const day=86400000,time=(d:unknown)=>typeof d==='string'?Date.parse(d):NaN;
  * max HR are held fixed over the year: watch VO₂max is itself estimated from
  * heart rate and pace, so letting it move would hide the change being measured.
  */
-export function economyReference(athlete:Athlete,history:Run[],date:string){
+export function economyReference(athlete:Athlete,history:readonly Run[],date:string){
  const at=time(date),year=history.filter(a=>Number.isFinite(time(a.date))&&time(a.date)<=at&&at-time(a.date)<=365*day);
  const body=Array.isArray(athlete?.bodyvalues)?athlete!.bodyvalues as {timestamp?:string;hrRestDynamic?:unknown;restingHeartrate?:unknown;hrMaxDynamic?:unknown}[]:[];
  const rests=body.map(r=>({t:time(r.timestamp),v:r.hrRestDynamic??r.restingHeartrate})).filter((r):r is {t:number;v:number}=>Number.isFinite(r.t)&&finite(r.v)&&r.v>25&&r.v<110);
@@ -77,12 +79,60 @@ export function economyReference(athlete:Athlete,history:Run[],date:string){
  return {max,vo2max,restAt,maxSource:capacity?'Tredict max HR':loggedMax?'daily max HR':max?'second-highest recorded HR this year':null};
 }
 
+function estimatedOxygenRate(hr: number, rest: number | null, max: number | null, vo2max: number | null) {
+  const reserve = rest !== null && max !== null && max - rest > 40 ? (hr - rest) / (max - rest) : null;
+  const rate = reserve !== null && reserve > .2 && reserve < 1.05 && vo2max !== null
+    ? 3.5 + reserve * (vo2max - 3.5)
+    : null;
+  return { reserve, rate };
+}
+
 /** Estimated oxygen and heartbeat cost of a kilometre at the block's pace. */
 export function economyOf(block:Pick<SteadyBlock,'hr'|'gap'|'power'>,rest:number|null,max:number|null,vo2max:number|null,weight:number|null=null){
  const minutesPerKm=1000/block.gap/60;
- const reserve=rest!==null&&max!==null&&max-rest>40?(block.hr-rest)/(max-rest):null;
- const oxygen=reserve!==null&&reserve>.2&&reserve<1.05&&vo2max!==null?(3.5+reserve*(vo2max-3.5))*minutesPerKm:null;
+ const { reserve, rate } = estimatedOxygenRate(block.hr, rest, max, vo2max);
+ const oxygen=rate===null?null:rate*minutesPerKm;
  return {oxygen,reserve,netBeats:rest!==null?(block.hr-rest)*minutesPerKm:null,energy:block.power!==null&&weight?block.power/weight/block.gap:null};
+}
+
+type IntervalRep = Pick<WorkoutBlockRep, 'index' | 'duration' | 'heartrate' | 'distance'>;
+export type IntervalOxygenReading = { index: number; oxygenPerRep: number | null; oxygenPerKm: number | null };
+
+function intervalAthlete(athlete: Athlete, at: number): Athlete {
+  if (!athlete) return athlete;
+  const withinYear = (when: number) => when <= at && at - when <= 365 * day;
+  const fitnessHistory = Object.fromEntries(Object.entries(athlete.fitnessHistory ?? {}).filter(([key, estimate]) => {
+    if (typeof estimate?.observedAt === 'string') return withinYear(time(estimate.observedAt));
+    if (!/^\d{8}$/.test(key)) return false;
+    const date = `${key.slice(0, 4)}-${key.slice(4, 6)}-${key.slice(6, 8)}`;
+    const start = time(date);
+    // History with only a day stamp can't establish that the reading preceded a workout that day.
+    return withinYear(start) && start + day <= at && new Date(start).toISOString().slice(0, 10) === date;
+  }));
+  const fitness = withinYear(time(athlete.fitness?.observedAt)) ? athlete.fitness : undefined;
+  return { ...athlete, fitness, fitnessHistory };
+}
+
+/** Approximate aerobic oxygen used during each sustained running rep from mean HR. */
+export function intervalOxygenCost(reps: readonly IntervalRep[], athlete: Athlete, history: readonly Run[], date: string): IntervalOxygenReading[] {
+  const missing = ({ index }: IntervalRep): IntervalOxygenReading => ({ index, oxygenPerRep: null, oxygenPerKm: null });
+  const at = time(date);
+  const sustained = ({ duration, heartrate }: IntervalRep) => finite(duration) && duration >= 180 && finite(heartrate) && heartrate > 0;
+  if (!Number.isFinite(at) || !reps.some(sustained)) return reps.map(missing);
+
+  const priorRuns = history.filter(run => time(run.date) < at && sportFamily(run) === 'running');
+  const { max, vo2max, restAt } = economyReference(intervalAthlete(athlete, at), priorRuns, date);
+  const rest = restAt(at);
+  if (rest === null || max === null || max <= 120 || max >= 230 || vo2max === null || vo2max <= 20 || vo2max >= 90) return reps.map(missing);
+
+  return reps.map(rep => {
+    if (!sustained(rep) || rep.heartrate === null || rep.heartrate > max) return missing(rep);
+    const { rate } = estimatedOxygenRate(rep.heartrate, rest, max, vo2max);
+    if (rate === null) return missing(rep);
+    const oxygenPerRep = rate * rep.duration / 60;
+    const oxygenPerKm = finite(rep.distance) && rep.distance > 0 ? oxygenPerRep / (rep.distance / 1000) : null;
+    return { index: rep.index, oxygenPerRep, oxygenPerKm };
+  });
 }
 
 /** A run's steady block: stored with its analysis, else the whole-run averages of a flat run as a rough stand-in. */

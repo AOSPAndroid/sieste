@@ -82,6 +82,105 @@ button(table,'More stats').props.onClick();table=tableHost.render(Laps,tableElem
 assert.match(text(nodes(table).filter(node=>node.type==='tr').at(-1)),/1:50/,'Unmatched lap duration remains available');
 button(tree,'Whole activity').props.onClick();tree=profileHost.render(Profile,props);assert.equal(emitted.at(-1),null,'Clearing a lap clears the shared chart/map selection');
 
+// Workout blocks can select only a lap aligned to this recording's own sensor stream.
+const requestHost=host(),requestSelections=[],requestResults=[];
+const requestProps={detail,compact:true,onSelection:(selection,lapIndex)=>requestSelections.push({selection,lapIndex})};
+const requestLap=(index,source=detail.laps)=>({
+ ...requestProps,modeRequest:{mode:'laps',lap:{index,source,onResolve:aligned=>requestResults.push(aligned)}},
+});
+const secondLap=requestLap(2);
+requestHost.render(Profile,secondLap);let requestedTree=requestHost.render(Profile,secondLap);
+assert.equal(card(requestedTree,2).props['aria-pressed'],true);
+assert.equal(requestSelections.at(-1).lapIndex,2);
+assert.equal(requestSelections.at(-1).selection.start,mapped.laps[1].start);
+assert.equal(requestSelections.at(-1).selection.end,mapped.laps[1].end);
+assert.deepEqual(requestResults,[true]);
+card(requestedTree,3).props.onClick();requestHost.render(Profile,secondLap);
+assert.equal(requestSelections.at(-1).lapIndex,3,'A handled request leaves subsequent chart selection intact');
+const staleLap=requestLap(1,detail.laps.slice());
+requestHost.render(Profile,staleLap);requestHost.render(Profile,staleLap);
+assert.equal(requestSelections.at(-1).lapIndex,3,'An obsolete lap array cannot change the highlight');
+assert.deepEqual(requestResults,[true]);
+const unalignedLap=requestLap(4);
+requestHost.render(Profile,unalignedLap);requestedTree=requestHost.render(Profile,unalignedLap);
+assert.equal(card(requestedTree,4),undefined);
+assert.deepEqual(requestSelections.at(-1),{selection:null,lapIndex:null});
+assert.deepEqual(requestResults,[true,false],'An unaligned lap remains available to the block without map or chart shading');
+console.log('Workout block requests: aligned lap, manual selection, stale source and unaligned lap passed.');
+
+const repeatedPower = [100, 290, 100, 300, 100, 285, 100].flatMap(watts=>Array(60).fill(watts));
+const indoorDetail={id:'indoor-repeats',sportType:'cycling',summary:{duration:420,durationTotal:420},
+ seriesSampled:{sampleSize:1,data:{power:repeatedPower}},laps:[]};
+const profile=effortProfile(indoorDetail,'power','cycling');
+const {detectedWorkoutBlocks}=load('app/detected-workout-blocks.ts');
+const indoorBlocks=detectedWorkoutBlocks(profile,1,indoorDetail.seriesSampled.data);
+assert.equal(indoorBlocks.length,1);
+const indoorBlock=indoorBlocks[0];
+assert.equal(indoorBlock.source,'detected');
+assert.equal(indoorBlock.format,'time');
+assert.equal(indoorBlock.reps.length,3);
+assert.equal(indoorBlock.reps[1].distance,null,'An indoor power rep has no invented distance');
+assert.ok(indoorBlock.reps[0].recoverySpan);
+const indoorMissingRecovery=repeatedPower.map((value,index)=>index>=120&&index<180?null:value);
+const missingStreams={power:indoorMissingRecovery};
+assert.deepEqual(detectedWorkoutBlocks(effortProfile({...indoorDetail,seriesSampled:{sampleSize:1,data:missingStreams}},'power','cycling'),1,missingStreams),[],
+ 'Missing recovery telemetry cannot connect isolated efforts');
+const sampledSwim={speed:[.55,.94,.55,.91,.55,.89,.55].flatMap(speed=>Array(60).fill(speed))};
+const swimDetail={sportType:'swimming',summary:{duration:420,durationTotal:420},seriesSampled:{sampleSize:1,data:sampledSwim}};
+assert.equal(detectedWorkoutBlocks(effortProfile(swimDetail,'speed','swimming'),1,sampledSwim)[0].reps.length,3,
+ 'Swim detection uses swimming-scale speed changes');
+const detectedHost=host(),detectedSelections=[],detectedResults=[];
+const selectDetected=(span,source=indoorDetail.seriesSampled)=>({
+ detail:indoorDetail,compact:true,onSelection:selection=>detectedSelections.push(selection),
+ modeRequest:{mode:'efforts',effort:{span,source,sensor:'power',onResolve:aligned=>detectedResults.push(aligned)}},
+});
+const detectedProps=selectDetected(indoorBlock.reps[1].bounds);
+detectedHost.render(Profile,detectedProps);detectedHost.render(Profile,detectedProps);
+assert.equal(detectedSelections.at(-1).kind,'effort');
+assert.equal(detectedSelections.at(-1).start,indoorBlock.reps[1].bounds.start);
+assert.equal(detectedSelections.at(-1).end,indoorBlock.reps[1].bounds.end);
+assert.deepEqual(detectedResults,[true]);
+const staleDetected=selectDetected(indoorBlock.reps[0].bounds,{...indoorDetail.seriesSampled});
+detectedHost.render(Profile,staleDetected);detectedHost.render(Profile,staleDetected);
+assert.equal(detectedSelections.at(-1).start,indoorBlock.reps[1].bounds.start);
+assert.deepEqual(detectedResults,[true]);
+console.log('Detected workout blocks: indoor power, recovery coverage, and exact timeline selection passed.');
+
+const shortPower=[...Array(60).fill(95),...[320,335,315,330].flatMap(watts=>[...Array(15).fill(watts),...Array(15).fill(95)])];
+const shortSeries={sampleSize:1,data:{power:shortPower}};
+const shortDetail={...indoorDetail,summary:{duration:shortPower.length,durationTotal:shortPower.length},seriesSampled:shortSeries};
+const [shortBlock]=detectedWorkoutBlocks(effortProfile(shortDetail,'power','cycling'),1,shortSeries.data);
+assert.deepEqual(shortBlock.reps.map(rep=>Math.round(rep.duration)),[15,15,15,15]);
+assert.equal(shortBlock.reps[1].recoverySpan.end*60-shortBlock.reps[1].recoverySpan.start*60,15);
+let shortSelection=null;
+const shortRequest={detail:shortDetail,compact:true,onSelection:selection=>{shortSelection=selection},
+ modeRequest:{mode:'efforts',effort:{span:shortBlock.reps[1].bounds,source:shortSeries,sensor:'power',onResolve:aligned=>assert.equal(aligned,true)}}};
+const shortHost=host();shortHost.render(Profile,shortRequest);shortHost.render(Profile,shortRequest);
+assert.deepEqual([shortSelection.start,shortSelection.end],[shortBlock.reps[1].bounds.start,shortBlock.reps[1].bounds.end],
+ 'Selecting a short repeat highlights the same bounds in the timeline and map');
+const longAndShort=shortPower.concat(Array(75).fill(325),Array(60).fill(95));
+const mixedSeries={sampleSize:1,data:{power:longAndShort}};
+const mixedDetail={...indoorDetail,summary:{duration:longAndShort.length,durationTotal:longAndShort.length},seriesSampled:mixedSeries};
+const mixedBlocks=detectedWorkoutBlocks(effortProfile(mixedDetail,'power','cycling'),1,mixedSeries.data);
+assert.deepEqual(mixedBlocks.map(block=>[block.format,block.reps.length]),[['time',4]],
+ 'A nearby longer effort does not turn the short repeat set into an incomparable block');
+
+const {withRepElevation}=load('app/workout-blocks-terrain.ts');
+const originalHill={index:1,duration:30,distance:150,pace:200,power:300,heartrate:150,ascent:0,descent:0};
+const hillFixture={sampleSize:1,data:{altitude:Array.from({length:91},(_,i)=>100+i*.5)}};
+const hillData=withRepElevation([{kind:'repeats',reps:[
+ originalHill,
+ {...originalHill,index:2,ascent:null,descent:null},
+ {...originalHill,index:3,ascent:null,descent:null},
+]}],hillFixture,[
+ {index:1,start:0,end:.5},{index:2,start:.5,end:1},{index:3,start:1,end:1.5},
+]);
+assert.equal(hillData[0].reps[0].ascent,0,'A recorded zero is not replaced by extra sampled gain');
+assert.equal(hillData[0].reps[0].ascentSource,undefined);
+assert.equal(hillData[0].reps[1].ascentSource,'estimated');
+assert.ok(hillData[0].reps[1].ascent >= 13);
+assert.equal(hillData[0].reps[2].ascentSource,'estimated');
+
 const complete={...detail,laps:detail.laps.slice(0,3)},completeHost=host(),completeProps={...props,detail:complete};
 completeHost.render(Profile,completeProps);let completeTree=completeHost.render(Profile,completeProps);
 button(completeTree,'Table of all laps').props.onClick();completeTree=completeHost.render(Profile,completeProps);

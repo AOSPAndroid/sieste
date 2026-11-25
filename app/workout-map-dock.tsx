@@ -8,22 +8,28 @@ import type {RouteSelection} from './route-geometry';
 // The route map scrolls away once you read the analysis below it. A selection
 // made after that pins a small copy under the tabs, so the climb or effort and
 // its place on the route stay on screen together.
-export function dockState(selection:RouteSelection|null,mapVisible:boolean,collapsed:boolean){
- if(!selection||mapVisible)return 'none';
+export function dockState(selection:RouteSelection|null,mapAheadOrVisible:boolean,collapsed:boolean){
+ if(!selection||mapAheadOrVisible)return 'none';
  return collapsed?'collapsed':'open';
 }
 
 export default function WorkoutMapDock({detail,selection,anchor}:{detail:Record<string,unknown>;selection:RouteSelection|null;anchor:HTMLElement|null}){
- const [mapVisible,setHeroVisible]=useState(true),[foldedFor,setFoldedFor]=useState<string|null>(null),dock=useRef<HTMLDivElement>(null),hideButton=useRef<HTMLButtonElement>(null),showButton=useRef<HTMLButtonElement>(null),focusAfterToggle=useRef(false);
+ const [mapAheadOrVisible,setMapAheadOrVisible]=useState(true),[foldedFor,setFoldedFor]=useState<string|null>(null),dock=useRef<HTMLDivElement>(null),hideButton=useRef<HTMLButtonElement>(null),showButton=useRef<HTMLButtonElement>(null),focusAfterToggle=useRef(false);
  // Folding remembers which section it was for, so a new one reopens the dock.
  const key=selection?`${selection.start}:${selection.end}:${selection.revision??''}`:null;
  useEffect(()=>{
   // The route map mounts once the route has loaded; without one there is nothing to pin.
   if(!anchor||typeof IntersectionObserver==='undefined')return;
-  const io=new IntersectionObserver(([entry])=>setHeroVisible(entry.intersectionRatio>=.5),{threshold:[0,.5,1]});
+  const root=anchor.closest('.workout-sheet');
+  // A map below the reps is still ahead in the sheet. Keep the dock out of
+  // the way until the reader has actually scrolled past the map.
+  const io=new IntersectionObserver(([entry])=>{
+   const top=entry.rootBounds?.top;
+   setMapAheadOrVisible(top==null||entry.boundingClientRect.top>=top||entry.intersectionRatio>=.5);
+  },{root,threshold:[0,.5,1]});
   io.observe(anchor);return ()=>io.disconnect();
  },[anchor]);
- const state=dockState(selection,mapVisible,foldedFor===key);
+ const state=dockState(selection,!anchor||mapAheadOrVisible,foldedFor===key);
  useLayoutEffect(()=>{
   if(!focusAfterToggle.current)return;
   focusAfterToggle.current=false;

@@ -4,6 +4,9 @@ import {cyclingPowerStats} from './cycling-power-data';
 type Data=Record<string,any>;
 export const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
 export const numberLabel=(v:unknown,d=1)=>finite(v)?v.toLocaleString('en-GB',{maximumFractionDigits:d}):'—';
+export function repDistance(metres:number,family:string){
+ return family==='swimming'||metres<1000?`${Math.round(metres)} m`:`${numberLabel(metres/1000,2)} km`;
+}
 export function paceLabel(v:unknown){if(!finite(v)||v<=0)return '—';const seconds=Math.round(v);return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`}
 export function durationLabel(v:unknown){if(!finite(v)||v<0)return '—';const s=Math.round(v);return s>=3600?`${Math.floor(s/3600)}h ${Math.floor(s%3600/60)}m ${s%60}s`:`${Math.floor(s/60)}m ${s%60}s`}
 export type ActivityMetric={id:string;title:string;value:string;unit:string;note:string;color:string;values:(number|null)[];pace?:boolean;group:'Session'|'Technique'|'Conditions';explanation:string};

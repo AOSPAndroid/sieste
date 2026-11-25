@@ -1,18 +1,21 @@
 "use client";
-import {lazy,memo,useCallback,useEffect,useMemo,useRef,useState,type Ref} from 'react';
+import {lazy,memo,useCallback,useEffect,useMemo,useRef,useState,type Ref,type RefObject} from 'react';
 import type {RouteSelection} from './route-geometry';
 import type {AthleteData,Workout} from './analytics';
 import WorkoutContext,{StrengthSummary} from './workout-context';
 import {swimPace} from './workout-hero';
 import WorkoutSplits from './workout-splits';
+import WorkoutBlocks from './workout-blocks';
+import {workoutBlocks} from './workout-blocks-data';
+import {locateWorkoutBlocks} from './workout-blocks-location';
 import './workout-explorer.css';
 const WorkoutExplorer=lazy(()=>import('./workout-explorer'));
 const CyclingAnalysis=lazy(()=>import('./cycling-analysis'));
 const RunningAnalysis=lazy(()=>import('./running-analysis'));
-import ActivityProfileView from './activity-profile';
+import ActivityProfileView,{type ProfileModeRequest} from './activity-profile';
 // Hovering the chart only moves the map dot; the chart itself need not re-render.
 const ActivityProfile=memo(ActivityProfileView);
-import {intensityLevels,intensityColors,lapsVary} from './workout-insights';
+import {effortSensor,intensityLevels,intensityColors,lapsVary} from './workout-insights';
 import {workoutEvidence} from './training-coach-data';
 import {ROUTE_VERSION} from './route-signature';
 import {routeAttempts,climbAttempts,workoutRecords,type HistoryWorkout} from './route-history';
@@ -55,7 +58,22 @@ function recordText(r:Records[number],family:string){
 }
 // The route and its efforts, climbs and laps share a cursor: moving along the
 // chart moves a dot on the map, and tapping the route marks that moment on the chart.
-function RouteSections({detail,hasRoute,intensity,pushedBy,routeSelection,onRouteSelection,mapRef,attempts,segmentNote,onSelect,family}:{attempts:ReturnType<typeof routeAttempts>;segmentNote?:(mode:string,start:number,end:number)=>string|null;onSelect?:(activity:Workout)=>void;family:string;detail:Workout&{seriesSampled?:{data?:Record<string,unknown>}};hasRoute:boolean;intensity:ReturnType<typeof intensityLevels>;pushedBy:string;routeSelection:RouteSelection|null;onRouteSelection?:(selection:RouteSelection|null)=>void;mapRef?:Ref<HTMLDivElement>}){
+type RouteSectionsProps={
+ attempts:ReturnType<typeof routeAttempts>;
+ segmentNote?:(mode:string,start:number,end:number)=>string|null;
+ onSelect?:(activity:Workout)=>void;
+ family:string;
+ detail:Workout&{seriesSampled?:{data?:Record<string,unknown>}};
+ hasRoute:boolean;
+ intensity:ReturnType<typeof intensityLevels>;
+ pushedBy:string;
+ routeSelection:RouteSelection|null;
+ onRouteSelection?:(selection:RouteSelection|null,lapIndex:number|null)=>void;
+ mapRef?:Ref<HTMLDivElement>;
+ modeRequest?:ProfileModeRequest|null;
+ timelineRef?:RefObject<HTMLDivElement|null>;
+};
+function RouteSections({detail,hasRoute,intensity,pushedBy,routeSelection,onRouteSelection,mapRef,attempts,segmentNote,onSelect,family,modeRequest,timelineRef}:RouteSectionsProps){
  const [hover,setHover]=useState<number|null>(null),[picked,setPicked]=useState<number|null>(null),frame=useRef(0);
  const onCursor=useCallback((index:number|null)=>{cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(()=>setHover(index))},[]);
  useEffect(()=>()=>cancelAnimationFrame(frame.current),[]);
@@ -63,11 +81,60 @@ function RouteSections({detail,hasRoute,intensity,pushedBy,routeSelection,onRout
  return <section className="workout-route-analysis" aria-label="Route and sections">
   {hasRoute&&<div ref={mapRef} className="workout-route-map"><RouteMap detail={detail} selection={routeSelection} intensity={intensity?.levels} cursorIndex={cursor??undefined} onPick={setPicked} compact/><ExpandButton title="Recorded route"><RouteMap detail={detail} selection={routeSelection} intensity={intensity?.levels}/></ExpandButton><a className="workout-route-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap</a>{intensity&&<p className="workout-route-legend" aria-label={`Route coloured by ${pushedBy}, easy to hardest`}><span>Easy</span>{intensityColors.map(c=><i key={c} style={{background:c}}/>)}<span>Hard · {pushedBy}</span></p>}</div>}
   {attempts&&<details className="route-attempts"><summary><span>Same route as {attempts.count-1} earlier {({cycling:'ride',running:'run',walking:'walk',hiking:'hike'} as Record<string,string>)[family]??'session'}{attempts.count>2?'s':''}<small>{attempts.rank===1?`Your fastest of ${attempts.count}`:`${ordinal(attempts.rank)} fastest of ${attempts.count} · ${clockOf(attempts.behind)} off your best`}</small></span></summary><ol>{attempts.attempts.filter((a,i)=>i<10||a.id===detail.id).map(a=><li key={a.id}>{a.id===detail.id?<div className="is-current" data-rank={attempts.attempts.indexOf(a)+1}><span>This one</span><b>{clockOf(a.summary!.duration as number)}</b></div>:<button type="button" data-rank={attempts.attempts.indexOf(a)+1} onClick={()=>onSelect?.(a as Workout)}><span>{new Date(a.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span><b>{clockOf(a.summary!.duration as number)}</b></button>}</li>)}</ol>{attempts.count>10&&<p className="route-attempts-more">Showing your 10 fastest of {attempts.count}</p>}</details>}
-  {detail.seriesSampled?.data&&<ActivityProfile key={`profile-${detail.id}`} detail={detail} compact onSelection={onRouteSelection} onCursor={hasRoute?onCursor:undefined} pickedIndex={picked} segmentNote={segmentNote}/>}
+  {detail.seriesSampled?.data&&<ActivityProfile key={`profile-${detail.id}`} detail={detail} compact
+   onSelection={onRouteSelection} modeRequest={modeRequest} timelineRef={timelineRef}
+   onCursor={hasRoute?onCursor:undefined} pickedIndex={picked} segmentNote={segmentNote}/>}
  </section>;
 }
 export default function ActivitySummary({detail,loading,history=[],onClassify,healthData,token='',storageScope='',isDemo=false,onSelect,onRouteSelection,routeSelection=null,mapRef}:{onRouteSelection?:(selection:RouteSelection|null)=>void;routeSelection?:RouteSelection|null;mapRef?:Ref<HTMLDivElement>;onClassify?:(label:string|null)=>void;detail:Workout&Record<string,any>;loading:boolean;history?:Workout[];healthData?:AthleteData;token?:string;storageScope?:string;isDemo?:boolean;onSelect?:(activity:Workout)=>void}){
  const {cards,other,family}=useMemo(()=>activityMetrics(detail),[detail]),step=detail.seriesSampled?.sampleSize,comparison=useMemo(()=>sessionTrend(detail,history),[detail,history]),vo2=useMemo(()=>vo2Trend(detail,history),[detail,history]);
+ const laps=detail.laps;
+ const merged=!!detail.mergedIds;
+ const blockFamily=family==='running'||family==='cycling'||family==='swimming'?family:null;
+ const recordedBlocks=useMemo(()=>blockFamily&&!merged&&Array.isArray(laps)?workoutBlocks(laps,blockFamily):[],[blockFamily,merged,laps]);
+ const series=detail.seriesSampled;
+ const blocks=useMemo(()=>blockFamily&&!merged&&!loading?locateWorkoutBlocks(detail,blockFamily,recordedBlocks):recordedBlocks,
+  [blockFamily,detail,loading,merged,recordedBlocks]);
+ const detected=blocks[0]?.source==='detected';
+ const blockSource=detected?series:laps;
+ const [modeRequest,setModeRequest]=useState<ProfileModeRequest|null>(null);
+ const [timelineRep,setTimelineRep]=useState<{index:number;source:unknown}|null>(null);
+ const [unalignedRep,setUnalignedRep]=useState<{index:number;source:unknown}|null>(null);
+ const alignedIndex=timelineRep?.source===blockSource?timelineRep?.index??null:null;
+ const unalignedIndex=unalignedRep?.source===blockSource?unalignedRep?.index??null:null;
+ const timelineRef=useRef<HTMLDivElement>(null);
+ const synchronizeSelection=useCallback((selection:RouteSelection|null,lapIndex:number|null)=>{
+  const matched=detected
+   ? selection?.kind==='effort'&&blocks.flatMap(block=>block.reps).find(rep=>rep.bounds?.start===selection.start&&rep.bounds?.end===selection.end)
+   : null;
+  const index=detected?(matched?matched.index:null):lapIndex;
+  setTimelineRep(index===null?null:{index,source:blockSource});
+  if(selection)setUnalignedRep(null);
+  onRouteSelection?.(selection);
+ },[blockSource,blocks,detected,onRouteSelection]);
+ function selectBlockRep(index:number|null){
+  setUnalignedRep(null);
+  const onResolve=(aligned:boolean)=>{
+   if(!aligned&&index!==null)setUnalignedRep({index,source:blockSource});
+  };
+  if(detected&&blockFamily){
+   const bounds=blocks.flatMap(block=>block.reps).find(rep=>rep.index===index)?.bounds??null;
+   setModeRequest({mode:'efforts',effort:{span:bounds,source:series,sensor:effortSensor(detail,blockFamily),onResolve}});
+   return;
+  }
+  if(!Array.isArray(laps))return;
+  if(!series?.data){
+   onResolve(false);
+   return;
+  }
+  setModeRequest({mode:'laps',lap:{index,source:laps,onResolve}});
+ }
+ function viewTimeline(){
+  const chart=timelineRef.current;
+  if(!chart)return;
+  chart.focus({preventScroll:true});
+  chart.scrollIntoView({block:'center',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+ }
  // Every recorded measure as a square, swim pace per 100 m; extra unlabelled sensors stay under Raw data.
  // The temperature square says what the weather cost, against your similar sessions in other temperatures.
  const heat=useMemo(()=>heatEffect(detail,history),[detail,history]);
@@ -87,7 +154,15 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  // Summary: where and when you pushed (map, efforts, climbs, laps), every number as a square, running economy; the rest folds away.
  return <div className="activity-scroll-summary compact-activity activity-glance">
  {family==='strength_training'&&<StrengthSummary detail={detail} history={history}/>}
- {family!=='strength_training'&&(hasRoute||detail.seriesSampled?.data)&&<RouteSections attempts={attempts} segmentNote={segmentNote} onSelect={onSelect} family={family} detail={detail} hasRoute={hasRoute} intensity={intensity} pushedBy={pushedBy} routeSelection={routeSelection} onRouteSelection={onRouteSelection} mapRef={mapRef}/>}
+ {!loading&&blockFamily&&blocks.length>0&&<WorkoutBlocks key={detail.id} detail={detail} history={history} blocks={blocks} family={blockFamily}
+  token={isDemo?'':token}
+  selectedIndex={alignedIndex??unalignedIndex}
+  aligned={alignedIndex!==null} onSelect={selectBlockRep} onViewTimeline={viewTimeline}/>}
+ {family!=='strength_training'&&(hasRoute||detail.seriesSampled?.data)&&<RouteSections attempts={attempts}
+  segmentNote={segmentNote} onSelect={onSelect} family={family} detail={detail} hasRoute={hasRoute}
+  intensity={intensity} pushedBy={pushedBy} routeSelection={routeSelection} mapRef={mapRef}
+  onRouteSelection={blocks.length?synchronizeSelection:onRouteSelection} modeRequest={modeRequest}
+  timelineRef={blocks.length?timelineRef:undefined}/>}
  {records.length>0&&<section className="workout-records" aria-labelledby="workout-records-title"><h3 id="workout-records-title">New records</h3><ul>{records.map(r=>{const [value,delta]=recordText(r,family);return <li key={r.id}><strong>{r.label} · {value}</strong><small>{delta}</small></li>})}</ul></section>}
  {squares.length>0&&<section className="workout-squares" aria-labelledby="workout-squares-title"><h3 id="workout-squares-title">Workout data</h3><div className="workout-square-grid">{squares.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>}
  {family==='cycling'&&<Pedalling detail={detail}/>}

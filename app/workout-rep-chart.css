@@ -1,0 +1,378 @@
+.workout-rep-chart {
+  --rep-chart-height: 112px;
+  --rep-chart-line: color-mix(in oklab, var(--primary) 88%, var(--foreground));
+  --rep-chart-bar: color-mix(in oklab, var(--primary) 33%, var(--card));
+  --rep-chart-rule: color-mix(in oklab, var(--border) 78%, transparent);
+  min-width: 0;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.workout-rep-chart-header,
+.workout-rep-chart-controls,
+.workout-rep-chart-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.workout-rep-chart-header {
+  min-height: 44px;
+}
+
+.workout-rep-chart .workout-rep-chart-header h5 {
+  margin: 0;
+  font-size: .8125rem;
+  font-weight: 650;
+}
+
+.workout-rep-chart-controls {
+  min-width: 0;
+  flex: 0 1 auto;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+}
+
+.workout-rep-chart-picker {
+  min-width: 0;
+  max-width: 10.5rem;
+}
+
+.workout-rep-chart-picker select {
+  min-height: 44px;
+  border-color: var(--border);
+  font-size: .75rem;
+  text-overflow: ellipsis;
+}
+
+.workout-rep-chart-keys {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding-block: 8px 5px;
+}
+
+.workout-rep-chart-key {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--foreground);
+  font-size: .6875rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.workout-rep-chart-key small {
+  color: var(--muted-foreground);
+  font-size: .625rem;
+  font-weight: 500;
+}
+
+.workout-rep-chart-key i {
+  flex: 0 0 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--rep-chart-bar);
+}
+
+.workout-rep-chart-key[data-kind="line"] {
+  justify-content: flex-end;
+  color: var(--rep-chart-line);
+  text-align: right;
+}
+
+.workout-rep-chart-key[data-kind="line"] i {
+  height: 2px;
+  border-radius: 1px;
+  background: var(--rep-chart-line);
+}
+
+.workout-rep-chart-grid {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  min-width: 0;
+}
+
+.workout-rep-chart-grid[data-overlay-available] {
+  grid-template-columns: 26px minmax(0, 1fr) 32px;
+}
+
+.workout-rep-chart-axis {
+  position: relative;
+  height: var(--rep-chart-height);
+  margin-top: 4px;
+  color: var(--muted-foreground);
+  font-size: .625rem;
+  line-height: 1;
+}
+
+.workout-rep-chart-axis[data-kind="line"] {
+  color: var(--rep-chart-line);
+}
+
+.workout-rep-chart-tick {
+  position: absolute;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  transform: translateY(50%);
+  white-space: nowrap;
+}
+
+.workout-rep-chart-axis[data-kind="bars"] .workout-rep-chart-tick::after,
+.workout-rep-chart-axis[data-kind="line"] .workout-rep-chart-tick::before {
+  flex: 0 0 3px;
+  height: 1px;
+  background: currentColor;
+  opacity: .48;
+  content: "";
+}
+
+.workout-rep-chart-axis[data-kind="line"] .workout-rep-chart-tick {
+  justify-content: flex-start;
+}
+
+.workout-rep-chart-tick[data-zero] {
+  font-weight: 750;
+}
+
+.workout-rep-chart-scroll {
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+.workout-rep-chart-plot {
+  position: relative;
+  padding-top: 4px;
+  background: linear-gradient(var(--rep-chart-rule), var(--rep-chart-rule)) 0 4px / 100% 1px no-repeat,
+              linear-gradient(var(--rep-chart-rule), var(--rep-chart-rule)) 0 calc(4px + var(--rep-chart-height) / 2) / 100% 1px no-repeat,
+              linear-gradient(var(--rep-chart-rule), var(--rep-chart-rule)) 0 calc(4px + var(--rep-chart-height)) / 100% 1px no-repeat;
+}
+
+.workout-rep-chart-plot ol {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workout-rep-chart-plot li {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.workout-rep-chart-rep {
+  display: grid;
+  grid-template-rows: var(--rep-chart-height) minmax(24px, auto);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  touch-action: pan-x pan-y;
+}
+
+.workout-rep-chart-rep:hover,
+.workout-rep-chart-rep[data-selected] {
+  background: color-mix(in oklab, var(--primary) 6%, transparent);
+}
+
+.workout-rep-chart-rep:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.workout-rep-chart-slot {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+}
+
+.workout-rep-chart-bar {
+  display: block;
+  width: min(58%, 40px);
+  min-height: 1px;
+  border-radius: 4px 4px 1px 1px;
+  background: var(--rep-chart-bar);
+}
+
+.workout-rep-chart-rep[data-selected] .workout-rep-chart-bar {
+  background: color-mix(in oklab, var(--primary) 56%, var(--card));
+}
+
+.workout-rep-chart-dot {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--card);
+  border-radius: 50%;
+  background: var(--rep-chart-line);
+  transform: translate(-50%, 50%);
+  pointer-events: none;
+}
+
+.workout-rep-chart-rep[data-selected] .workout-rep-chart-dot {
+  width: 9px;
+  height: 9px;
+  border-width: 2px;
+}
+
+.workout-rep-chart-ordinal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.workout-rep-chart-ordinal svg {
+  flex-shrink: 0;
+}
+
+.workout-rep-chart-rep[data-selected] .workout-rep-chart-ordinal {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.workout-rep-chart-line {
+  position: absolute;
+  inset: 4px 0 auto;
+  width: 100%;
+  height: var(--rep-chart-height);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.workout-rep-chart-line path {
+  fill: none;
+  stroke: var(--rep-chart-line);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workout-rep-chart-line .workout-rep-chart-zero {
+  opacity: .65;
+  stroke: var(--rep-chart-line);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.workout-rep-chart-footer {
+  align-items: end;
+  min-height: 34px;
+  padding-block: 6px 2px;
+  border-top: 1px solid var(--rep-chart-rule);
+}
+
+.workout-rep-chart-readout {
+  min-width: 0;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  line-height: 1.4;
+}
+
+.workout-rep-chart-readout-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+}
+
+.workout-rep-chart-readout strong {
+  color: var(--foreground);
+  font-weight: 650;
+}
+
+.workout-rep-chart-readout dl {
+  display: flex;
+  align-items: start;
+  gap: 3px clamp(8px, 3vw, 15px);
+  margin: 4px 0 0;
+}
+
+.workout-rep-chart-readout dl > div {
+  min-width: 0;
+}
+
+.workout-rep-chart-readout dt {
+  font-size: .6875rem;
+  line-height: 1.2;
+}
+
+.workout-rep-chart-readout dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 3px;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1.25rem;
+  font-weight: 720;
+  letter-spacing: -.035em;
+  line-height: 1.2;
+}
+
+.workout-rep-chart-readout [data-kind="line"] dd {
+  color: var(--rep-chart-line);
+}
+
+.workout-rep-chart-readout dd small {
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+.workout-rep-chart-footer .workout-rep-chart-timeline {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding-inline: 6px;
+  font-size: .75rem;
+}
+
+.workout-rep-hill-mechanics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 4px 8px;
+  margin: 5px 0 0;
+  padding: 5px 7px;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--muted) 70%, var(--card));
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  line-height: 1.3;
+}
+
+.workout-rep-hill-mechanics > div {
+  min-width: 0;
+}
+
+.workout-rep-hill-mechanics dd {
+  margin: 0;
+  color: var(--foreground);
+  font-size: .75rem;
+  font-weight: 650;
+}
+
+.workout-rep-hill-mechanics small {
+  font-size: .6875rem;
+  font-weight: 500;
+}
+
+.workout-rep-chart .workout-rep-chart-method {
+  margin-top: 4px;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  line-height: 1.35;
+}

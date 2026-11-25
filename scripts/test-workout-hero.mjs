@@ -21,13 +21,15 @@ for(const summary of [{duration:Infinity,distance:100},{duration:120,distance:In
 }
 const sports=module('app/sports.ts'),native=module('app/coros-native.ts'),power=module('app/cycling-power-data.ts',{'./sports':sports});
 const metrics=module('app/activity-metrics.ts',{'./sports':sports,'./coros-native':native,'./cycling-power-data':power});
-const imports=Object.fromEntries(['./deferred-panel','./workout-explorer.css','./activity-profile','./recorded-fields','./session-intelligence','./running-technique','./route-map','./activity-zones','./trend-badge','./workout-splits'].map(key=>[key,silentModule]));
+const imports=Object.fromEntries(['./deferred-panel','./workout-explorer.css','./activity-profile','./recorded-fields','./session-intelligence','./running-technique','./route-map','./activity-zones','./trend-badge','./workout-splits','./workout-blocks'].map(key=>[key,silentModule]));
 const routeCallbacks=[];
 Object.assign(imports,{
  // Folded rows render their content here so the tiles inside them can be checked.
  './deferred-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,typeof children==='function'?children():children)},
  react:{useState:initial=>[initial,()=>{}],useMemo:fn=>fn(),useRef:initial=>({current:initial}),useCallback:fn=>fn,useEffect:()=>{},memo:component=>component,lazy:()=>Silent},
  './workout-insights':{intensityLevels:()=>null,intensityColors:[],lapsVary:()=>false},
+ './workout-blocks-data':module('app/workout-blocks-data.ts'),
+ './workout-blocks-location':{locateWorkoutBlocks:(_detail,_family,blocks)=>blocks},
  './training-coach-data':{workoutEvidence:()=>({route:null,climbs:[]})},'./route-signature':{ROUTE_VERSION:1},'./route-history':{routeAttempts:()=>null,climbAttempts:()=>null,workoutRecords:()=>[]},'./activity-terrain-data':{paceFromSpeed:()=>'—'},
  'lucide-react':{Compass:Silent},
  './workout-context':{...silentModule,StrengthSummary:Silent},
@@ -73,16 +75,17 @@ assert.equal(dock.dockState(climb,false,true),'collapsed','A folded dock leaves 
 
 // Attach the real dock button refs and run its handlers/layout effects across
 // renders. Automatic visibility/selection changes must not move user focus.
-const hookValues=[],focusMoves=[];let hookCursor=0,layoutEffects=[],mountedRefs=[];
+const hookValues=[],focusMoves=[];let hookCursor=0,effects=[],layoutEffects=[],mountedRefs=[];
 const dockHooks={
  useState(initial){const i=hookCursor++;if(!(i in hookValues))hookValues[i]=initial;return [hookValues[i],value=>{hookValues[i]=typeof value==='function'?value(hookValues[i]):value}]},
  useRef(initial){const i=hookCursor++;return hookValues[i]??=( {current:initial} )},
- useEffect(){},useLayoutEffect(effect){layoutEffects.push(effect)},
+ useEffect(effect){effects.push(effect)},useLayoutEffect(effect){layoutEffects.push(effect)},
 };
 const interactiveDock=module('app/workout-map-dock.tsx',{react:dockHooks,'lucide-react':{ChevronUp:Silent,MapPin:Silent},'./route-map':silentModule,'./expansion':{ExpandButton:Silent}}).default;
+const routeAnchor={closest:()=>null};
 function renderDock(selection=climb){
- hookCursor=0;layoutEffects=[];for(const ref of mountedRefs)ref.current=null;mountedRefs=[];
- const tree=interactiveDock({detail:{},selection,anchor:null}),buttons=new Map();
+ hookCursor=0;effects=[];layoutEffects=[];for(const ref of mountedRefs)ref.current=null;mountedRefs=[];
+ const tree=interactiveDock({detail:{},selection,anchor:routeAnchor}),buttons=new Map();
  function attach(node){
   if(Array.isArray(node)){node.forEach(attach);return}if(!React.isValidElement(node))return;
   if(typeof node.type==='string'){
@@ -96,7 +99,20 @@ function renderDock(selection=climb){
  attach(tree);layoutEffects.forEach(effect=>effect());return buttons;
 }
 assert.equal(renderDock().size,0,'A visible route map does not need a dock');
-hookValues[0]=false; // IntersectionObserver has reported that the route map scrolled away.
+const previousObserver=globalThis.IntersectionObserver;
+let observeMap;
+try{
+ globalThis.IntersectionObserver=class{
+  constructor(callback){observeMap=(top,intersectionRatio)=>callback([{rootBounds:{top:140},boundingClientRect:{top},intersectionRatio}])}
+  observe(){}
+  disconnect(){}
+ };
+ const stop=effects[0]();
+ observeMap(900,0);
+ assert.equal(renderDock().size,0,'The map dock stays hidden while the recorded map is below the analysis');
+ observeMap(-70,.1);
+ stop();
+}finally{globalThis.IntersectionObserver=previousObserver}
 let dockButtons=renderDock();assert.equal(focusMoves.length,0,'Automatic dock opening preserves chart focus');
 dockButtons.get('Hide map').props.onClick();dockButtons=renderDock();
 assert.deepEqual(focusMoves.at(-1),{label:'Show on map',options:{preventScroll:true}},'Hiding the map transfers focus to its replacement show button');
