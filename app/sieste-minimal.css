@@ -956,3 +956,191 @@ body:has(.sieste-v3) > .athena-launcher {
     transform: translateX(3px);
   }
 }
+
+/* ── Phone first: nothing under 11.5px, every control at least 40px tall ── */
+@media (max-width: 760px) {
+  :is(.sieste-v3 main, .sieste-v3.activity-layer .workout-sheet, .metric-expansion .expanded-widget) :is(
+    .activity-glance-card p,
+    .calendar-key-stat :is(em, small),
+    .calendar-session-stats :is(em, small),
+    .calendar-session-title small,
+    .compact-laps button,
+    .effort-analysis-toolbar label,
+    .effort-segment-title,
+    .segment-note,
+    .home-insight-cell em,
+    .home-insight-note small,
+    .journal-activity-date,
+    .journal-calendar-key span,
+    .journal-month-stats :is(em, small),
+    .journal-weekday,
+    .lap-mosaic summary,
+    .lap-mosaic-legend span,
+    .load-clear-chart-label span,
+    .load-guidance small,
+    .load-overlay-readout small,
+    .load-overlay-scale-note,
+    .load-tool-controls span,
+    .load-tool-kpis :is(small, span),
+    .load-tool-note,
+    [data-slot=toggle-group-item] small,
+    .log-day-heading span,
+    .log-heat-note,
+    .section-hills :is(small, span),
+    .sleep-page-note,
+    .sleep-window-caption p,
+    .sleep-vital-cards :is(small, span, em),
+    .trend-badge,
+    .trend-badge :is(small, span),
+    .volume-comparison span,
+    .volume-comparison-note,
+    .volume-comparison-note span,
+    .volume-history-foot span,
+    .volume-sessions,
+    .volume-sport,
+    .volume-total small,
+    .weather-daylight-label span,
+    .weather-daylight-times span,
+    .weather-hour-head small,
+    .weather-metrics small,
+    .weather-rules small,
+    .weather-source :is(a, p, span, summary),
+    .weather-title span,
+    .workout-rep-chart-tick,
+    .workout-route-legend span,
+    .heat-matrix-columns span,
+    .heat-matrix-grid [role=rowheader]
+  ) {
+    font-size: 11.5px !important;
+    letter-spacing: 0;
+  }
+
+  /* Controls: a full thumb-sized target. */
+  :is(.sieste-v3 main, .sieste-v3.activity-layer .workout-sheet, .metric-expansion .expanded-widget) :is(
+    select,
+    input:not([type=checkbox], [type=radio], [type=range]),
+    [data-slot=toggle-group-item],
+    [data-slot=tabs-trigger],
+    .heat-matrix-metrics button,
+    .view-switch-tabs button,
+    .unified-modes > button,
+    .studio-tabs > button,
+    .workout-rep-traces-metrics button,
+    .workout-rep-traces-reps button,
+    .workout-explorer-nav button,
+    .technique-scope button,
+    .history-periods button,
+    .profile-table-toolbar button,
+    .tool-controls button,
+    .log-advanced-toggle,
+    .journal-mode-action,
+    .compact-laps header button,
+    .activity-comparison-controls button,
+    .activity-comparison-session button,
+    .lab-button
+  ) {
+    min-height: 40px !important;
+  }
+
+  :is(.sieste-v3 main, .sieste-v3.activity-layer .workout-sheet, .metric-expansion .expanded-widget) :is([data-slot=toggle-group], .heat-matrix-metrics, .unified-modes, .workout-rep-traces-metrics) {
+    height: auto !important;
+  }
+
+  .sieste-v3 .connect-banner button:not([data-slot]) {
+    min-height: 40px;
+  }
+
+  :is(.sieste-v3 main, .sieste-v3.activity-layer .workout-sheet) details > summary {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  /* Small icon buttons keep their look and gain a 40px touch area. */
+  :is(.sieste-v3 main, .sieste-v3.activity-layer .workout-sheet) :is(.expand-widget, .workout-explorer-map button, .journal-zones-fold nav > button) {
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+
+  .sieste-v3.activity-layer .workout-sheet .workout-square-grid > .activity-glance-card .expand-widget {
+    margin: -10px -10px -8px 0;
+  }
+
+  .sieste-v3 main .home-board :is(.home-period-navigation > button, .home-toolbar-actions > button, .home-more-menu > summary) {
+    width: 40px;
+    min-width: 40px;
+    height: 44px;
+  }
+
+  /* Lap bars and the heat table are data, but still tappable: taller rows on phones. */
+  :is(.sieste-v3 main, .sieste-v3.activity-layer .workout-sheet) .lap-mosaic-bars > button {
+    min-height: 36px;
+  }
+
+  .heat-matrix .heat-matrix-grid [role=cell] {
+    height: 32px;
+    font-size: 11.5px;
+  }
+
+  .sieste-v3 main :is(.fatigue-recovery > header [data-slot=button], .sleep-overlay-picker button, [class*=sleep-overlay] button, .home-insight-card [data-slot=button]) {
+    min-height: 40px !important;
+  }
+
+  .sieste-v3 main .weather-map-hour input[type=range] {
+    height: 40px;
+  }
+
+  .sieste-v3 main > footer span,
+  .sieste-v3 main .sleep-night-card small {
+    font-size: 11.5px !important;
+  }
+}
+
+/* The home date: the weekday is spelled out where there is room, shortened where there is not. */
+.sieste-v3 main .home-board .home-toolbar .home-date-short {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .sieste-v3 main .home-board .home-toolbar .home-date-long {
+    display: none;
+  }
+
+  .sieste-v3 main .home-board .home-toolbar .home-date-short {
+    display: inline;
+  }
+
+  .sieste-v3 main .home-board .home-toolbar {
+    gap: 0;
+  }
+
+  .sieste-v3 main .home-board .home-toolbar time {
+    flex: 1 0 auto;
+    overflow: visible;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--n-ink);
+  }
+
+  .sieste-v3 main .home-board :is(.home-period-navigation > button, .home-toolbar-actions > button, .home-more-menu > summary) {
+    flex: 0 1 38px;
+    width: auto;
+    min-width: 32px;
+  }
+
+  /* Tile labels keep their full width; the expand control overlaps the corner instead of taking a column. */
+  .sieste-v3.activity-layer .workout-sheet .workout-square-grid > .activity-glance-card > header {
+    position: relative;
+  }
+
+  .sieste-v3.activity-layer .workout-sheet .workout-square-grid > .activity-glance-card .expand-widget {
+    position: absolute;
+    top: -10px;
+    right: -8px;
+    margin: 0;
+  }
+
+  .sieste-v3.activity-layer .workout-sheet .workout-square-grid > .activity-glance-card h3 {
+    padding-right: 22px;
+  }
+}
