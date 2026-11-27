@@ -815,3 +815,144 @@ body:has(.sieste-v3) > .athena-launcher {
   font-size: 14px;
   font-weight: 600;
 }
+
+/* ── Craft pass: bigger numerals, motion with a purpose, hover that answers ── */
+
+/* Display numerals: the reading is the headline of its tile. */
+.sieste-v3 main .home-board .health-headline .live-value {
+  font-size: clamp(30px, 8.6vw, 40px);
+  font-weight: 650;
+  letter-spacing: -.045em;
+  line-height: 1;
+}
+
+.sieste-v3 main .home-board .health-headline-grid {
+  gap: 24px 14px;
+}
+
+.sieste-v3 main :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+.sieste-v3 main :is(.sleep-page-heading h1, .weather-title h1, .weather-title h2, .journal-month-name) {
+  font-size: clamp(28px, 7.6vw, 38px) !important;
+  font-weight: 700 !important;
+  letter-spacing: -.04em !important;
+  line-height: 1.05;
+}
+
+.sieste-v3 main .journal-month-stats b,
+.sieste-v3 main .sleep-window-readout strong,
+.sieste-v3 main .weather-metrics strong {
+  font-size: clamp(24px, 6.4vw, 32px);
+  font-weight: 650;
+  letter-spacing: -.04em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+/* Home sparklines: one solid line with the latest point marked. */
+.sieste-v3 main .home-board .health-headline > svg {
+  height: 30px;
+  overflow: visible;
+}
+
+.sieste-v3 main .home-board .health-headline > svg path {
+  stroke-width: 1.75;
+  stroke-dasharray: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sieste-v3 main .home-board .health-headline > svg circle {
+  opacity: 0;
+}
+
+.sieste-v3 main .home-board .health-headline > svg circle:last-of-type {
+  opacity: 1;
+}
+
+@keyframes m-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes m-draw {
+  from { stroke-dashoffset: 640; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes m-pop {
+  from { opacity: 0; transform: scale(.86); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The top of a page arrives in order. */
+  .sieste-v3 main :is(.health-headlines, .journal-calendar-hero, .sleep-page-heading, .weather-title),
+  .sieste-v3.activity-layer .workout-sheet .workout-hero-body {
+    animation: m-rise .7s cubic-bezier(.2, .7, .2, 1) both;
+  }
+
+  .sieste-v3 main :is(.home-calendar, .sleep-window-hero, .weather-overview) {
+    animation: m-rise .7s .08s cubic-bezier(.2, .7, .2, 1) both;
+  }
+
+  /* Lines draw, calendar days and matrix rows fill in. */
+  .sieste-v3 main .home-board .health-headline > svg path {
+    stroke-dasharray: 640;
+    animation: m-draw 1.5s .2s cubic-bezier(.2, .7, .2, 1) both;
+  }
+
+  .sieste-v3 main .journal-calendar-hero .journal-day[data-heat] {
+    animation: m-pop .5s cubic-bezier(.2, .7, .2, 1) both;
+  }
+
+  .sieste-v3 main .journal-calendar-hero .journal-day:nth-child(7n+2) { animation-delay: .03s; }
+  .sieste-v3 main .journal-calendar-hero .journal-day:nth-child(7n+3) { animation-delay: .06s; }
+  .sieste-v3 main .journal-calendar-hero .journal-day:nth-child(7n+4) { animation-delay: .09s; }
+  .sieste-v3 main .journal-calendar-hero .journal-day:nth-child(7n+5) { animation-delay: .12s; }
+  .sieste-v3 main .journal-calendar-hero .journal-day:nth-child(7n+6) { animation-delay: .15s; }
+  .sieste-v3 main .journal-calendar-hero .journal-day:nth-child(7n) { animation-delay: .18s; }
+
+  /* Further down, sections rise as they scroll into view, where the browser supports it. */
+  @supports (animation-timeline: view()) {
+    .sieste-v3 main :is(.weekly-volume, .load-analysis, .home-data, .journal-sessions, .activity-comparison, .sleep-findings, .sleep-matrix, .sleep-vital-cards, .weather-map-card, .weather-hour-card),
+    .sieste-v3.activity-layer .workout-sheet .activity-sheet-body :is(.workout-squares, .zone-strip, .workout-more) {
+      animation: m-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 28%;
+    }
+
+    .sieste-v3 main .sleep-matrix-grid [role=row] {
+      animation: m-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
+  }
+}
+
+/* Pointer devices: rows answer the cursor. */
+@media (hover: hover) {
+  .sieste-v3 main :is(.calendar-session-preview, .journal-activity, .health-headline, .weekly-volume-card) {
+    transition: background-color .18s ease, transform .18s cubic-bezier(.2, .7, .2, 1);
+  }
+
+  .sieste-v3 main .home-board .home-calendar .home-day-sessions button.calendar-session-preview:hover,
+  .sieste-v3 main .journal-activity:hover {
+    border-radius: 12px;
+    background: var(--m-fill);
+  }
+
+  .sieste-v3 main :is(.health-headline, .weekly-volume-card):hover {
+    transform: translateY(-2px);
+  }
+
+  .sieste-v3 main .journal-activity > svg:last-child {
+    transition: transform .18s cubic-bezier(.2, .7, .2, 1);
+  }
+
+  .sieste-v3 main .journal-activity:hover > svg:last-child {
+    transform: translateX(3px);
+  }
+}
