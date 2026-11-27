@@ -195,6 +195,8 @@ export type RepMechanicRow = {
   digits: number;
   early: number;
   late: number;
+  /** Mean across every rep's work. */
+  mean: number;
   /** Late minus early, and the average second-half minus first-half change inside a rep. */
   across: number;
   within: number | null;
@@ -241,7 +243,7 @@ export function repMechanics(metrics: readonly RepTraceMetric[]): RepMechanics |
     if (early === null || late === null || early <= 0) return [];
     const [direction, share, floor] = sign, across = late - early;
     const within = meanOf(metric.traces.map(trace => trace.firstHalf !== null && trace.secondHalf !== null ? trace.secondHalf - trace.firstHalf : null));
-    return [{ key: metric.key, label: metric.label, unit: metric.unit, digits: metric.digits, early, late, across, within,
+    return [{ key: metric.key, label: metric.label, unit: metric.unit, digits: metric.digits, early, late, mean: meanOf(metric.traces.map(trace => trace.mean)) ?? early, across, within,
       tiring: across * direction >= Math.max(floor, early * share) }];
   });
   if (!rows.length) return null;

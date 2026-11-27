@@ -148,3 +148,42 @@ console.log('Rep traces: shared rep clock, heart-rate recovery tail, gaps, pause
   assert.equal(traceValueLabel({ key: 'verticalOscillation', pace: false, unit: 'cm', digits: 1 }, 8.26), '8.3');
   console.log('Rep mechanics: running streams, early-to-late shifts, same-pace verdicts and noise limits passed.');
 }
+
+{
+  const { repMechanics } = await import(moduleUrl('workout-rep-traces-data'));
+  const { rateExecution, mechanicBand } = await import(moduleUrl('workout-execution-data'));
+  const part = (rating, key) => rating.parts.find(item => item.key === key);
+  // Identical reps with a full minute of measured recovery: nothing to mark down.
+  const even = session({ count: 6 });
+  const evenMetrics = repTraces(even.reps, [], even.series, 'running');
+  const clean = rateExecution(evenMetrics, repMechanics(evenMetrics), 'running');
+  assert.equal(clean.level, 'excellent'); assert.ok(clean.score >= 90); assert.match(clean.headline, /evenly/);
+  assert.deepEqual(clean.parts.map(item => item.key), ['consistency', 'pacing', 'finish', 'recovery', 'form']);
+  assert.ok(clean.parts.every(item => item.level === 'excellent'), JSON.stringify(clean.parts));
+
+  // Each rep fades 7% inside itself and the last two reps are 6% slower.
+  const faded = session({ count: 6, fade: .07 });
+  const repOf = i => Math.floor((i - 300) / 270);
+  const speed = faded.series.data.speed.map((value, i) => i >= 300 && repOf(i) >= 4 && repOf(i) < 6 ? value * .94 : value);
+  const fadedMetrics = repTraces(faded.reps, [], { ...faded.series, data: { ...faded.series.data, speed } }, 'running');
+  const poor = rateExecution(fadedMetrics, repMechanics(fadedMetrics), 'running');
+  assert.equal(part(poor, 'pacing').level, 'poor'); assert.equal(part(poor, 'finish').level, 'poor'); assert.match(part(poor, 'finish').detail, /Faded 6\.0% from the first 2 reps to the last 2/);
+  assert.equal(part(poor, 'consistency').level, 'fair'); assert.equal(part(poor, 'form'), undefined, 'Form is not judged when pace changed');
+  assert.ok(poor.score < clean.score && poor.score < 60, String(poor.score)); assert.ok(['fair', 'poor'].includes(poor.level));
+
+  // Cycling rates power; short rests leave recovery out; mixed lengths and two reps are not rated.
+  const ride = rateExecution(repTraces(even.reps, [], even.series, 'cycling'), null, 'cycling');
+  assert.match(part(ride, 'consistency').detail, /power/); assert.equal(part(ride, 'form'), undefined);
+  const short = session({ count: 5, rest: 45 });
+  assert.equal(part(rateExecution(repTraces(short.reps, [], short.series, 'running'), null, 'running'), 'recovery'), undefined);
+  const mixed = even.reps.map((rep, position) => position === 5 ? { ...rep, duration: 90, bounds: { start: rep.bounds.start, end: rep.bounds.start + 1.5 } } : rep);
+  assert.equal(rateExecution(repTraces(mixed, [], even.series, 'running'), null, 'running'), null);
+  assert.equal(rateExecution(repTraces(even.reps.slice(0, 2), [], even.series, 'running'), null, 'running'), null);
+  assert.equal(rateExecution([], null, 'running'), null);
+
+  assert.equal(mechanicBand('cadence', 185).level, 'excellent'); assert.equal(mechanicBand('cadence', 170).level, 'fair'); assert.equal(mechanicBand('cadence', 150).level, 'poor');
+  assert.equal(mechanicBand('groundContactTime', 218).level, 'excellent'); assert.equal(mechanicBand('groundContactTime', 240).level, 'good'); assert.equal(mechanicBand('groundContactTime', 300).label, 'Needs work');
+  assert.equal(mechanicBand('verticalRatio', 8).level, 'fair'); assert.equal(mechanicBand('verticalOscillation', 8.1).level, 'good');
+  assert.equal(mechanicBand('stepLength', 140), null); assert.equal(mechanicBand('cadence', null), null);
+  console.log('Execution rating: parts, levels, re-weighting, unrated sets and mechanics bands passed.');
+}

@@ -204,11 +204,11 @@ export default function WorkoutBlockAnalysis({ blocks, analysis, oxygen, family,
     <div className="workout-analysis">
       <section className="workout-analysis-block" aria-labelledby={panelId}>
         <h4 className="sr-only" id={panelId}>Rep analysis</h4>
+        <WorkoutRepTraces reps={reps} series={series} alignedLaps={alignedLaps} family={family} selectedIndex={selectedIndex} onSelect={onSelect} />
         {!unified && trend}
         <WorkoutRepChart block={block} analysis={{ reps, threshold, oxygen }} family={family} selectedIndex={selectedIndex}
           onSelect={onSelect} aligned={aligned} onViewTimeline={onViewTimeline} />
         {unified && trend}
-        <WorkoutRepTraces reps={reps} series={series} alignedLaps={alignedLaps} family={family} selectedIndex={selectedIndex} onSelect={onSelect} />
         {running && <WorkoutSameHill workout={workout} reps={reps} history={history} selectedIndex={selectedIndex} series={series} alignedLaps={alignedLaps} token={token} />}
         <WorkoutRepCompare reps={reps} family={family} selectedIndex={selectedIndex} />
         {running && <WorkoutRepPhases reps={reps} series={series} alignedLaps={alignedLaps} selectedIndex={selectedIndex} />}

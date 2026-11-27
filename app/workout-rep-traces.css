@@ -336,3 +336,108 @@
   letter-spacing: 0;
   text-transform: none;
 }
+
+/* Execution rating: one score, then what it is made of */
+.workout-execution {
+  --level: var(--muted-foreground);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 14px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rep-trace-rule);
+}
+
+.workout-execution [data-level=excellent], .workout-execution[data-level=excellent], .workout-mechanic-band[data-level=excellent] { --level: #15803d; }
+.workout-execution [data-level=good], .workout-execution[data-level=good], .workout-mechanic-band[data-level=good] { --level: #4d7c0f; }
+.workout-execution [data-level=fair], .workout-execution[data-level=fair], .workout-mechanic-band[data-level=fair] { --level: #b45309; }
+.workout-execution [data-level=poor], .workout-execution[data-level=poor], .workout-mechanic-band[data-level=poor] { --level: #b91c1c; }
+
+.workout-execution-score {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  color: var(--level);
+}
+
+.workout-execution-score strong {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.03em;
+}
+
+.workout-execution-score small {
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.workout-rep-traces .workout-execution-heading h5 {
+  margin: 0;
+  font-size: .8125rem;
+  font-weight: 650;
+}
+
+.workout-rep-traces .workout-execution-heading p {
+  margin: 2px 0 0;
+  font-size: .8125rem;
+  line-height: 1.35;
+}
+
+.workout-execution ul {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workout-execution li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1px 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--rep-trace-rule);
+  font-size: .8125rem;
+}
+
+.workout-execution li span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+}
+
+.workout-execution li i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--level);
+}
+
+.workout-execution li b {
+  color: var(--level);
+  font-weight: 650;
+}
+
+.workout-execution li small {
+  grid-column: 1 / -1;
+  padding-left: 15px;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  line-height: 1.35;
+}
+
+.workout-mechanic-band {
+  color: var(--level);
+  font-weight: 650;
+}
+
+.workout-rep-traces .workout-rep-traces-mechanics .workout-rep-traces-note {
+  margin: -4px 0 10px;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+}

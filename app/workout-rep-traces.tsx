@@ -3,6 +3,7 @@
 import { useId, useMemo, useState, type CSSProperties, type PointerEvent } from 'react';
 import type { WorkoutRepAnalysis } from './workout-block-analysis-data';
 import { repMechanics, repTraces, traceValueAt, traceValueLabel, type RepMechanics, type RepTrace, type RepTraceMetric, type RepTraceMetricKey } from './workout-rep-traces-data';
+import { mechanicBand, rateExecution } from './workout-execution-data';
 import './workout-rep-traces.css';
 
 type Props = {
@@ -106,6 +107,8 @@ function summary(metric: RepTraceMetric) {
   return `${uneven.length} of ${changes.length} reps changed ${name} by 2% or more between their halves.`;
 }
 
+const levelLabels = { excellent: 'Excellent', good: 'Good', fair: 'Fair', poor: 'Poor' } as const;
+
 function amount(value: number, digits: number, signed = false) {
   const text = Math.abs(value).toLocaleString('en-GB', { minimumFractionDigits: digits, maximumFractionDigits: digits });
   if (!signed) return text;
@@ -135,6 +138,7 @@ export default function WorkoutRepTraces({ reps, series, alignedLaps, family, se
   const [choice, setChoice] = useState<RepTraceMetricKey | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
   const mechanics = useMemo(() => family === 'running' ? repMechanics(metrics) : null, [metrics, family]);
+  const execution = useMemo(() => rateExecution(metrics, mechanics, family), [metrics, mechanics, family]);
   if (!metrics.length) return null;
   const metric = metrics.find(item => item.key === choice) ?? metrics[0];
   const { traces, domain, extent, work } = metric;
@@ -161,6 +165,26 @@ export default function WorkoutRepTraces({ reps, series, alignedLaps, family, se
 
   return (
     <section className="workout-rep-traces" aria-labelledby={headingId}>
+      {execution && (
+        <div className="workout-execution" data-level={execution.level}>
+          <div className="workout-execution-score" role="img" aria-label={`Execution ${execution.score} out of 100`}>
+            <strong>{execution.score}</strong><small>/100</small>
+          </div>
+          <div className="workout-execution-heading">
+            <h5>Execution</h5>
+            <p>{execution.headline}</p>
+          </div>
+          <ul>
+            {execution.parts.map(part => (
+              <li key={part.key} data-level={part.level}>
+                <span><i aria-hidden="true" />{part.label}</span>
+                <b>{levelLabels[part.level]}</b>
+                <small>{part.detail}</small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <header className="workout-rep-traces-header">
         <h5 id={headingId}>Inside each rep</h5>
         {metrics.length > 1 && (
@@ -259,6 +283,7 @@ export default function WorkoutRepTraces({ reps, series, alignedLaps, family, se
         <div className="workout-rep-traces-mechanics">
           <h6>Mechanics through the set</h6>
           <p>{mechanicsReading(mechanics)}</p>
+          <p className="workout-rep-traces-note">Ratings place the set&apos;s average among runners in general; step length depends on pace and height, so it is not rated.</p>
           <table>
             <thead>
               <tr>
@@ -266,7 +291,7 @@ export default function WorkoutRepTraces({ reps, series, alignedLaps, family, se
                 <th scope="col">{mechanics.side > 1 ? `First ${mechanics.side}` : 'First rep'}</th>
                 <th scope="col">{mechanics.side > 1 ? `Last ${mechanics.side}` : 'Last rep'}</th>
                 <th scope="col">Change</th>
-                <th scope="col" title="Average change from the first half of a rep to its second half">In a rep</th>
+                <th scope="col" title="Where the set's average sits among runners in general">Rating</th>
               </tr>
             </thead>
             <tbody>
@@ -279,7 +304,10 @@ export default function WorkoutRepTraces({ reps, series, alignedLaps, family, se
                   <td>{amount(row.early, row.digits)}</td>
                   <td>{amount(row.late, row.digits)}</td>
                   <td>{amount(row.across, row.digits, true)}</td>
-                  <td>{row.within === null ? '—' : amount(row.within, row.digits, true)}</td>
+                  <td>{(() => {
+                    const band = mechanicBand(row.key, row.mean);
+                    return band ? <span className="workout-mechanic-band" data-level={band.level} title={band.range}>{band.label}</span> : '—';
+                  })()}</td>
                 </tr>
               ))}
             </tbody>
