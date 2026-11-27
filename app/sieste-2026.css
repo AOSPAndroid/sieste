@@ -4,9 +4,9 @@
    is a plain white pill. Unlayered on purpose: it sits above the legacy layers
    without !important. Page-specific parts live with each page's stylesheet. */
 .sieste-v3{
- --n-ground:#f7f7f8;--n-card:#fff;--n-ink:#0b1220;--n-muted:#5b6678;--n-faint:#8a94a6;
+ --n-ground:#fff;--n-card:#fff;--n-ink:#0b1220;--n-muted:#5b6678;--n-faint:#8a94a6;
  --n-line:rgba(11,18,32,.08);--n-radius:16px;--n-hero-radius:16px;
- --n-shadow:0 0 0 1px var(--n-line);
+ --n-shadow:none;
  --n-float:0 0 0 1px var(--n-line),0 6px 18px -12px rgba(11,18,32,.18);
  --s-ink:var(--n-ink);--s-muted:var(--n-muted);--s-faint:var(--n-faint);--s-canvas:var(--n-ground);--s-line:#e6e8ee;
 }

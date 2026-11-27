@@ -138,6 +138,8 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
  // Every recorded measure as a square, swim pace per 100 m; extra unlabelled sensors stay under Raw data.
  // The temperature square says what the weather cost, against your similar sessions in other temperatures.
  const heat=useMemo(()=>heatEffect(detail,history),[detail,history]);
+ // The six headline numbers stay in view; the rest open on request.
+ const [allSquares,setAllSquares]=useState(false);
  const squares=useMemo(()=>{const swim=family==='swimming'?swimPace(detail.summary):null;return (['Session','Technique','Conditions'] as const).flatMap(group=>cards.filter(m=>m.group===group&&m.value!=='—').map(m=>m.id==='speed'&&swim?swim:m.id==='temperature'&&heat?{...m,note:heatNote(heat)}:m))},[cards,family,detail.summary,heat]);
  // Interval and tempo sessions (or hand-pressed laps) open More analysis on execution.
  const structured=['Intervals','Tempo'].includes(detail.sessionLabel??'')||lapsVary(detail.laps);
@@ -164,13 +166,13 @@ export default function ActivitySummary({detail,loading,history=[],onClassify,he
   onRouteSelection={blocks.length?synchronizeSelection:onRouteSelection} modeRequest={modeRequest}
   timelineRef={blocks.length?timelineRef:undefined}/>}
  {records.length>0&&<section className="workout-records" aria-labelledby="workout-records-title"><h3 id="workout-records-title">New records</h3><ul>{records.map(r=>{const [value,delta]=recordText(r,family);return <li key={r.id}><strong>{r.label} · {value}</strong><small>{delta}</small></li>})}</ul></section>}
- {squares.length>0&&<section className="workout-squares" aria-labelledby="workout-squares-title"><h3 id="workout-squares-title">Workout data</h3><div className="workout-square-grid">{squares.map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div></section>}
+ {squares.length>0&&<section className="workout-squares" aria-labelledby="workout-squares-title"><h3 id="workout-squares-title">Workout data</h3><div className="workout-square-grid">{(allSquares?squares:squares.slice(0,6)).map(metric=><MetricCard key={metric.id} metric={metric} step={step} comparison={metric.id==='vo2max'?vo2:comparison}/>)}</div>{squares.length>6&&<button type="button" className="workout-squares-toggle" aria-expanded={allSquares} onClick={()=>setAllSquares(v=>!v)}>{allSquares?'Show fewer':`All ${squares.length} measurements`}</button>}</section>}
  {family==='cycling'&&<Pedalling detail={detail}/>}
  {family!=='strength_training'&&<ZoneStrip summary={detail.summary??{}} histogram={detail.hrHistogram} zones={ownZones?.bands}/>}
- {family==='running'&&<RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading} athlete={detail.cyclingContext}/>}
  {detail.notes&&<p className="plan-notes">{detail.notes}</p>}
  <section className="workout-more" aria-labelledby="workout-more-title"><h3 id="workout-more-title">More analysis</h3>
  <ViewSwitch label="More analysis" remember={`workout-more-${family}`} initial={structured?'execution':family==='strength_training'?'zones':'splits'} views={[
+  ...(family==='running'?[{id:'mechanics',label:'Mechanics',hint:'Economy and technique against your own runs',render:()=><RunningTechnique key={`technique-${detail.id}`} detail={detail} history={history} loading={loading} athlete={detail.cyclingContext}/>}]:[]),
   ...(family!=='strength_training'?[{id:'splits',label:'Splits',hint:family==='cycling'?'Every 5 km':family==='swimming'?'Every 100 m':'Every kilometre',render:()=><WorkoutSplits detail={detail} family={family}/>}]:[]),
   {id:'zones',label:'Zones',hint:'Time in heart-rate and power zones',render:()=><ActivityZones summary={detail.summary??{}} loading={loading} zones={ownZones?.bands} histogram={detail.hrHistogram} zonesSince={ownZones?.since}/>},
   {id:'explore',label:'Explore',hint:family==='cycling'?'Replay · terrain · coasting · compare':family==='running'?'Replay · fingerprint · terrain · compare':'Laps · recovery',render:()=><WorkoutExplorer detail={detail} history={history} healthData={healthData} token={token} storageScope={storageScope} isDemo={isDemo}/>},

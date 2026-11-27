@@ -1,0 +1,443 @@
+.workout-rep-traces {
+  --rep-trace-ink: color-mix(in oklab, var(--primary) 88%, var(--foreground));
+  --rep-trace-pale: color-mix(in oklab, var(--primary) 16%, var(--card));
+  --rep-trace-rule: color-mix(in oklab, var(--border) 78%, transparent);
+  min-width: 0;
+  margin-block: 4px 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rep-trace-rule);
+  font-variant-numeric: tabular-nums;
+}
+
+.workout-rep-traces-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.workout-rep-traces .workout-rep-traces-header h5 {
+  margin: 0;
+  font-size: .8125rem;
+  font-weight: 650;
+}
+
+.workout-rep-traces-metrics {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+
+.workout-rep-traces-metrics button {
+  min-height: 30px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.workout-rep-traces-metrics button[aria-pressed=true] {
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.workout-rep-traces .workout-rep-traces-summary {
+  margin: 10px 0 16px;
+  color: var(--foreground);
+  font-size: .8125rem;
+  line-height: 1.4;
+}
+
+.workout-rep-traces-grid {
+  display: grid;
+  margin-top: 16px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 6px;
+}
+
+.workout-rep-traces-axis,
+.workout-rep-traces-time,
+.workout-rep-traces-reps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workout-rep-traces-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 2.25rem;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  line-height: 1;
+  text-align: right;
+}
+
+.workout-rep-traces-plot {
+  position: relative;
+  height: 150px;
+  border-bottom: 1px solid var(--rep-trace-rule);
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.workout-rep-traces-plot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.workout-rep-traces-rest {
+  fill: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+
+.workout-rep-traces-rest-label {
+  position: absolute;
+  top: 4px;
+  padding-left: 6px;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  pointer-events: none;
+}
+
+.workout-rep-traces-rule {
+  stroke: var(--rep-trace-rule);
+  stroke-width: 1;
+}
+
+.workout-rep-traces-line path {
+  fill: none;
+  stroke: color-mix(in oklab, var(--rep-trace-ink) var(--trace-shade, 100%), var(--rep-trace-pale));
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.workout-rep-traces-line .workout-rep-traces-recovery {
+  stroke-dasharray: 3 3;
+}
+
+/* With a rep chosen, the others step back and the chosen one is redrawn on top. */
+.workout-rep-traces-plot[data-selection] .workout-rep-traces-line:not(.workout-rep-traces-focus) path {
+  opacity: .28;
+}
+
+.workout-rep-traces-focus path {
+  stroke: var(--foreground);
+  stroke-width: 2.25;
+}
+
+.workout-rep-traces-cursor {
+  stroke: var(--foreground);
+  stroke-width: 1;
+  opacity: .45;
+}
+
+.workout-rep-traces-time {
+  position: relative;
+  grid-column: 2;
+  height: 1rem;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+}
+
+.workout-rep-traces-time li {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.workout-rep-traces-time li:first-child {
+  transform: none;
+}
+
+.workout-rep-traces-time li:last-child {
+  transform: translateX(-100%);
+}
+
+.workout-rep-traces-reps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.workout-rep-traces-reps button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 40px;
+  min-height: 32px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--rep-trace-rule);
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.workout-rep-traces-reps button i {
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--rep-trace-ink) var(--trace-shade, 100%), var(--rep-trace-pale));
+}
+
+.workout-rep-traces-reps button[aria-pressed=true] {
+  background: color-mix(in oklab, var(--foreground) 7%, transparent);
+  box-shadow: none;
+  color: var(--foreground);
+}
+
+.workout-rep-traces-reps button[aria-pressed=true] i {
+  background: var(--foreground);
+}
+
+.workout-rep-traces-readout {
+  min-height: 2.75rem;
+  margin-top: 8px;
+  font-size: .75rem;
+}
+
+.workout-rep-traces-readout p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.workout-rep-traces-readout p strong {
+  color: var(--foreground);
+  font-weight: 650;
+}
+
+.workout-rep-traces-readout dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.workout-rep-traces-readout dt {
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+}
+
+.workout-rep-traces-readout dd {
+  margin: 1px 0 0;
+  color: var(--foreground);
+  font-size: .875rem;
+  font-weight: 650;
+}
+
+.workout-rep-traces-readout dd small {
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+  font-weight: 500;
+}
+
+/* Seven measures do not fit one row on a phone: the switch scrolls sideways instead of wrapping. */
+.workout-rep-traces-metrics {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.workout-rep-traces-metrics button {
+  flex: none;
+  white-space: nowrap;
+}
+
+.workout-rep-traces-mechanics {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rep-trace-rule);
+}
+
+.workout-rep-traces .workout-rep-traces-mechanics h6 {
+  margin: 0;
+  font-size: .8125rem;
+  font-weight: 650;
+}
+
+.workout-rep-traces .workout-rep-traces-mechanics p {
+  margin: 6px 0 10px;
+  font-size: .8125rem;
+  line-height: 1.4;
+}
+
+.workout-rep-traces-mechanics table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .75rem;
+}
+
+.workout-rep-traces-mechanics :is(th, td) {
+  padding: 7px 0 7px 8px;
+  border-top: 1px solid var(--rep-trace-rule);
+  text-align: right;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.workout-rep-traces-mechanics thead th {
+  border-top: 0;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+}
+
+.workout-rep-traces-mechanics :is(th, td):first-child {
+  padding-left: 0;
+  text-align: left;
+  white-space: normal;
+}
+
+.workout-rep-traces-mechanics tbody button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.workout-rep-traces-mechanics tbody button[aria-pressed=true] {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.workout-rep-traces-mechanics tbody small {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.workout-rep-traces-mechanics tr[data-tiring] td:nth-child(4) {
+  color: #c2410c;
+  font-weight: 650;
+}
+
+.workout-rep-traces-mechanics :is(th, td, button) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Execution rating: one score, then what it is made of */
+.workout-execution {
+  --level: var(--muted-foreground);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 14px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rep-trace-rule);
+}
+
+.workout-execution [data-level=excellent], .workout-execution[data-level=excellent], .workout-mechanic-band[data-level=excellent] { --level: #15803d; }
+.workout-execution [data-level=good], .workout-execution[data-level=good], .workout-mechanic-band[data-level=good] { --level: #4d7c0f; }
+.workout-execution [data-level=fair], .workout-execution[data-level=fair], .workout-mechanic-band[data-level=fair] { --level: #b45309; }
+.workout-execution [data-level=poor], .workout-execution[data-level=poor], .workout-mechanic-band[data-level=poor] { --level: #b91c1c; }
+
+.workout-execution-score {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  color: var(--level);
+}
+
+.workout-execution-score strong {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.03em;
+}
+
+.workout-execution-score small {
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.workout-rep-traces .workout-execution-heading h5 {
+  margin: 0;
+  font-size: .8125rem;
+  font-weight: 650;
+}
+
+.workout-rep-traces .workout-execution-heading p {
+  margin: 2px 0 0;
+  font-size: .8125rem;
+  line-height: 1.35;
+}
+
+.workout-execution ul {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workout-execution li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1px 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--rep-trace-rule);
+  font-size: .8125rem;
+}
+
+.workout-execution li span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+}
+
+.workout-execution li i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--level);
+}
+
+.workout-execution li b {
+  color: var(--level);
+  font-weight: 650;
+}
+
+.workout-execution li small {
+  grid-column: 1 / -1;
+  padding-left: 15px;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  line-height: 1.35;
+}
+
+.workout-mechanic-band {
+  color: var(--level);
+  font-weight: 650;
+}
+
+.workout-rep-traces .workout-rep-traces-mechanics .workout-rep-traces-note {
+  margin: -4px 0 10px;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+}

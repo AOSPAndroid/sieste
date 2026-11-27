@@ -9,6 +9,11 @@ export const referenceActivityDesigns=[
  {key:'refcompactroute',name:'Route & type',description:'Fine route beside a compact reading column'},
  {key:'refsplitline',name:'Split line',description:'Distance · recorded lap bars · two readings'},
  {key:'refcorner',name:'Photo corner',description:'A small sport icon and stats along the lower edge'},
+ {key:'refframe',name:'Viewfinder',description:'Corner marks · readings in the corners · the photo keeps the middle'},
+ {key:'refticker',name:'One line',description:'Four equal readings on a single quiet line'},
+ {key:'refpaceline',name:'Pace line',description:'Distance · every recorded lap as one fine line'},
+ {key:'refside',name:'Side rail',description:'Readings run up the left edge'},
+ {key:'refmarkers',name:'Start to finish',description:'Route with both ends marked · one line of readings'},
  {key:'refhero',name:'Headline',description:'Bold distance · three small readings'},
  {key:'refstack',name:'Three lines',description:'Distance, pace and exact time'},
  {key:'refweekday',name:'Day headline',description:'Weekday · compact bold distance'},
@@ -45,8 +50,8 @@ const homeDescriptions:Record<string,string>={refrail:'Strong sleep reading · t
 export const referenceHomeDesigns=[...referenceMinimalDesigns.map(design=>({...design,description:homeDescriptions[design.key]})),...referenceRecoveryDesigns];
 export const isHomeShareTemplate=(template:string)=>referenceHomeDesigns.some(design=>design.key===template);
 export type ReferenceTemplate=typeof referenceActivityDesigns[number]['key']|typeof referenceRecoveryDesigns[number]['key'];
-export const referenceRouteTemplates:ReferenceTemplate[]=['refroute','refdayroute','refroutehero','refpairroute','refcompactroute'];
-const statLimits:Record<ReferenceTemplate,number>={refrail:4,refduet:2,refledger:3,refcompactroute:3,refsplitline:3,refcorner:3,refrecoveryline:3,refrecoverystack:3,refsingle:1,refpair:2,reftriple:3,refquad:4,refsix:6,refhero:4,refstack:3,refweekday:1,refroute:0,refdayroute:1,refroutehero:4,reftall:3,reftallday:1,refivory:6,reftoday:1,refserif:2,refschedule:3,refcard:6,refsportcard:3,refcaption:1,reflaps:0,refpairroute:2,refbubble:2,refsummary:2};
+export const referenceRouteTemplates:ReferenceTemplate[]=['refroute','refdayroute','refroutehero','refpairroute','refcompactroute','refmarkers'];
+const statLimits:Record<ReferenceTemplate,number>={refframe:3,refticker:4,refpaceline:3,refside:3,refmarkers:3,refrail:4,refduet:2,refledger:3,refcompactroute:3,refsplitline:3,refcorner:3,refrecoveryline:3,refrecoverystack:3,refsingle:1,refpair:2,reftriple:3,refquad:4,refsix:6,refhero:4,refstack:3,refweekday:1,refroute:0,refdayroute:1,refroutehero:4,reftall:3,reftallday:1,refivory:6,reftoday:1,refserif:2,refschedule:3,refcard:6,refsportcard:3,refcaption:1,reflaps:0,refpairroute:2,refbubble:2,refsummary:2};
 export function referenceStatLimit(template:string){return statLimits[template as ReferenceTemplate]??6;}
 export const retroActivityDesigns=[
  {key:'retrohero',name:'Golden hour',description:'Café lettering · giant reading · red shadow',color:'#f4d35e'},

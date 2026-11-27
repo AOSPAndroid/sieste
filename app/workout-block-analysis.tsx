@@ -12,6 +12,7 @@ import WorkoutRepChart from './workout-rep-chart';
 import type { RepChartAnalysis } from './workout-rep-chart-data';
 import WorkoutRepCompare from './workout-rep-compare';
 import WorkoutRepPhases from './workout-rep-phases';
+import WorkoutRepTraces from './workout-rep-traces';
 import WorkoutSameHill from './workout-same-hill';
 import WorkoutRepTrend from './workout-rep-trend';
 import './workout-block-analysis.css';
@@ -203,6 +204,7 @@ export default function WorkoutBlockAnalysis({ blocks, analysis, oxygen, family,
     <div className="workout-analysis">
       <section className="workout-analysis-block" aria-labelledby={panelId}>
         <h4 className="sr-only" id={panelId}>Rep analysis</h4>
+        <WorkoutRepTraces reps={reps} series={series} alignedLaps={alignedLaps} family={family} selectedIndex={selectedIndex} onSelect={onSelect} />
         {!unified && trend}
         <WorkoutRepChart block={block} analysis={{ reps, threshold, oxygen }} family={family} selectedIndex={selectedIndex}
           onSelect={onSelect} aligned={aligned} onViewTimeline={onViewTimeline} />
