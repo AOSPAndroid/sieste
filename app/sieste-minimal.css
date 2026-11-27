@@ -1,0 +1,275 @@
+/* sieste minimal · one white page, no boxes.
+   Sections are separated by space and a hairline instead of card outlines,
+   controls are neutral grey, and colour is kept for data. Loaded last. */
+.sieste-v3 {
+  --m-line: rgba(11, 18, 32, .09);
+  --m-fill: rgba(11, 18, 32, .045);
+  --m-gap: 28px;
+}
+
+html:has(.sieste-v3.shell),
+body:has(.sieste-v3.shell),
+.sieste-v3.shell,
+.sieste-v3 .content {
+  background: #fff;
+}
+
+/* Sections: every card becomes an unframed block under a hairline. */
+.sieste-v3 main :is(
+  [data-slot=card],
+  .n-hero,
+  .weekly-volume,
+  .fatigue-recovery,
+  .home-method,
+  .workspace-tools-panel,
+  .journal-sessions,
+  .journal-zones-fold,
+  .sleep-findings,
+  .sleep-vital-cards,
+  .sleep-night-log,
+  .weather-empty
+) {
+  border: 0 !important;
+  border-top: 1px solid var(--m-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.sieste-v3 main .home-board .snapshot-home-layout .home-calendar,
+.sieste-v3 main .n-hero:first-child,
+.sieste-v3 main :is(.sleep-window-hero, .journal-calendar-hero, .health-headlines) {
+  border-top: 0 !important;
+}
+
+/* Boxes inside sections lose their frame too. */
+.sieste-v3 main :is(.load-guidance, .home-insight-ribbon, .home-insight-note, .journal-filter-fold, .log-advanced-toggle) {
+  border-color: var(--m-line);
+  background: transparent;
+  box-shadow: none;
+}
+
+.sieste-v3 main .load-guidance {
+  padding-inline: 0;
+  border-radius: 0;
+}
+
+/* Controls: neutral, never tinted. */
+.sieste-v3 main [data-slot=toggle-group-item][data-state=on],
+.sieste-v3 main [data-slot=toggle-group-item][aria-pressed=true] {
+  background: var(--m-fill);
+  color: var(--n-ink);
+}
+
+.sieste-v3 main [data-slot=toggle-group]:is([class*=toggle], [data-variant]) [data-slot=toggle-group-item][data-state=on] {
+  box-shadow: none;
+}
+
+.sieste-v3 main :is([data-slot=native-select], select, [data-slot=input-group]) {
+  border-color: var(--m-line);
+  box-shadow: none;
+}
+
+/* The demo prompt is one quiet line, not a panel. */
+.sieste-v3 .connect-banner {
+  padding: 4px 2px 10px;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.sieste-v3 .connect-banner > svg {
+  display: none;
+}
+
+.sieste-v3 .connect-banner button:not([data-slot]) {
+  padding-inline: 0;
+  border: 0;
+  background: transparent;
+  color: var(--n-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Home: the day columns sit straight on the page. */
+.sieste-v3 main .home-board .home-calendar .home-day-sessions button.calendar-session-preview {
+  padding-inline: 2px;
+  border-radius: 0;
+  background: transparent;
+}
+
+.sieste-v3 main .home-board .home-calendar .home-day-label {
+  padding-inline: 2px;
+  border-bottom: 1px solid var(--m-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.sieste-v3 main .home-board .home-calendar .home-week-day.current .home-day-label {
+  border-bottom-color: var(--n-ink);
+  background: transparent;
+}
+
+.sieste-v3 main .home-board .home-calendar .home-week-day.current .home-day-label :is(span, strong) {
+  color: var(--n-ink);
+}
+
+.sieste-v3 main .home-board .home-calendar .calendar-session-title b {
+  color: var(--snap-ink);
+}
+
+.sieste-v3 main .home-board .home-calendar .home-day-empty {
+  padding-inline: 2px;
+}
+
+/* Training log */
+.sieste-v3 main .journal-calendar-focus .journal-sessions {
+  padding-inline: 0;
+}
+
+.sieste-v3 main :is(.journal-route, .journal-sport-art) {
+  background: var(--m-fill);
+}
+
+/* Workout sheet: white page, sections under hairlines, tiles without frames. */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet :is(
+  .activity-glance-card,
+  .workout-route-analysis,
+  .zone-strip,
+  .workout-more
+) {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs-bar {
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 1px 0 var(--ws-line);
+}
+
+/* One text edge on phones: the page carries the gutter, sections carry none. */
+@media (max-width: 760px) {
+  .sieste-v3 .content main {
+    padding-inline: 20px;
+  }
+}
+
+/* Space, then a hairline, between the sections of a page. */
+.sieste-v3 main .home-board .snapshot-home-layout :is([data-slot=card]:not(.home-calendar, .health-headlines), .weekly-volume, .load-analysis) {
+  margin-top: 8px;
+  padding-top: 22px;
+  border-top: 1px solid var(--m-line) !important;
+  border-radius: 0;
+  background: transparent;
+}
+
+.sieste-v3 main .load-analysis .load-guidance {
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--m-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Workout sheet tiles: selectable ones are grey chips, static ones are plain. */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments > button {
+  border: 0;
+  border-radius: 10px;
+  background: var(--m-fill, rgba(11, 18, 32, .045)) !important;
+  box-shadow: none !important;
+}
+
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments > button[aria-pressed=true] {
+  background: rgba(11, 18, 32, .1) !important;
+  box-shadow: none !important;
+}
+
+:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet, .metric-expansion) .section-trend li {
+  padding: 8px 0;
+  border-top: 1px solid var(--ws-line, rgba(11, 18, 32, .09));
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(.workout-route-analysis, .workout-squares, .zone-strip, .workout-more) {
+  margin-top: 10px;
+  padding-top: 20px !important;
+  border-top: 1px solid var(--ws-line);
+}
+
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body .workout-route-analysis:first-child {
+  margin-top: 0;
+  padding-top: 0 !important;
+  border-top: 0;
+}
+
+.sieste-v3 main .home-board .home-toolbar time {
+  font-size: 15px;
+}
+
+/* Sections carry no side padding at any width, so headings share one edge. */
+.sieste-v3 main :is(
+  [data-slot=card],
+  [data-slot=card-header],
+  [data-slot=card-content],
+  [data-slot=card-footer],
+  .n-hero,
+  .weekly-volume,
+  .fatigue-recovery,
+  .home-method,
+  .journal-zones-fold,
+  .journal-zones-content,
+  .sleep-findings,
+  .sleep-vital-cards,
+  .sleep-night-log,
+  .connect-banner
+) {
+  padding-inline: 0 !important;
+}
+
+.sieste-v3 main :is(.weekly-zones, .sleep-page-note, .home-insights-board > header) {
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+.sieste-v3 .snapshot-home-layout {
+  gap: 8px 40px;
+}
+
+/* Workout tiles size to their content once they are no longer boxes. */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-square-grid > .activity-glance-card {
+  aspect-ratio: auto !important;
+  gap: 10px;
+  padding-inline: 0 !important;
+}
+
+/* Side by side, the right column starts level with the left, without a rule above it. */
+@media (min-width: 851px) {
+  .sieste-v3 main .home-board .snapshot-home-layout .snapshot-home-analysis > :first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0 !important;
+  }
+}
+
+/* The sheet carries the gutter; its sections carry none. */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body {
+  padding-inline: 20px;
+}
+
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(
+  .workout-route-analysis,
+  .workout-squares,
+  .zone-strip,
+  .workout-more,
+  .workout-remove,
+  .pedalling-card
+) {
+  padding-inline: 0 !important;
+}

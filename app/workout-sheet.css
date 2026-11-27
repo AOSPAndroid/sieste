@@ -2,9 +2,9 @@
    Scoped to the sheet and loaded only with the workout view.
    Selectors share one prefix so they outrank the older theme without !important. */
 .workout-sheet{
- --ws-bg:#f3f4f7;--ws-card:#fff;--ws-ink:#0b1220;--ws-muted:#5b6678;--ws-faint:#8a94a6;
+ --ws-bg:#fff;--ws-card:#fff;--ws-ink:#0b1220;--ws-muted:#5b6678;--ws-faint:#8a94a6;
  --ws-line:rgba(11,18,32,.08);--ws-radius:16px;--ws-night:#090c13;--route-map-h:220px;--ws-tabs-h:54px;--dock-h:172px;
- --ws-shadow:0 0 0 1px var(--ws-line);
+ --ws-shadow:none;
  --sport:#64748b;
 }
 .workout-sheet.sport-running{--sport:#ff5b35}
