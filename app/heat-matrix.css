@@ -1,4 +1,4 @@
-.sleep-matrix {
+.heat-matrix {
   --matrix-ink: #0b1220;
   --matrix-muted: #5b6678;
   --matrix-line: rgba(11, 18, 32, .1);
@@ -10,32 +10,40 @@
   font-variant-numeric: tabular-nums;
 }
 
-.sieste-v3 main .sleep-matrix > h2 {
-  max-width: 22em;
-  margin: 0;
-  font-size: clamp(24px, 6.4vw, 34px) !important;
-  font-weight: 700 !important;
-  letter-spacing: -.03em !important;
-  line-height: 1.12;
-  text-wrap: balance;
+.heat-matrix-eyebrow {
+  margin: 0 0 4px;
+  color: var(--matrix-muted);
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.sleep-matrix-lede {
+.sieste-v3 main .heat-matrix > h2 {
+  margin: 0;
+}
+
+.heat-matrix-columns span small {
+  display: block;
+  font-size: inherit !important;
+  color: var(--matrix-ink);
+  font-weight: 600;
+}
+
+.heat-matrix-lede {
   max-width: 34em;
-  margin: 12px 0 18px;
+  margin: 6px 0 16px;
   color: var(--matrix-muted);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
-.sleep-matrix-card {
+.heat-matrix-card {
   padding: 18px 16px 14px;
   border: 1px solid var(--matrix-line);
   border-radius: 18px;
   background: #fff;
 }
 
-.sleep-matrix-card > header {
+.heat-matrix-card > header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -44,20 +52,20 @@
   margin-bottom: 14px;
 }
 
-.sieste-v3 main .sleep-matrix-card h3 {
+.sieste-v3 main .heat-matrix-card h3 {
   margin: 0;
   font-size: 15px;
   font-weight: 650;
   letter-spacing: -.01em;
 }
 
-.sleep-matrix-card h3 small {
+.heat-matrix-card h3 small {
   color: var(--matrix-muted);
   font-size: 13px !important;
   font-weight: 500;
 }
 
-.sleep-matrix-metrics {
+.heat-matrix-metrics {
   display: flex;
   gap: 2px;
   padding: 3px;
@@ -65,7 +73,7 @@
   background: rgba(11, 18, 32, .05);
 }
 
-.sleep-matrix-metrics button {
+.heat-matrix-metrics button {
   min-height: 28px;
   padding: 0 11px;
   border: 0;
@@ -77,12 +85,12 @@
   cursor: pointer;
 }
 
-.sleep-matrix-metrics button[aria-pressed=true] {
+.heat-matrix-metrics button[aria-pressed=true] {
   background: #fff;
   color: var(--matrix-ink);
 }
 
-.sleep-matrix-legend {
+.heat-matrix-legend {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -91,55 +99,55 @@
   font-size: 12px;
 }
 
-.sleep-matrix-legend i {
+.heat-matrix-legend i {
   display: flex;
   overflow: hidden;
   border-radius: 3px;
 }
 
-.sleep-matrix-legend b,
-.sleep-matrix-grid button {
+.heat-matrix-legend b,
+.heat-matrix-grid button {
   background: color-mix(in oklab, var(--matrix-blue) calc(8% + var(--level, 0) * 92%), #eef0f4);
 }
 
-.sleep-matrix-legend b {
+.heat-matrix-legend b {
   width: 22px;
   height: 12px;
 }
 
-.sleep-matrix-grid {
+.heat-matrix-grid {
   display: grid;
   gap: 4px;
 }
 
-.sleep-matrix-grid [role=row] {
+.heat-matrix-grid [role=row] {
   display: grid;
-  grid-template-columns: 2.9rem repeat(var(--columns), minmax(0, 1fr));
+  grid-template-columns: var(--head, 2.9rem) repeat(var(--columns), minmax(0, 1fr));
   gap: 4px;
   align-items: center;
 }
 
-.sleep-matrix-grid [role=rowheader],
-.sleep-matrix-columns span {
+.heat-matrix-grid [role=rowheader],
+.heat-matrix-columns span {
   color: var(--matrix-muted);
   font-size: 12px;
   white-space: nowrap;
 }
 
-.sleep-matrix-grid [role=rowheader] {
+.heat-matrix-grid [role=rowheader] {
   padding-right: 6px;
   text-align: right;
 }
 
-.sleep-matrix-columns {
+.heat-matrix-columns {
   margin-top: 4px;
 }
 
-.sleep-matrix-columns span {
+.heat-matrix-columns span {
   text-align: center;
 }
 
-.sleep-matrix-grid [role=cell] {
+.heat-matrix-grid [role=cell] {
   display: grid;
   place-items: center;
   min-width: 0;
@@ -154,30 +162,30 @@
   letter-spacing: -.01em;
 }
 
-.sleep-matrix-grid button[role=cell] {
+.heat-matrix-grid button[role=cell] {
   cursor: pointer;
 }
 
-.sieste-v3 main .sleep-matrix .sleep-matrix-grid button[role=cell] {
+.heat-matrix .heat-matrix-grid button[role=cell] {
   color: var(--matrix-ink);
 }
 
-.sieste-v3 main .sleep-matrix .sleep-matrix-grid button[role=cell][data-strong] {
+.heat-matrix .heat-matrix-grid button[role=cell][data-strong] {
   color: #fff;
 }
 
-.sleep-matrix-grid .is-blank {
+.heat-matrix-grid .is-blank {
   background: rgba(11, 18, 32, .025);
 }
 
 /* The two cells the headline compares. */
-.sleep-matrix-grid .is-marked {
+.heat-matrix-grid .is-marked {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--matrix-ink);
   position: relative;
   z-index: 1;
 }
 
-.sleep-matrix-note {
+.heat-matrix-note {
   min-height: 2.6em;
   margin: 14px 0 0;
   color: var(--matrix-muted);
@@ -186,12 +194,12 @@
   text-align: center;
 }
 
-.sleep-matrix-note strong {
+.heat-matrix-note strong {
   color: var(--matrix-ink);
   font-weight: 650;
 }
 
-.sleep-matrix-caveat {
+.heat-matrix-caveat {
   margin: 12px 0 0;
   color: var(--matrix-muted);
   font-size: 12.5px;
@@ -199,41 +207,41 @@
 }
 
 @media (max-width: 480px) {
-  .sleep-matrix-card {
+  .heat-matrix-card {
     padding-inline: 10px;
   }
 
-  .sleep-matrix-grid,
-  .sleep-matrix-grid [role=row] {
+  .heat-matrix-grid,
+  .heat-matrix-grid [role=row] {
     gap: 3px;
   }
 
-  .sleep-matrix-grid [role=row] {
-    grid-template-columns: 2.5rem repeat(var(--columns), minmax(0, 1fr));
+  .heat-matrix-grid [role=row] {
+    grid-template-columns: var(--head, 2.5rem) repeat(var(--columns), minmax(0, 1fr));
   }
 
-  .sleep-matrix-grid [role=cell] {
+  .heat-matrix-grid [role=cell] {
     height: 28px;
     font-size: 11px;
   }
 
-  .sleep-matrix-grid [role=rowheader],
-  .sleep-matrix-columns span {
+  .heat-matrix-grid [role=rowheader],
+  .heat-matrix-columns span {
     font-size: 10.5px;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .sleep-matrix-grid button[role=cell] {
+  .heat-matrix-grid button[role=cell] {
     transition: transform .12s ease, box-shadow .12s ease;
   }
 
-  .sleep-matrix-grid button[role=cell]:hover {
+  .heat-matrix-grid button[role=cell]:hover {
     transform: scale(1.06);
   }
 }
 
 /* On wide screens the table keeps a readable width instead of stretching its cells. */
-.sleep-matrix-card {
+.heat-matrix-card {
   max-width: 820px;
 }
