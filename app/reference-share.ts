@@ -132,7 +132,7 @@ export function renderReferenceShare(o:ShareDesign,{ink:oInk}:{ink?:string}={}){
    parts.push('</g>');
   });
  }
- function trace(x:number,y:number,width:number,height:number,color=ink){
+ function trace(x:number,y:number,width:number,height:number,color=ink,markers=false){
   const route=o.route;if(!route)return '';
   const segments=route.segments.map(segment=>segment.filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y))).filter(segment=>segment.length>1);
   const points=segments.flat();if(points.length<2)return '';
@@ -147,7 +147,11 @@ export function renderReferenceShare(o:ShareDesign,{ink:oInk}:{ink?:string}={}){
    const stride=Math.max(1,Math.ceil(segment.length/3000));
    const d=segment.filter((_,i)=>i%stride===0||i===segment.length-1).map((point,i)=>`${i?'L':'M'}${(x+width/2+(point.x-centerX)*scale).toFixed(2)},${(y+height/2+(point.y-centerY)*scale).toFixed(2)}`).join(' ');
    return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`;
-  }).join('')}</g>`;
+  }).join('')}${markers?[points[0],points[points.length-1]].map((point,i)=>{
+   // A ring where the recording starts, a solid dot where it ends; on a loop the dot sits inside the ring.
+   const px=(x+width/2+(point.x-centerX)*scale).toFixed(2),py=(y+height/2+(point.y-centerY)*scale).toFixed(2),r=stroke*(i?2:3.6);
+   return i?`<circle data-share-route-end="finish" cx="${px}" cy="${py}" r="${r.toFixed(2)}" fill="${color}"/>`:`<circle data-share-route-end="start" cx="${px}" cy="${py}" r="${r.toFixed(2)}" fill="none" stroke="${color}" stroke-width="${stroke}"/>`;
+  }).join(''):''}</g>`;
  }
  function grid(stats:ShareStat[],{x=180,y=cy-50,width=720,columns=3,rowHeight=106,valueHeight=54,color=ink}:{x?:number;y?:number;width?:number;columns?:number;rowHeight?:number;valueHeight?:number;color?:string}={}){
   const cell=width/columns;
@@ -221,6 +225,63 @@ export function renderReferenceShare(o:ShareDesign,{ink:oInk}:{ink?:string}={}){
   parts.push(sportMark(102,y-50,34),reading(hero,102,y+8,706,107),rule(102,y+147,798,y+147));
   support.slice(0,2).forEach((stat,i)=>{const x=102+i*358;parts.push(reading(stat,x,y+182,334,40),minimalCaption(stat,x+167,y+268,334));});
   positionedFooter=o.height-90;
+ }else if(template==='refframe'){
+  // Viewfinder: the photo keeps the middle; readings sit in the corners of a marked frame.
+  const inset=Math.max(150,o.height*.13),left=84,right=996,top=inset,bottom=o.height-inset,arm=34;
+  const corner=(x:number,y:number,dx:number,dy:number)=>`<path data-share-rule="true" d="M${x+dx*arm} ${y}L${x} ${y}L${x} ${y+dy*arm}" fill="none" stroke="${ink}" stroke-width="2" stroke-opacity=".7"/>`;
+  parts.push(corner(left,top,1,1),corner(right,top,-1,1),corner(left,bottom,1,-1),corner(right,bottom,-1,-1));
+  parts.push(sportMark(left+30,top+30,34),plain(o.title||o.sport,left+78,top+57,26,420,{weight:600}));
+  if(o.weekday||o.time)parts.push(plain([o.weekday,o.time].filter(Boolean).join(' · '),right-30,top+57,26,380,{weight:500,anchor:'end'}));
+  parts.push(reading(hero,left+30,bottom-128,520,98,'modern'));
+  support.slice(0,2).forEach((stat,i)=>parts.push(tag(stat,referenceText(referenceStatValue(stat),{x:right-30-300,y:bottom-128+i*56,width:300,height:42,face:resolveShareFont(o.fontFace,'modern'),color:ink,align:'end'}))));
+  positionedFooter=bottom+46;
+ }else if(template==='refticker'){
+  // One quiet line near the lower edge; every reading has the same weight.
+  const y=o.height-300,shown=ordered.slice(0,4),cell=792/Math.max(1,shown.length);
+  parts.push(rule(108,y,972,y),sportMark(108,y+34,36));
+  shown.forEach((stat,i)=>{
+   const x=180+i*cell;
+   parts.push(reading(stat,x,y+34,cell-28,38,'modern'),minimalCaption(stat,x+(cell-28)/2,y+116,cell-28));
+   if(i)parts.push(rule(x-14,y+30,x-14,y+78));
+  });
+  positionedFooter=y+164;
+ }else if(template==='refpaceline'){
+  // The session as one line: each recorded lap is a point, faster is higher.
+  parts.push(sportMark(126,cy-262,36),reading(hero,126,cy-200,560,96,'modern'));
+  const shown=(o.laps??[]).slice(0,40),metrics=shown.map(lap=>o.cycling?typeof lap.value==='number'&&Number.isFinite(lap.value)&&lap.value>=0?lap.value*3.6:null:typeof lap.pace==='number'&&Number.isFinite(lap.pace)&&lap.pace>0?lap.pace:null);
+  const values=metrics.filter((value):value is number=>value!==null),min=values.length?Math.min(...values):0,max=values.length?Math.max(...values):0,range=Math.max(1e-9,max-min);
+  const chartTop=cy-62,chartHeight=120,step=shown.length>1?828/(shown.length-1):0;
+  const best=values.length?(o.cycling?max:min):null;
+  let d='',previous=false;const dots:string[]=[];
+  shown.forEach((lap,i)=>{
+   const value=metrics[i],index=Number.isFinite(lap.index)?lap.index:i+1;
+   if(value===null){previous=false;dots.push(`<g data-share-lap="${index}" data-lap-${o.cycling?'speed':'pace'}="missing"/>`);return;}
+   const level=max===min?.5:o.cycling?(value-min)/range:(max-value)/range,px=126+(shown.length>1?i*step:414),py=chartTop+chartHeight-level*chartHeight;
+   d+=`${previous?'L':'M'}${px.toFixed(2)} ${py.toFixed(2)} `;previous=true;
+   dots.push(`<g data-share-lap="${index}" data-lap-${o.cycling?'speed':'pace'}="${value}"><circle cx="${px.toFixed(2)}" cy="${py.toFixed(2)}" r="${value===best?9:4}" fill="${ink}"/></g>`);
+  });
+  if(shown.length)parts.push(`<g data-share-lap-line="true">${d?`<path d="${d.trim()}" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`:''}${dots.join('')}</g>`);
+  parts.push(rule(126,cy+96,954,cy+96));
+  support.slice(0,2).forEach((stat,i)=>{const x=126+i*430;parts.push(reading(stat,x,cy+128,398,44,'modern'),minimalCaption(stat,x+199,cy+218,398));});
+ }else if(template==='refside'){
+  // Side rail: the readings run up the left edge and leave the picture clear.
+  const length=Math.min(980,o.height-320),shown=ordered.slice(0,3),cell=(length-70)/Math.max(1,shown.length);
+  parts.push(`<g data-share-side-rail="true" transform="translate(150 ${cy}) rotate(-90)">`,sportMark(-length/2,-22,40));
+  shown.forEach((stat,i)=>{
+   const x=-length/2+70+i*cell;
+   parts.push(reading(stat,x,-28,cell-36,i?44:56,'modern'),minimalCaption(stat,x+(cell-36)/2,72,cell-36));
+  });
+  parts.push(rule(-length/2,-58,length/2,-58),'</g>');
+  positionedFooter=o.height-150;
+ }else if(template==='refmarkers'){
+  // Start to finish: the route with its two ends marked, then one line of readings.
+  parts.push(trace(190,cy-330,700,470,ink,true));
+  const shown=ordered.slice(0,3),cell=780/Math.max(1,shown.length);
+  shown.forEach((stat,i)=>{
+   const x=150+i*cell;
+   parts.push(reading(stat,x+14,cy+196,cell-28,46,'modern',true));
+   if(i)parts.push(rule(x,cy+196,x,cy+242));
+  });
  }else if(template==='refrecoveryline'||template==='refrecoverystack'){
   const healthHeight=template==='refrecoveryline'?318:444;
   healthFrame(healthHeight);
@@ -356,7 +417,7 @@ export function renderReferenceShare(o:ShareDesign,{ink:oInk}:{ink?:string}={}){
   });
   if(laps.length>count)parts.push(plain(`FIRST ${count} OF ${laps.length} RECORDED LAPS`,540,top+count*row+32,18,800,{anchor:'middle',weight:500}));
  }
- const footerSpace:Partial<Record<ReferenceTemplate,number>>={refrail:164,refledger:193,refcompactroute:214,refsplitline:185,refstack:250,refroute:270,refdayroute:356,refroutehero:344,reftall:293,reftallday:264,refivory:360,refcard:212,refsportcard:159,reflaps:395};
+ const footerSpace:Partial<Record<ReferenceTemplate,number>>={refrail:164,refledger:193,refcompactroute:214,refsplitline:185,refstack:250,refroute:270,refdayroute:356,refroutehero:344,reftall:293,reftallday:264,refivory:360,refcard:212,refsportcard:159,reflaps:395,refpaceline:230,refmarkers:260};
  let footer=positionedFooter??cy+(footerSpace[template]??145)+52;
  if(o.date&&template!=='refschedule'){parts.push(`<g data-share-date="true">${plain(o.date,540,footer,18,850,{anchor:'middle',weight:500})}</g>`);footer+=34;}
  if(o.brand&&template!=='refsummary'){parts.push(`<g data-share-brand="true">${plain('SIESTE',540,footer,18,850,{anchor:'middle',weight:700,spacing:2})}</g>`);footer+=34;}
