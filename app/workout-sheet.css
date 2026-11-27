@@ -340,3 +340,5 @@
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments .effort-zone:is([data-zone=Threshold],[data-zone="Above threshold"]){color:#c2410c}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments .effort-zone:is([data-zone="VO₂max"],[data-zone=Anaerobic],[data-zone=Sprint]){color:#b91c1c}
 .activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments .effort-zone[data-zone=Tempo]{color:#a16207}
+/* The remaining measurements open from one quiet button under the six headline tiles */
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-squares-toggle{align-self:flex-start;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:rgba(11,18,32,.055);font-size:13px;font-weight:600;color:var(--ws-ink);cursor:pointer}

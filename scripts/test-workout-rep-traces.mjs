@@ -116,3 +116,35 @@ assert.equal(traceValueLabel({ key: 'speed', pace: false, unit: 'km/h' }, 10), '
 assert.equal(traceValueLabel({ key: 'power', pace: false, unit: 'W' }, 251.6), '252');
 assert.equal(traceValueLabel({ key: 'heartrate', pace: false, unit: 'bpm' }, null), '—');
 console.log('Rep traces: shared rep clock, heart-rate recovery tail, gaps, pauses, spikes, mixed lengths and labels passed.');
+
+{
+  // Running mechanics join the chart, and the set is read early to late only when pace is comparable.
+  const { repMechanics } = await import(moduleUrl('workout-rep-traces-data'));
+  const { reps, series } = session({ count: 6 });
+  const repOf = i => Math.floor((i - 300) / 270);
+  const working = i => i >= 300 && repOf(i) < 6 && (i - 300) % 270 < 180;
+  const stream = (base, perRep) => series.data.speed.map((_, i) => working(i) ? base + perRep * repOf(i) : null);
+  const data = { ...series.data, cadence: stream(186, -1), stepLength: stream(146, 0), groundContactTime: stream(212, 2), verticalOscillation: stream(8.2, .02), verticalRatio: stream(5.6, 0) };
+  const metrics = repTraces(reps, [], { ...series, data }, 'running');
+  assert.deepEqual(metrics.map(metric => metric.key), ['speed', 'heartrate', 'cadence', 'power', 'stepLength', 'groundContactTime', 'verticalOscillation', 'verticalRatio']);
+  assert.equal(metrics.find(metric => metric.key === 'verticalOscillation').digits, 1);
+  assert.ok(!repTraces(reps, [], { ...series, data }, 'cycling').some(metric => metric.key === 'stepLength'), 'Mechanics are for running');
+  const tired = repMechanics(metrics);
+  assert.equal(tired.side, 2); close(tired.paceChange, 0, 1e-6); assert.equal(tired.verdict, 'tiring');
+  const row = key => tired.rows.find(item => item.key === key);
+  close(row('groundContactTime').across, 8, .01); assert.equal(row('groundContactTime').tiring, true);
+  close(row('cadence').across, -4, .01); assert.equal(row('cadence').tiring, true);
+  assert.equal(row('stepLength').tiring, false); assert.equal(row('verticalOscillation').tiring, false, 'A shift under 5% is noise');
+  close(row('cadence').within, 0, 1e-6); assert.ok(!tired.rows.some(item => item.key === 'speed' || item.key === 'heartrate'));
+
+  const steady = repMechanics(repTraces(reps, [], { ...series, data: { ...data, cadence: stream(186, 0), groundContactTime: stream(212, .5) } }, 'running'));
+  assert.equal(steady.verdict, 'held');
+  const lone = repMechanics(repTraces(reps, [], { ...series, data: { ...data, groundContactTime: stream(212, 0) } }, 'running'));
+  assert.equal(lone.verdict, 'mixed', 'Cadence alone trades against step length');
+  const slower = series.data.speed.map((value, i) => working(i) && repOf(i) >= 4 ? value * .94 : value);
+  assert.equal(repMechanics(repTraces(reps, [], { ...series, data: { ...data, speed: slower } }, 'running')).verdict, 'pace-changed', 'Slower late reps explain the mechanics');
+  assert.equal(repMechanics(repTraces(reps.slice(0, 3), [], { ...series, data }, 'running')).side, 1);
+  assert.equal(repMechanics([]), null); assert.equal(repMechanics(repTraces(reps, [], series, 'running').filter(metric => metric.key === 'heartrate')), null, 'No mechanics measure, no reading');
+  assert.equal(traceValueLabel({ key: 'verticalOscillation', pace: false, unit: 'cm', digits: 1 }, 8.26), '8.3');
+  console.log('Rep mechanics: running streams, early-to-late shifts, same-pace verdicts and noise limits passed.');
+}

@@ -5,7 +5,7 @@ type Bounds = { index: number; start: number; end: number };
 type Streams = Partial<Record<string, readonly unknown[]>>;
 type Series = { sampleSize?: unknown; data?: Streams };
 
-export type RepTraceMetricKey = 'power' | 'speed' | 'heartrate' | 'cadence';
+export type RepTraceMetricKey = 'power' | 'speed' | 'heartrate' | 'cadence' | 'stepLength' | 'groundContactTime' | 'verticalOscillation' | 'verticalRatio';
 export type RepTracePoint = { t: number; value: number | null };
 export type RepTrace = {
   index: number;
@@ -25,6 +25,7 @@ export type RepTraceMetric = {
   key: RepTraceMetricKey;
   label: string;
   unit: string;
+  digits: number;
   /** Running and swimming speed is read as pace; the scale stays in speed so faster is higher. */
   pace: boolean;
   traces: RepTrace[];
@@ -42,9 +43,13 @@ const ranges: Record<RepTraceMetricKey, [number, number]> = {
   speed: [.3, 30],
   heartrate: [30, 250],
   cadence: [20, 300],
+  stepLength: [20, 350],
+  groundContactTime: [50, 1000],
+  verticalOscillation: [1, 30],
+  verticalRatio: [1, 30],
 };
 // Seconds of centred smoothing: power and GPS speed are noisy sample to sample.
-const smoothing: Record<RepTraceMetricKey, number> = { power: 10, speed: 10, heartrate: 0, cadence: 5 };
+const smoothing: Record<RepTraceMetricKey, number> = { power: 10, speed: 10, heartrate: 0, cadence: 5, stepLength: 10, groundContactTime: 10, verticalOscillation: 10, verticalRatio: 10 };
 
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
@@ -94,12 +99,18 @@ export function repTraces(reps: readonly Rep[], alignedLaps: readonly Bounds[], 
   const aligned = new Map(alignedLaps.map(lap => [lap.index, lap]));
   const spans = reps.map(rep => repSeconds(rep, aligned, step));
   const pace = family !== 'cycling';
-  const candidates: Pick<RepTraceMetric, 'key' | 'label' | 'unit' | 'pace'>[] = [
+  const candidates: (Pick<RepTraceMetric, 'key' | 'label' | 'unit' | 'pace'> & { digits?: number })[] = [
     ...(family === 'cycling' ? [{ key: 'power' as const, label: 'Power', unit: 'W', pace: false }] : []),
     { key: 'speed', label: pace ? 'Pace' : 'Speed', unit: pace ? (family === 'swimming' ? '/100m' : '/km') : 'km/h', pace },
     { key: 'heartrate', label: 'Heart rate', unit: 'bpm', pace: false },
     { key: 'cadence', label: 'Cadence', unit: family === 'cycling' ? 'rpm' : 'spm', pace: false },
     ...(family !== 'cycling' ? [{ key: 'power' as const, label: 'Power', unit: 'W', pace: false }] : []),
+    ...(family === 'running' ? [
+      { key: 'stepLength' as const, label: 'Step length', unit: 'cm', pace: false },
+      { key: 'groundContactTime' as const, label: 'Ground contact', unit: 'ms', pace: false },
+      { key: 'verticalOscillation' as const, label: 'Vertical movement', unit: 'cm', pace: false, digits: 1 },
+      { key: 'verticalRatio' as const, label: 'Vertical ratio', unit: '%', pace: false, digits: 1 },
+    ] : []),
   ];
 
   return candidates.flatMap(metric => {
@@ -148,6 +159,7 @@ export function repTraces(reps: readonly Rep[], alignedLaps: readonly Bounds[], 
     const work = Math.max(...traces.map(trace => trace.work));
     return [{
       ...metric,
+      digits: metric.digits ?? 0,
       traces,
       domain: [Math.max(0, low - pad), high + pad],
       work,
@@ -167,11 +179,79 @@ export function traceValueAt(trace: RepTrace, seconds: number) {
 }
 
 /** Speed in m/s as a label: pace per km or 100 m for foot and swim, km/h for cycling. */
-export function traceValueLabel(metric: Pick<RepTraceMetric, 'key' | 'pace' | 'unit'>, value: number | null) {
+export function traceValueLabel(metric: Pick<RepTraceMetric, 'key' | 'pace' | 'unit'> & { digits?: number }, value: number | null) {
   if (value === null || !Number.isFinite(value)) return '—';
-  if (metric.key !== 'speed') return Math.round(value).toLocaleString('en-GB');
+  if (metric.key !== 'speed') return value.toLocaleString('en-GB', { minimumFractionDigits: metric.digits ?? 0, maximumFractionDigits: metric.digits ?? 0 });
   if (!metric.pace) return (value * 3.6).toLocaleString('en-GB', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   if (value <= 0) return '—';
   const seconds = Math.round((metric.unit === '/100m' ? 100 : 1000) / value);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+export type RepMechanicRow = {
+  key: RepTraceMetricKey;
+  label: string;
+  unit: string;
+  digits: number;
+  early: number;
+  late: number;
+  /** Late minus early, and the average second-half minus first-half change inside a rep. */
+  across: number;
+  within: number | null;
+  /** The change runs the way tiring form does and is larger than rep-to-rep noise. */
+  tiring: boolean;
+};
+export type RepMechanics = {
+  rows: RepMechanicRow[];
+  /** How many reps each side of the comparison averages. */
+  side: number;
+  /** Late pace relative to early; mechanics follow speed, so a verdict needs this near zero. */
+  paceChange: number | null;
+  verdict: 'tiring' | 'held' | 'mixed' | 'pace-changed';
+};
+
+// Which way each measure moves as form tires, and the share of its early value that counts as a real shift.
+const tiringSigns: Partial<Record<RepTraceMetricKey, [direction: 1 | -1, share: number, floor: number]>> = {
+  cadence: [-1, .02, 2],
+  stepLength: [-1, .02, 2],
+  groundContactTime: [1, .025, 5],
+  verticalOscillation: [1, .05, .3],
+  verticalRatio: [1, .05, .3],
+};
+const SAME_PACE = .03;
+
+function meanOf(values: readonly (number | null)[]) {
+  const known = values.filter(finite);
+  return known.length ? known.reduce((sum, value) => sum + value, 0) / known.length : null;
+}
+
+/** Running mechanics from the early reps to the late ones, read only as far as pace allows. */
+export function repMechanics(metrics: readonly RepTraceMetric[]): RepMechanics | null {
+  const count = Math.min(...metrics.map(metric => metric.traces.length));
+  if (!metrics.length || count < 2) return null;
+  const side = count >= 4 ? 2 : 1;
+  const ends = (metric: RepTraceMetric) => ({
+    early: meanOf(metric.traces.slice(0, side).map(trace => trace.mean)),
+    late: meanOf(metric.traces.slice(-side).map(trace => trace.mean)),
+  });
+  const rows = metrics.flatMap((metric): RepMechanicRow[] => {
+    const sign = tiringSigns[metric.key];
+    if (!sign) return [];
+    const { early, late } = ends(metric);
+    if (early === null || late === null || early <= 0) return [];
+    const [direction, share, floor] = sign, across = late - early;
+    const within = meanOf(metric.traces.map(trace => trace.firstHalf !== null && trace.secondHalf !== null ? trace.secondHalf - trace.firstHalf : null));
+    return [{ key: metric.key, label: metric.label, unit: metric.unit, digits: metric.digits, early, late, across, within,
+      tiring: across * direction >= Math.max(floor, early * share) }];
+  });
+  if (!rows.length) return null;
+  const speed = metrics.find(metric => metric.key === 'speed');
+  const pace = speed ? ends(speed) : null;
+  const paceChange = pace && pace.early !== null && pace.late !== null && pace.early > 0 ? pace.late / pace.early - 1 : null;
+  const tiring = rows.filter(row => row.tiring);
+  // Step length and cadence trade against each other at one speed, so contact time or two signals are needed.
+  const verdict = paceChange === null || Math.abs(paceChange) > SAME_PACE ? 'pace-changed'
+    : tiring.length >= 2 || tiring.some(row => row.key === 'groundContactTime') ? 'tiring'
+    : tiring.length === 0 ? 'held' : 'mixed';
+  return { rows, side, paceChange, verdict };
 }

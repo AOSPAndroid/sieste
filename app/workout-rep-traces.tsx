@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState, type CSSProperties, type PointerEvent } from 'react';
 import type { WorkoutRepAnalysis } from './workout-block-analysis-data';
-import { repTraces, traceValueAt, traceValueLabel, type RepTrace, type RepTraceMetric, type RepTraceMetricKey } from './workout-rep-traces-data';
+import { repMechanics, repTraces, traceValueAt, traceValueLabel, type RepMechanics, type RepTrace, type RepTraceMetric, type RepTraceMetricKey } from './workout-rep-traces-data';
 import './workout-rep-traces.css';
 
 type Props = {
@@ -96,7 +96,7 @@ function summary(metric: RepTraceMetric) {
   const name = metric.label.toLowerCase();
   // Two percent between halves is beyond what sample noise and terrain usually explain.
   const uneven = changes.filter(item => Math.abs(item.change) >= .02);
-  if (!uneven.length) return `Even pacing: ${name} held within 2% from the first half of every rep to the second.`;
+  if (!uneven.length) return `${metric.key === 'speed' || metric.key === 'power' ? 'Even pacing' : 'Steady'}: ${name} held within 2% from the first half of every rep to the second.`;
   const shared = uneven.every(item => item.change > 0 === uneven[0].change > 0);
   const size = mean(uneven.map(item => item.change))!;
   if (uneven.length === changes.length && shared) return `In every rep, ${name} ${changeLabel(metric, size)} from the first half to the second, on average.`;
@@ -106,11 +106,35 @@ function summary(metric: RepTraceMetric) {
   return `${uneven.length} of ${changes.length} reps changed ${name} by 2% or more between their halves.`;
 }
 
+function amount(value: number, digits: number, signed = false) {
+  const text = Math.abs(value).toLocaleString('en-GB', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  if (!signed) return text;
+  return Number(text) === 0 ? '0' : `${value < 0 ? '−' : '+'}${text}`;
+}
+
+/** What the early-to-late shifts mean, said only as firmly as the pace allows. */
+function mechanicsReading({ rows, verdict, paceChange, side }: RepMechanics) {
+  const span = side > 1 ? `the first ${side} reps to the last ${side}` : 'the first rep to the last';
+  if (verdict === 'pace-changed') {
+    return paceChange === null
+      ? 'Pace is unavailable, so these shifts cannot be separated from a change in speed.'
+      : `Pace ${paceChange > 0 ? 'quickened' : 'slowed'} ${percent(Math.abs(paceChange)).replace(/^[+−]/, '')} from ${span}; mechanics follow speed, so read these shifts with that in mind.`;
+  }
+  const tiring = rows.filter(row => row.tiring);
+  if (verdict === 'held') return `At the same pace, your mechanics held from ${span}.`;
+  const parts = tiring.slice(0, 3).map(row => `${row.label.toLowerCase()} ${row.across > 0 ? 'rose' : 'fell'} ${amount(row.across, row.digits)}${row.unit === '%' ? '%' : ` ${row.unit}`}`);
+  const changes = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : parts[0];
+  return verdict === 'tiring'
+    ? `At the same pace, ${changes} from ${span}: a sign your form was tiring.`
+    : `At the same pace, ${changes} from ${span}; on its own that is not a clear sign of tiring.`;
+}
+
 export default function WorkoutRepTraces({ reps, series, alignedLaps, family, selectedIndex, onSelect }: Props) {
   const headingId = useId();
   const metrics = useMemo(() => repTraces(reps, alignedLaps, series, family), [reps, alignedLaps, series, family]);
   const [choice, setChoice] = useState<RepTraceMetricKey | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
+  const mechanics = useMemo(() => family === 'running' ? repMechanics(metrics) : null, [metrics, family]);
   if (!metrics.length) return null;
   const metric = metrics.find(item => item.key === choice) ?? metrics[0];
   const { traces, domain, extent, work } = metric;
@@ -231,6 +255,37 @@ export default function WorkoutRepTraces({ reps, series, alignedLaps, family, se
           </dl>
         ) : <p><span>Drag across the chart to read a moment; tap a rep number to highlight it.</span></p>}
       </div>
+      {mechanics && (
+        <div className="workout-rep-traces-mechanics">
+          <h6>Mechanics through the set</h6>
+          <p>{mechanicsReading(mechanics)}</p>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Measure</th>
+                <th scope="col">{mechanics.side > 1 ? `First ${mechanics.side}` : 'First rep'}</th>
+                <th scope="col">{mechanics.side > 1 ? `Last ${mechanics.side}` : 'Last rep'}</th>
+                <th scope="col">Change</th>
+                <th scope="col" title="Average change from the first half of a rep to its second half">In a rep</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mechanics.rows.map(row => (
+                <tr key={row.key} data-tiring={row.tiring && mechanics.verdict !== 'pace-changed' || undefined}>
+                  <th scope="row">
+                    <button type="button" aria-pressed={row.key === metric.key} aria-label={`Show ${row.label.toLowerCase()} on the chart`}
+                      onClick={() => { setChoice(row.key); setCursor(null); }}>{row.label} <small>{row.unit}</small></button>
+                  </th>
+                  <td>{amount(row.early, row.digits)}</td>
+                  <td>{amount(row.late, row.digits)}</td>
+                  <td>{amount(row.across, row.digits, true)}</td>
+                  <td>{row.within === null ? '—' : amount(row.within, row.digits, true)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   );
 }

@@ -249,3 +249,90 @@
   font-size: .6875rem;
   font-weight: 500;
 }
+
+/* Seven measures do not fit one row on a phone: the switch scrolls sideways instead of wrapping. */
+.workout-rep-traces-metrics {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.workout-rep-traces-metrics button {
+  flex: none;
+  white-space: nowrap;
+}
+
+.workout-rep-traces-mechanics {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rep-trace-rule);
+}
+
+.workout-rep-traces .workout-rep-traces-mechanics h6 {
+  margin: 0;
+  font-size: .8125rem;
+  font-weight: 650;
+}
+
+.workout-rep-traces .workout-rep-traces-mechanics p {
+  margin: 6px 0 10px;
+  font-size: .8125rem;
+  line-height: 1.4;
+}
+
+.workout-rep-traces-mechanics table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .75rem;
+}
+
+.workout-rep-traces-mechanics :is(th, td) {
+  padding: 7px 0 7px 8px;
+  border-top: 1px solid var(--rep-trace-rule);
+  text-align: right;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.workout-rep-traces-mechanics thead th {
+  border-top: 0;
+  color: var(--muted-foreground);
+  font-size: .6875rem;
+}
+
+.workout-rep-traces-mechanics :is(th, td):first-child {
+  padding-left: 0;
+  text-align: left;
+  white-space: normal;
+}
+
+.workout-rep-traces-mechanics tbody button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.workout-rep-traces-mechanics tbody button[aria-pressed=true] {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.workout-rep-traces-mechanics tbody small {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.workout-rep-traces-mechanics tr[data-tiring] td:nth-child(4) {
+  color: #c2410c;
+  font-weight: 650;
+}
+
+.workout-rep-traces-mechanics :is(th, td, button) {
+  letter-spacing: 0;
+  text-transform: none;
+}
