@@ -1,8 +1,9 @@
 "use client";
 import WeeklyVolume from './weekly-volume';
 import FatigueRecovery from './fatigue-recovery';
+import RecoveryMatrix from './recovery-matrix';
 import type {AthleteData} from './analytics';
 
 export default function HomeAnalysisWidgets({data,now}:{data:AthleteData;now:Date;isDemo?:boolean}){
- return <><WeeklyVolume data={data} now={now}/><FatigueRecovery data={data} now={now}/></>;
+ return <><WeeklyVolume data={data} now={now}/><FatigueRecovery data={data} now={now}/><RecoveryMatrix data={data} now={now}/></>;
 }

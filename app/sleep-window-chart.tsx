@@ -1,5 +1,6 @@
 'use client';
 import {useState} from 'react';
+import {dateLabel} from './date-label';
 import {Moon,Sunrise,Clock3} from 'lucide-react';
 import {lateBedtime} from './sleep-insights-data';
 import {sleepTiming,clockLabel} from './sleep-timing-data';
@@ -23,7 +24,7 @@ export default function SleepWindowChart({data,onSelect,selectedDate,overlay=nul
  const path=(key:'bed'|'wake')=>{let connected=false;return rows.map((r,i)=>{if(r.bed===null||r.wake===null){connected=false;return ''}const command=connected?'L':'M';connected=true;return `${command}${x(i)},${y(r[key]!)}`}).join(' ')};
  const label=(r:typeof rows[number])=>`${r.date}: bedtime ${r.bed===null?'not recorded':clockLabel(r.bed)}, wake time ${r.wake===null?'not recorded':clockLabel(r.wake)}${r.hours===null?'':`, ${sleepDuration(r.hours)} asleep`}${r.bed!==null&&lateBedtime(r.bed)?', after midnight':''}`;
  return <div className="sleep-window-plot">
-  <div className="sleep-window-selection"><span>{active?.date??'Selected night'}</span><small>Selected night</small></div>
+  <div className="sleep-window-selection"><span>{active?.date?dateLabel(active.date):'Selected night'}</span></div>
   <div className="sleep-window-readout" aria-live="polite">
    <div><small><Clock3 aria-hidden="true"/> Asleep</small><strong>{active?.hours==null?'—':sleepDuration(active.hours)}</strong></div>
    <div><small><Moon aria-hidden="true"/> Bedtime</small><strong>{active?.bed==null?'—':clockLabel(active.bed)}</strong></div>

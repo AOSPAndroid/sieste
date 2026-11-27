@@ -30,7 +30,7 @@ function Today({data,isDemo,token,onSelect}:{data:AthleteData;isDemo:boolean;tok
  return <section className="home-board" aria-label="Training at a glance">
  <header className="home-range-control home-toolbar">
   <div className="home-toolbar-heading">
-   <time dateTime={localDate(now)} title={now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}>{now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})}</time>
+   <time dateTime={localDate(now)} title={now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}><span className="home-date-long">{now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})}</span><span className="home-date-short">{now.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</span></time>
    <div className="home-period-navigation" role="group" aria-label="Browse homepage dates">
     <Button variant="ghost" size="icon" aria-label="Previous period" onClick={()=>setOffset(v=>v+1)}><ChevronLeft data-icon="inline-start"/></Button>
     <Button variant="ghost" size="icon" aria-label="Next period" disabled={!offset} onClick={()=>setOffset(v=>Math.max(0,v-1))}><ChevronRight data-icon="inline-start"/></Button>
