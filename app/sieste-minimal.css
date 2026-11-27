@@ -133,7 +133,7 @@ body:has(.sieste-v3.shell),
 }
 
 /* Workout sheet: white page, sections under hairlines, tiles without frames. */
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet :is(
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet :is(
   .activity-glance-card,
   .workout-route-analysis,
   .zone-strip,
@@ -144,7 +144,7 @@ body:has(.sieste-v3.shell),
 }
 
 
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs-bar {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs-bar {
   background: rgba(255, 255, 255, .9);
   box-shadow: 0 1px 0 var(--ws-line);
 }
@@ -173,37 +173,37 @@ body:has(.sieste-v3.shell),
 }
 
 /* Workout sheet tiles: selectable ones are grey chips, static ones are plain. */
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments > button {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments > button {
   border: 0;
   border-radius: 10px;
   background: var(--m-fill, rgba(11, 18, 32, .045)) !important;
   box-shadow: none !important;
 }
 
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments > button[aria-pressed=true] {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .unified-segments > button[aria-pressed=true] {
   background: rgba(11, 18, 32, .1) !important;
   box-shadow: none !important;
 }
 
-:is(.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet, .metric-expansion) .section-trend li {
+:is(.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet, .metric-expansion) .section-trend li {
   padding: 8px 0;
   border-top: 1px solid var(--ws-line, rgba(11, 18, 32, .09));
   border-radius: 0 !important;
   box-shadow: none !important;
 }
 
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-map {
   border-radius: 12px;
   overflow: hidden;
 }
 
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(.workout-route-analysis, .workout-squares, .zone-strip, .workout-more) {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(.workout-route-analysis, .workout-squares, .zone-strip, .workout-more) {
   margin-top: 10px;
   padding-top: 20px !important;
   border-top: 1px solid var(--ws-line);
 }
 
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body .workout-route-analysis:first-child {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body .workout-route-analysis:first-child {
   margin-top: 0;
   padding-top: 0 !important;
   border-top: 0;
@@ -243,7 +243,7 @@ body:has(.sieste-v3.shell),
 }
 
 /* Workout tiles size to their content once they are no longer boxes. */
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-square-grid > .activity-glance-card {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-square-grid > .activity-glance-card {
   aspect-ratio: auto !important;
   gap: 10px;
   padding-inline: 0 !important;
@@ -259,11 +259,11 @@ body:has(.sieste-v3.shell),
 }
 
 /* The sheet carries the gutter; its sections carry none. */
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body {
   padding-inline: 20px;
 }
 
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(
   .workout-route-analysis,
   .workout-squares,
   .zone-strip,
@@ -571,7 +571,7 @@ body:has(.sieste-v3) .home-snapshot-actions button:not([data-slot]) {
   color: var(--m-ink);
 }
 
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(.workout-route-analysis, .workout-squares, .zone-strip, .workout-more) > :is(h3, header, div):first-child :is(h3) {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(.workout-route-analysis, .workout-squares, .zone-strip, .workout-more) > :is(h3, header, div):first-child :is(h3) {
   font-size: 18px;
   font-weight: 650;
   letter-spacing: -.02em;
@@ -603,8 +603,8 @@ body:has(.sieste-v3) .home-snapshot-actions button:not([data-slot]) {
   border-radius: 999px !important;
 }
 
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-analysis > :not(.workout-route-map),
-.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-analysis .unified-profile {
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-analysis > :not(.workout-route-map),
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-analysis .unified-profile {
   padding-inline: 0 !important;
 }
 
@@ -612,4 +612,107 @@ body:has(.sieste-v3) .home-snapshot-actions button:not([data-slot]) {
   border: 0 !important;
   border-radius: 12px;
   background: var(--m-fill) !important;
+}
+
+/* ── UI pass: one gutter, one heading scale, steadier tiles, visible focus ── */
+
+/* Keyboard focus is the same ring everywhere. */
+:is(.sieste-v3, .workout-sheet, .metric-expansion, .athena-chat) :is(button, a, select, input, summary, [role=tab], [tabindex]):focus-visible {
+  outline: 2px solid var(--m-ink, #0b1220);
+  outline-offset: 2px;
+}
+
+/* Home: empty health tiles take no chart space; day columns end without a rule. */
+.sieste-v3 main .home-board .health-headline:has(.no-data) > :is(svg, .no-data) {
+  display: none;
+}
+
+.sieste-v3 main .home-board .home-calendar .home-day-sessions,
+.sieste-v3 main .home-board .home-calendar .home-day-sessions button.calendar-session-preview,
+.sieste-v3 main .home-board .home-calendar .home-week-day {
+  border-bottom: 0 !important;
+}
+
+.sieste-v3 main .weekly-volume-modern,
+.sieste-v3 main .weekly-volume-modern > header,
+.sieste-v3 main .weekly-volume-modern > header > .volume-heading {
+  padding-inline: 0 !important;
+  margin-inline: 0;
+}
+
+.sieste-v3 main .volume-heading > span {
+  font-size: 12px;
+}
+
+/* Sleep: numbers are ink; the status colour stays on the status line. */
+.sieste-v3 .sleep-page .sleep-vital-cards strong {
+  color: var(--m-ink);
+}
+
+/* Workout sheet: every section heading is the same size on the same edge. */
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(
+  .workout-route-analysis header h3,
+  .unified-profile > header h3,
+  .workout-squares > h3,
+  .zone-strip header h3,
+  .workout-more > h3,
+  .workout-more > header h3
+) {
+  margin-inline: 0;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+}
+
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .detail-tabs-bar {
+  padding-inline: 20px;
+}
+
+/* Tiles: the value sits right under its label in every tile. */
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-square-grid .activity-glance-value {
+  margin-top: 8px;
+}
+
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-square-grid > .activity-glance-card :is(svg.activity-microchart, .activity-microchart) {
+  margin-top: auto;
+}
+
+/* First-versus-last readings: a plain two-column list on the page edge. */
+:is(.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet, .metric-expansion) .section-trend li {
+  padding: 10px 0 !important;
+}
+
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-splits-head {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: lowercase;
+}
+
+.sieste-v3 main .home-board .home-calendar .calendar-lap-preview {
+  border-top: 0;
+}
+
+/* The reps summary is a section like the others, not a card. */
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet :is(.workout-blocks, [data-slot=card]) {
+  padding-inline: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: 0 0 #0000;
+}
+
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet :is(.workout-blocks, [data-slot=card]) > [data-slot] {
+  padding-inline: 0 !important;
+}
+
+/* A long zone note drops under the heading; the heading never wraps. */
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip header {
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+
+.sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip header h3 {
+  white-space: nowrap;
 }
