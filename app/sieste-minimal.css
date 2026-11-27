@@ -377,3 +377,239 @@ body:has(.sieste-v3) .home-snapshot-actions button:not([data-slot]) {
 .sieste-v3 main .weekly-volume .volume-heading {
   padding-inline: 0;
 }
+
+/* ── 2026 pass: one control language, one type scale, no leftover boxes ── */
+:is(.sieste-v3, .workout-sheet, .metric-expansion, .athena-chat) {
+  --m-ink: #0b1220;
+  --m-muted: #5b6678;
+  --m-line: rgba(11, 18, 32, .08);
+  --m-fill: rgba(11, 18, 32, .05);
+}
+
+/* Selects and inputs: borderless grey fields. */
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) select {
+  min-height: 34px;
+  padding-block: 0;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background-color: var(--m-fill) !important;
+  box-shadow: none !important;
+  color: var(--m-ink);
+  font-size: 13px;
+  font-weight: 550;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(
+  input:not([type=checkbox], [type=radio], [type=range], [data-slot=input-group-control]),
+  [data-slot=input-group]
+) {
+  border: 0 !important;
+  border-radius: 12px !important;
+  background-color: var(--m-fill) !important;
+  box-shadow: none !important;
+}
+
+/* Secondary buttons: grey pills. */
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(
+  .lab-button,
+  .tool-controls > button,
+  .workspace-tool-buttons > button,
+  .log-advanced-toggle,
+  .studio-tabs > button,
+  .journal-mode-action,
+  .workout-block-analysis-toggle,
+  .journal-zones-fold nav > button,
+  .sleep-night-log header > button,
+  .compact-laps header button,
+  .expanded-controls button
+) {
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--m-fill) !important;
+  box-shadow: none !important;
+  color: var(--m-ink) !important;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) .studio-tabs > button[aria-pressed=true] {
+  background: var(--m-ink) !important;
+  color: #fff !important;
+}
+
+/* Segmented switches: a grey track, the choice in white. */
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(
+  .workout-explorer-nav,
+  .technique-scope,
+  .history-periods,
+  .journal-sport-toggle
+) {
+  gap: 2px;
+  padding: 3px;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--m-fill) !important;
+  box-shadow: none !important;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(
+  .workout-explorer-nav,
+  .technique-scope,
+  .history-periods,
+  .journal-sport-toggle
+) > button {
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--m-muted);
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(
+  .workout-explorer-nav,
+  .technique-scope,
+  .history-periods,
+  .journal-sport-toggle
+) > button:is([aria-pressed=true], [aria-selected=true], [data-state=on], [data-state=active], .active) {
+  background: #fff !important;
+  color: var(--m-ink);
+}
+
+/* Tables: no header band, no stripes, no frame. */
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(th, tr, td) {
+  background: transparent !important;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) th {
+  color: var(--m-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) td {
+  font-size: 12.5px;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) td.technique-current {
+  border-block: 0 !important;
+  color: var(--m-ink);
+  font-weight: 650;
+}
+
+/* Tiles and panels inside a view: plain blocks. */
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(
+  .table-wrap,
+  .technique-table-scroll,
+  .workout-highlights > div,
+  .running-best-grid > div,
+  .running-repeat,
+  .ride-primary > div,
+  .ride-bests > div,
+  .ride-lab-metrics > div,
+  .ride-signal,
+  .ride-verdict,
+  .coach-grid,
+  .coach-tile,
+  .economy-windows > li,
+  .expanded-assessment,
+  .load-tool-recovery > span,
+  .load-guidance,
+  .workout-analysis-recovery-averages,
+  .widget-comparisons > div,
+  .lab-grid > .panel,
+  .compact-laps,
+  .activity-advanced-laps,
+  .workout-explorer-map,
+  .route-selection-status,
+  .workout-context-node,
+  .sleep-night-log > summary,
+  .home-insight-ribbon
+) {
+  border-color: var(--m-line) !important;
+  border-inline: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(
+  .workout-highlights > div,
+  .running-best-grid > div,
+  .ride-primary > div,
+  .ride-bests > div,
+  .ride-lab-metrics > div,
+  .ride-signal,
+  .ride-verdict,
+  .running-repeat,
+  .economy-windows > li,
+  .expanded-assessment,
+  .load-tool-recovery > span,
+  .load-guidance,
+  .workout-analysis-recovery-averages,
+  .compact-laps,
+  .activity-advanced-laps,
+  .lab-grid > .panel
+) {
+  padding-inline: 0 !important;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(.compact-laps, .activity-advanced-laps, .lab-grid > .panel) {
+  border-block: 0 !important;
+  border-top: 1px solid var(--m-line) !important;
+}
+
+/* Type: nothing under 11.5px, quiet labels, tight headings. */
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) small {
+  font-size: max(11.5px, .72em);
+}
+
+.sieste-v3 main h2 {
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -.022em !important;
+  line-height: 1.2;
+  color: var(--m-ink);
+}
+
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .activity-sheet-body :is(.workout-route-analysis, .workout-squares, .zone-strip, .workout-more) > :is(h3, header, div):first-child :is(h3) {
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+}
+
+/* Sections breathe. */
+.sieste-v3 main .home-board .snapshot-home-layout :is([data-slot=card]:not(.home-calendar, .health-headlines), .weekly-volume, .load-analysis) {
+  margin-top: 14px;
+  padding-top: 28px;
+}
+
+/* Motion: quick, small, and off when the system asks for less. */
+@media (prefers-reduced-motion: no-preference) {
+  :is(.sieste-v3, .workout-sheet, .metric-expansion, .athena-chat) :is(button, select, summary, [role=tab]) {
+    transition: background-color .16s ease, color .16s ease, opacity .16s ease, transform .12s ease;
+  }
+
+  :is(.sieste-v3, .workout-sheet, .metric-expansion, .athena-chat) button:active {
+    transform: scale(.97);
+  }
+}
+
+/* Headings are ink; colour belongs to data. */
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) :is(h3, h4, h5, h6) {
+  color: var(--m-ink) !important;
+}
+
+:is(.sieste-v3 main, .metric-expansion .expanded-widget) .load-overlay-legend [data-slot=toggle-group-item] {
+  border-radius: 999px !important;
+}
+
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-analysis > :not(.workout-route-map),
+.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .workout-route-analysis .unified-profile {
+  padding-inline: 0 !important;
+}
+
+.sieste-v3 main .journal-filter-fold {
+  border: 0 !important;
+  border-radius: 12px;
+  background: var(--m-fill) !important;
+}
