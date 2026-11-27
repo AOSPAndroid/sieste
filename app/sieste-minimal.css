@@ -716,3 +716,102 @@ body:has(.sieste-v3) .home-snapshot-actions button:not([data-slot]) {
 .sieste-v3.activity-layer .activity-card-stack .workout-modal.modal.workout-sheet .zone-strip header h3 {
   white-space: nowrap;
 }
+
+/* ── Leftovers: pieces that still wore the old look ── */
+
+/* Disclosure rows: one chevron, no browser triangle. */
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) details > summary::-webkit-details-marker {
+  display: none;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) details:not(:has(> summary svg)) > summary::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  opacity: .6;
+  transform: translateY(-3px) rotate(45deg);
+  transition: transform .16s ease;
+}
+
+:is(.sieste-v3 main, .workout-sheet, .metric-expansion .expanded-widget) details[open]:not(:has(> summary svg)) > summary::after {
+  transform: translateY(0) rotate(-135deg);
+}
+
+/* Desktop rail and chat button: no outline, same quiet surface as the phone dock. */
+@media (min-width: 1050px) {
+  .sieste-v3 .mini-dock {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+body:has(.sieste-v3) > .athena-launcher {
+  border: 0;
+  color: #0b1220;
+}
+
+/* The day strip above an open workout is a plain line of readings. */
+.sieste-v3 .activity-daily-peek {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Weather: the map stays inside the page edge; day tabs and the verdict badge match the other controls. */
+.sieste-v3 .weather-recon .weather-map {
+  margin-inline: 0 !important;
+  border: 0 !important;
+  border-radius: 12px;
+}
+
+.sieste-v3 .weather-recon .weather-days [data-slot=button] {
+  border: 0 !important;
+  border-radius: 12px;
+  box-shadow: none !important;
+}
+
+.sieste-v3 .weather-recon [data-slot=badge] {
+  border: 0;
+  background: var(--m-fill);
+}
+
+/* Sleep on wide screens: readings line up on the left edge and the chart uses its column. */
+@media (min-width: 900px) {
+  .sieste-v3 .sleep-focus .sleep-window-hero {
+    padding-inline: 0;
+  }
+
+  .sieste-v3 .sleep-focus .sleep-window-readout {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .sieste-v3 .sleep-focus .sleep-window-readout > div {
+    align-items: flex-start;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .sieste-v3 .sleep-focus .sleep-window-timeline > svg {
+    width: 100%;
+    max-height: 420px;
+  }
+}
+
+.sieste-v3 .sleep-focus .sleep-window-selection span {
+  font-size: 14px;
+  font-weight: 600;
+}
