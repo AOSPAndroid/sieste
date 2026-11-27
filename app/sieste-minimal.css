@@ -273,3 +273,107 @@ body:has(.sieste-v3.shell),
 ) {
   padding-inline: 0 !important;
 }
+
+/* Empty health tiles show the dash alone. */
+.sieste-v3 main .home-board .health-headline .no-data {
+  visibility: hidden;
+}
+
+/* Weather: the same unframed sections, with tints kept only for rain itself. */
+.sieste-v3 .weather-recon :is(.weather-nowcast, .weather-rules) {
+  padding-inline: 0;
+  border: 0;
+  border-top: 1px solid var(--m-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sieste-v3 .weather-recon .weather-nowcast {
+  border-top: 0;
+}
+
+.sieste-v3 .weather-recon .weather-hour-table .weather-hour {
+  background: transparent !important;
+}
+
+.sieste-v3 .weather-recon .weather-hours-footer {
+  justify-content: flex-start;
+  padding-inline: 0;
+  border-top: 0;
+  background: transparent;
+}
+
+.sieste-v3 .weather-recon .weather-models {
+  padding-inline: 0;
+  border-radius: 0;
+  background: transparent !important;
+}
+
+.sieste-v3 .weather-recon .weather-days [data-slot=button][aria-pressed=true] {
+  background: var(--m-fill);
+  box-shadow: none;
+}
+
+.sieste-v3 .weather-recon .weather-rules > [data-slot=button] {
+  border: 0;
+  background: var(--m-fill);
+}
+
+/* Dialogs float, so they keep a surface, but only one: no inner frames or tinted buttons. */
+.metric-expansion .expanded-widget,
+.sieste-v3 .overlay > .modal {
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -30px rgba(11, 18, 32, .35);
+}
+
+.metric-expansion .expanded-widget > header {
+  border-bottom: 0;
+}
+
+.sieste-v3 .overlay .modal > header {
+  box-shadow: none;
+}
+
+.metric-expansion .expanded-widget > header > [data-slot=button] {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, .05);
+  color: #0b1220;
+}
+
+body:has(.sieste-v3) .home-snapshot-actions button:not([data-slot]) {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, .05) !important;
+  color: #0b1220 !important;
+}
+
+/* Chat: suggestions read as a plain list. */
+.athena-chat > header {
+  border-bottom: 0;
+}
+
+.athena-chat .athena-suggestions > [data-slot=button] {
+  padding-inline: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(11, 18, 32, .09);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #0b1220;
+}
+
+.athena-chat .athena-compose {
+  border: 0;
+  background: rgba(11, 18, 32, .045);
+}
+
+.athena-chat [data-slot=empty-icon] {
+  display: none;
+}
+
+.sieste-v3 main .weekly-volume .volume-heading {
+  padding-inline: 0;
+}

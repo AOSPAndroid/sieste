@@ -277,7 +277,7 @@ export default function WorkoutRepTraces({ reps, series, alignedLaps, family, se
               </>
             )}
           </dl>
-        ) : <p><span>Drag across the chart to read a moment; tap a rep number to highlight it.</span></p>}
+        ) : null}
       </div>
       {mechanics && (
         <div className="workout-rep-traces-mechanics">
