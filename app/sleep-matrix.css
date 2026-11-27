@@ -1,0 +1,239 @@
+.sleep-matrix {
+  --matrix-ink: #0b1220;
+  --matrix-muted: #5b6678;
+  --matrix-line: rgba(11, 18, 32, .1);
+  --matrix-blue: #2f6fed;
+  min-width: 0;
+  margin-top: 14px;
+  padding-top: 30px;
+  border-top: 1px solid var(--matrix-line);
+  font-variant-numeric: tabular-nums;
+}
+
+.sieste-v3 main .sleep-matrix > h2 {
+  max-width: 22em;
+  margin: 0;
+  font-size: clamp(24px, 6.4vw, 34px) !important;
+  font-weight: 700 !important;
+  letter-spacing: -.03em !important;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.sleep-matrix-lede {
+  max-width: 34em;
+  margin: 12px 0 18px;
+  color: var(--matrix-muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.sleep-matrix-card {
+  padding: 18px 16px 14px;
+  border: 1px solid var(--matrix-line);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.sleep-matrix-card > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.sieste-v3 main .sleep-matrix-card h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+
+.sleep-matrix-card h3 small {
+  color: var(--matrix-muted);
+  font-size: 13px !important;
+  font-weight: 500;
+}
+
+.sleep-matrix-metrics {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, .05);
+}
+
+.sleep-matrix-metrics button {
+  min-height: 28px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--matrix-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sleep-matrix-metrics button[aria-pressed=true] {
+  background: #fff;
+  color: var(--matrix-ink);
+}
+
+.sleep-matrix-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--matrix-muted);
+  font-size: 12px;
+}
+
+.sleep-matrix-legend i {
+  display: flex;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.sleep-matrix-legend b,
+.sleep-matrix-grid button {
+  background: color-mix(in oklab, var(--matrix-blue) calc(8% + var(--level, 0) * 92%), #eef0f4);
+}
+
+.sleep-matrix-legend b {
+  width: 22px;
+  height: 12px;
+}
+
+.sleep-matrix-grid {
+  display: grid;
+  gap: 4px;
+}
+
+.sleep-matrix-grid [role=row] {
+  display: grid;
+  grid-template-columns: 2.9rem repeat(var(--columns), minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+}
+
+.sleep-matrix-grid [role=rowheader],
+.sleep-matrix-columns span {
+  color: var(--matrix-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.sleep-matrix-grid [role=rowheader] {
+  padding-right: 6px;
+  text-align: right;
+}
+
+.sleep-matrix-columns {
+  margin-top: 4px;
+}
+
+.sleep-matrix-columns span {
+  text-align: center;
+}
+
+.sleep-matrix-grid [role=cell] {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: var(--matrix-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  letter-spacing: -.01em;
+}
+
+.sleep-matrix-grid button[role=cell] {
+  cursor: pointer;
+}
+
+.sieste-v3 main .sleep-matrix .sleep-matrix-grid button[role=cell] {
+  color: var(--matrix-ink);
+}
+
+.sieste-v3 main .sleep-matrix .sleep-matrix-grid button[role=cell][data-strong] {
+  color: #fff;
+}
+
+.sleep-matrix-grid .is-blank {
+  background: rgba(11, 18, 32, .025);
+}
+
+/* The two cells the headline compares. */
+.sleep-matrix-grid .is-marked {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--matrix-ink);
+  position: relative;
+  z-index: 1;
+}
+
+.sleep-matrix-note {
+  min-height: 2.6em;
+  margin: 14px 0 0;
+  color: var(--matrix-muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.sleep-matrix-note strong {
+  color: var(--matrix-ink);
+  font-weight: 650;
+}
+
+.sleep-matrix-caveat {
+  margin: 12px 0 0;
+  color: var(--matrix-muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .sleep-matrix-card {
+    padding-inline: 10px;
+  }
+
+  .sleep-matrix-grid,
+  .sleep-matrix-grid [role=row] {
+    gap: 3px;
+  }
+
+  .sleep-matrix-grid [role=row] {
+    grid-template-columns: 2.5rem repeat(var(--columns), minmax(0, 1fr));
+  }
+
+  .sleep-matrix-grid [role=cell] {
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .sleep-matrix-grid [role=rowheader],
+  .sleep-matrix-columns span {
+    font-size: 10.5px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sleep-matrix-grid button[role=cell] {
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+
+  .sleep-matrix-grid button[role=cell]:hover {
+    transform: scale(1.06);
+  }
+}
+
+/* On wide screens the table keeps a readable width instead of stretching its cells. */
+.sleep-matrix-card {
+  max-width: 820px;
+}
